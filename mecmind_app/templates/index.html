@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}MecMind - Página Inicial{% endblock %}
+
+{% block extra_css %}{% endblock %}
+
+{% block content %}
+
+<section class="tools-section">
+    <div class="section-header">
+        <h2><i class="fas fa-toolbox"></i> Ferramentas</h2>
+    </div>
+
+    <div class="tools-grid">
+        <div class="tool-card" data-category="Eixos">
+            <div class="tool-image">
+                <a href="/analise_eixo"><img src="{% static 'images/eixo.png' %}" alt="Eixos" class="placeholder"></a>
+            </div>
+            <div class="tool-info">
+                <h3>Análise de Eixos</h3>
+                <p>Ferramenta especializada em eixos e barras redondas</p>
+                <a href="/analise_eixo" class="tool-link">Acessar <i class="fas fa-chevron-right"></i></a>
+            </div>
+        </div>
+
+        <div class="tool-card" data-category="Chapas">
+            <div class="tool-image">
+                <a href="/analise_chapa"><img src="{% static 'images/chapa.png' %}" alt="Chapas" style="width: 200px;" class="placeholder"></a>
+            </div>
+            <div class="tool-info">
+                <h3>Análise de Chapas</h3>
+                <p>Ferramenta especializada em chapas finas e chapas grossas</p>
+                <a href="/analise_chapa" class="tool-link">Acessar <i class="fas fa-chevron-right"></i></a>
+            </div>
+        </div>
+
+        <div class="tool-card" data-category="Tubos">
+            <div class="tool-image">
+                <a href="/analise_tubo"><img src="{% static 'images/tubo.png' %}" alt="Tubos" style="width: 200px;" class="placeholder"></a>
+            </div>
+            <div class="tool-info">
+                <h3>Análise de Tubos</h3>
+                <p>Ferramenta especializada em tubos</p>
+                <a href="/analise_tubo" class="tool-link">Acessar <i class="fas fa-chevron-right"></i></a>
+            </div>
+        </div>
+
+        <div class="tool-card" data-category="Montagem">
+            <div class="tool-image">
+                <a href="/analise_montagem"><img src="{% static 'images/montagem.png' %}" alt="Montagem" style="width: 200px;" class="placeholder"></a>
+            </div>
+            <div class="tool-info">
+                <h3>Análise de Montagens</h3>
+                <p>Ferramenta especializada em analisar desenhos que contenham montagens de caldeiraria</p>
+                <a href="/analise_montagem" class="tool-link">Acessar <i class="fas fa-chevron-right"></i></a>
+            </div>
+        </div>
+
+        <div class="tool-card" data-category="Soldas">
+            <div class="tool-image">
+                <a href="/analise_solda"><img src="{% static 'images/solda.png' %}" alt="Soldas" style="width: 200px;" class="placeholder"></a>
+            </div>
+            <div class="tool-info">
+                <h3>Análise de soldas</h3>
+                <p>Ferramenta especializada em analisar desenhos com soldas específicas</p>
+                <a href="/analise_solda" class="tool-link">Acessar <i class="fas fa-chevron-right"></i></a>
+            </div>
+        </div>
+
+        <div class="tool-card" data-category="Geral">
+            <div class="tool-image">
+                <a href="/analise_geral"><img src="{% static 'images/placeholder.png' %}" alt="Geral" class="placeholder"></a>
+            </div>
+            <div class="tool-info">
+                <h3>Análise geral</h3>
+                <p>Ferramentas para uma análise de desenhos mecânicos gerais</p>
+                <a href="/analise_geral" class="tool-link">Acessar <i class="fas fa-chevron-right"></i></a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

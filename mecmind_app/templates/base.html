@@ -1,0 +1,62 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MecMind - Análise de Projetos Mecânicos{% endblock %}</title>
+
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/home-style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    <div class="top-bar">
+        <div class="logo">
+            <a href="/"><img style="width: 70px; height: 70px;" src="{% static 'images/logo.png' %}"></a>
+            <a class="home-link" href="/">MecMind</a>
+        </div>
+        <nav class="main-nav">
+            <ul>
+                <li><a href="/" class="{% if request.path == '/' %}active{% endif %}"><i class="fas fa-home"></i> Início</a></li>
+                <li><a href="/projetos" class="{% if request.path == '/projetos' %}active{% endif %}"><i class="fas fa-project-diagram"></i> Meus Projetos</a></li>
+                <li><a href="/documentacao" class="{% if request.path == '/documentacao' %}active{% endif %}"><i class="fas fa-info-circle"></i> Documentação</a></li>
+                <li><a href="/suporte" class="{% if request.path == '/suporte' %}active{% endif %}"><i class="fas fa-headset"></i> Suporte</a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-left">
+                <div class="footer-logo">
+                    <a href="/" data-tooltip="Início"><img style="width: 60px; height: 60px;" src="{% static 'images/logo.png' %}"></a>
+                </div>
+
+                <div class="footer-links">
+                    <a href="/documentacao" data-tooltip="Documentação">
+                        <i class="fas fa-book"></i>
+                    </a>
+
+                    <a href="/suporte" data-tooltip="Suporte">
+                        <i class="fas fa-headset"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="footer-copyright">
+                &copy; 2025 MecMind - Todos os direitos reservados
+            </div>
+        </div>
+    </footer>
+
+    {% block scripts %}
+    <script src="{% static 'js/script.js' %}"></script>
+    {% endblock %}
+</body>
+</html>

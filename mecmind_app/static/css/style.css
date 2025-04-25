@@ -1,0 +1,406 @@
+/* Reset básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --royal-blue: #4169E1;
+    --white: #FFFFFF;
+    --light-gray: #D3D3D3;
+    --black: #000000;
+    --dark-blue: #0A1931;
+    --royal-blue-light: #6384e6;
+    --dark-blue-light: #162a48;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: var(--dark-blue);
+    background-color: #f0f4ff;
+    padding: 20px;
+}
+
+.container {
+    max-width: 100%;
+    background: var(--white);
+    box-shadow: 0 8px 30px rgba(10, 25, 49, 0.15);
+    overflow: hidden;
+}
+
+header {
+    text-align: center;
+    padding: 40px 20px;
+    background: linear-gradient(135deg, var(--royal-blue), var(--dark-blue));
+    color: var(--white);
+    position: relative;
+    overflow: hidden;
+}
+
+header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M95,50 L80,35 L80,65 Z M20,50 L35,35 L35,65 Z" fill="rgba(255,255,255,0.05)"/></svg>') repeat;
+    opacity: 0.3;
+}
+
+header h1 {
+    margin-bottom: 15px;
+    font-weight: 700;
+    font-size: 2.4rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    position: relative;
+}
+
+header p {
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.upload-container {
+    padding: 35px;
+    border-bottom: 1px solid var(--light-gray);
+    background-color: #fafcff;
+}
+
+.image-preview-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+#preview {
+    width: 320px;
+    height: 320px;
+    border: 2px dashed var(--royal-blue);
+    border-radius: 10px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(65, 105, 225, 0.03);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+#preview:hover {
+    border-color: var(--royal-blue-light);
+    background-color: rgba(65, 105, 225, 0.05);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(65, 105, 225, 0.1);
+}
+
+#imagePreview {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    z-index: 2;
+}
+
+.file-input-container {
+    width: 100%;
+    text-align: center;
+    margin-top: 15px;
+}
+
+.upload-btn {
+    display: inline-block;
+    background-color: var(--royal-blue);
+    color: var(--white);
+    padding: 12px 25px;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 10px rgba(65, 105, 225, 0.25);
+}
+
+.upload-btn:hover {
+    background-color: var(--royal-blue-light);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(65, 105, 225, 0.35);
+}
+
+input[type="file"] {
+    display: none;
+}
+
+#file-name {
+    display: block;
+    margin-top: 12px;
+    font-size: 14px;
+    color: var(--dark-blue);
+    font-style: italic;
+}
+
+.prompt-container {
+    margin: 30px 0;
+    position: relative;
+}
+
+.prompt-container label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: var(--dark-blue);
+    font-size: 1.05rem;
+}
+
+.quantidade label {
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: var(--dark-blue);
+    font-size: 1.05rem;
+}
+
+.quantidade input {
+    height: 30px;
+    border-radius: 4px;
+    text-align: center;
+    vertical-align: middle;
+    width: 70px;
+    border: 1px solid var(--light-gray);
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--royal-blue);
+    box-shadow: 0 0 0 3px rgba(65, 105, 225, 0.15);
+}
+
+textarea {
+    width: 100%;
+    padding: 15px;
+    border: 1px solid var(--light-gray);
+    border-radius: 8px;
+    height: 120px;
+    resize: vertical;
+    font-family: inherit;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+textarea:focus {
+    outline: none;
+    border-color: var(--royal-blue);
+    box-shadow: 0 0 0 3px rgba(65, 105, 225, 0.15);
+}
+
+.analyze-btn {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    background-color: var(--royal-blue);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    box-shadow: 0 4px 15px rgba(65, 105, 225, 0.25);
+}
+
+.analyze-btn:hover {
+    background-color: var(--royal-blue-light);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(65, 105, 225, 0.35);
+}
+
+.analyze-btn.loading .btn-text {
+    visibility: hidden;
+}
+
+.loader {
+    display: none;
+    width: 24px;
+    height: 24px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s linear infinite;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+@keyframes spin {
+    to {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+.analyze-btn.loading .loader {
+    display: block;
+}
+
+.response-container {
+    padding: 35px;
+    display: none;
+    background-color: #fafcff;
+}
+
+.response-container.active {
+    display: block;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.response-container h2 {
+    margin-bottom: 20px;
+    color: var(--dark-blue);
+    font-weight: 700;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--royal-blue);
+    display: inline-block;
+}
+
+.response-text {
+    background-color: var(--white);
+    padding: 25px;
+    border-radius: 10px;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--light-gray);
+}
+
+.placeholder {
+    color: #8c9cb9;
+    font-style: italic;
+}
+
+/* Status indicator */
+.status-indicator {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 15px;
+    position: relative;
+    flex: 1;
+    max-width: 100px;
+}
+
+.step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 15px;
+    right: -30px;
+    width: 30px;
+    height: 2px;
+    background-color: var(--light-gray);
+}
+
+.step-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: var(--light-gray);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--white);
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.step.active .step-icon {
+    background-color: var(--royal-blue);
+    box-shadow: 0 0 0 4px rgba(65, 105, 225, 0.2);
+}
+
+.step-text {
+    font-size: 12px;
+    text-align: center;
+    color: var(--dark-blue);
+}
+
+.step.active .step-text {
+    font-weight: 600;
+    color: var(--royal-blue);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    .container {
+        border-radius: 10px;
+    }
+
+    header {
+        padding: 30px 15px;
+    }
+
+    header h1 {
+        font-size: 1.8rem;
+    }
+
+    #preview {
+        width: 250px;
+        height: 250px;
+    }
+
+    .upload-container,
+    .response-container {
+        padding: 25px 20px;
+    }
+
+    .analyze-btn {
+        padding: 14px;
+    }
+}
+
+/* Efeitos de tooltip */
+[data-tooltip] {
+    position: relative;
+    cursor: help;
+}
+
+[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--dark-blue);
+    color: var(--white);
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+[data-tooltip]:hover::after {
+    opacity: 1;
+    visibility: visible;
+}

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}MecMind - Análise geral{% endblock %}
+
+{% block extra_css %}{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <header>
+            <h1>Análise de Desenho Técnico</h1>
+            <p>Envie seu desenho técnico e receba todos os dados neccessários para compra e fabricação.</p>
+        </header>
+
+        <div class="status-indicator">
+            <div class="step active">
+                <div class="step-icon">1</div>
+                <div class="step-text">Upload</div>
+            </div>
+            <div class="step" id="step-analyzing">
+                <div class="step-icon">2</div>
+                <div class="step-text">Análise</div>
+            </div>
+            <div class="step" id="step-result">
+                <div class="step-icon">3</div>
+                <div class="step-text">Resultado</div>
+            </div>
+        </div>
+
+        <div class="upload-container">
+            <form id="uploadForm" action="{% url 'analise_geral' %}" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="image-preview-container">
+                    <div id="preview">
+                        <img id="imagePreview" src="{% static 'images/placeholder.png' %}" alt="Preview">
+                    </div>
+
+                    <div class="file-input-container">
+                        <label for="image" class="upload-btn">
+                            <i class="fas fa-upload"></i> Escolher arquivo
+                        </label>
+                        <input type="file" id="image" name="image" accept="image/*" required>
+                        <span id="file-name">Nenhum arquivo selecionado</span>
+                    </div>
+                </div>
+
+                <div class="prompt-container">
+                    <label for="prompt">
+                        <i class="fas fa-comment-dots"></i> Observações adicionais (Opcional):
+                    </label>
+                    <textarea id="prompt" name="prompt" placeholder="Escreva aqui informações relevantes para a análise do projeto, como especificações de materiais, restrições de fabricação ou outras considerações importantes..."></textarea>
+                </div>
+
+                <button type="submit" id="analyzeBtn" class="analyze-btn">
+                    <span class="btn-text"><i class="fas fa-search"></i> Analisar projeto</span>
+                    <span class="loader"></span>
+                </button>
+            </form>
+        </div>
+
+        <div class="response-container {% if response_text %}active{% endif %}">
+            <h2><i class="fas fa-clipboard-check"></i> Resultado da Análise</h2>
+            <div class="response-text">
+                {% if response_text %}
+                    {{ response_text | safe }}
+                {% else %}
+                    <p class="placeholder">A resposta da IA aparecerá aqui após o processamento do desenho técnico.</p>
+                {% endif %}
+            </div>
+
+            <div class="action-buttons" {% if not response_text %}style="display:none"{% endif %}>
+                <button class="action-btn" id="exportBtn">
+                    <i class="fas fa-file-export"></i> Exportar PDF
+                </button>
+                <button class="action-btn" id="shareBtn">
+                    <i class="fas fa-share-alt"></i> Compartilhar
+                </button>
+                <button class="action-btn" id="newAnalysisBtn">
+                    <i class="fas fa-redo"></i> Nova Análise
+                </button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
