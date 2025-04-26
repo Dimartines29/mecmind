@@ -46,7 +46,7 @@ def analise_eixo(request):
         quantity_text = f' A quantidade de peças necessárias para este projeto é de {quantity}.'
 
         # Adiciona a quantidade ao prompt do usuário.
-        user_prompt = 'Observações adicionais do usuário: ' + user_prompt + quantity_text
+        user_prompt = 'Observações adicionais do usuário: ' + user_prompt + '\n' + quantity_text
 
         # Salva a imagem no diretório
         image_path = os.path.join(IMAGE_UPLOAD_PATH, image.name)
@@ -210,7 +210,7 @@ def analise_chapa(request):
         quantity_text = f' A quantidade de chapas necessárias para este projeto é de {quantity} chapa(s).'
 
         # Adiciona a quantidade ao prompt do usuário.
-        user_prompt = 'Observações adicionais do usuário: ' + user_prompt + quantity_text
+        user_prompt = 'Observações adicionais do usuário: ' + user_prompt + '\n' + quantity_text
 
         # Salva a imagem no diretório
         image_path = os.path.join(IMAGE_UPLOAD_PATH, image.name)
@@ -381,7 +381,13 @@ def analise_chapa(request):
 def analise_tubo(request):
     if request.method == 'POST':
         user_prompt = request.POST.get('prompt', '')
+        quantity = request.POST.get('quantidade', '1')
         image = request.FILES['image']
+
+        quantity_text = f' A quantidade de peças necessárias para este projeto é de {quantity}.'
+
+        # Adiciona a quantidade ao prompt do usuário.
+        user_prompt = 'Observações adicionais do usuário: ' + user_prompt + '\n' + quantity_text
 
         # Salva a imagem no diretório
         image_path = os.path.join(IMAGE_UPLOAD_PATH, image.name)
@@ -392,21 +398,55 @@ def analise_tubo(request):
         # Encoda a imagem
         base64_image = encode_image(image_path)
 
-        # Monta o dicionário para a chamada:
+        # Monta a função para estruturar a primeira chamada de API.
+        tubos_function = [{}]
+
+        tubos_function[0]['type'] = 'funtion'
+        tubos_function[0]['name'] = 'get_info'
+        tubos_function[0]['description'] = 'Obtém os dados mais importantes do desenho mecânico de tubos'
+        tubos_function[0]['parameters'] = {}
+
+        tubos_function[0]['parameters']['type'] = 'object'
+        tubos_function[0]['parameters']['properties'] = {}
+
+        tubos_function[0]['parameters']['properties']['comprimento'] = {}
+        tubos_function[0]['parameters']['properties']['comprimento']['type'] = 'number'
+        tubos_function[0]['parameters']['properties']['comprimento']['description'] = 'Comprimento total do tubo, atente-se as medidas implícitas e forneça o resultado final'
+
+        tubos_function[0]['parameters']['properties']['diametro_externo'] = {}
+        tubos_function[0]['parameters']['properties']['diametro_externo']['type'] = 'number'
+        tubos_function[0]['parameters']['properties']['diametro_externo']['description'] = 'Diâmetro externo do tubo, atente-se as medidas implícitas e forneça o resultado final'
+
+        tubos_function[0]['parameters']['properties']['diametro_interno'] = {}
+        tubos_function[0]['parameters']['properties']['diametro_interno']['type'] = 'string'
+        tubos_function[0]['parameters']['properties']['diametro_interno']['description'] = 'Diâmetro interno do tubo, atente-se as medidas implícitas e forneça o resultado final'
+
+        tubos_function[0]['parameters']['properties']['furos'] = {}
+        tubos_function[0]['parameters']['properties']['furos']['type'] = 'string'
+        tubos_function[0]['parameters']['properties']['furos']['description'] = 'Descreva todos os furos encontrados no tubo e seus diâmetros, se não observar furos, esse campo deve permanecer vazio'
+
+        tubos_function[0]['parameters']['properties']['observações'] = {}
+        tubos_function[0]['parameters']['properties']['observações']['type'] = 'string'
+        tubos_function[0]['parameters']['properties']['observações']['description'] = 'Observações importantes ou dúvidas encontradas na análise'
+
+        tubos_function[0]['parameters']['required'] = ['comprimento', 'diametro_externo']
+
+        # Monta o dicionário para a primeira chamada.
         kwa = {}
 
         kwa['model'] = 'gpt-4o'
+        kwa['temperature'] = 0.1
         kwa['messages'] = [{}]
         kwa['messages'][0]['role'] = 'user'
         kwa['messages'][0]['content'] = [{}, {}]
-
         kwa['messages'][0]['content'][0]['type'] = 'text'
-        kwa['messages'][0]['content'][0]['text'] = p.PROMPT_TUBO + user_prompt
-
+        kwa['messages'][0]['content'][0]['text'] = p.PROMPT_TUBO_ANALISE
         kwa['messages'][0]['content'][1]['type'] = 'image_url'
         kwa['messages'][0]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
 
-        # Monta a requisição aqui
+        kwa['functions'] = tubos_function
+
+        # Faz a requisição.
         try:
             chat_completion = cli.chat.completions.create(**kwa)
             print('Processamento concluído')
@@ -414,9 +454,84 @@ def analise_tubo(request):
         except Exception as e:
             print(f'Ocorreu um erro durante o processamento: {e}')
 
-        response_text = chat_completion.choices[0].message.content
+        # Coleta as informações necessárias.
+        function_args = json.loads(chat_completion.choices[0].message.function_call.arguments)
+        comprimento = function_args.get('comprimento', '')
+        diametro_externo = function_args.get('diametro_externo', '')
+        diametro_interno = function_args.get('diametro_interno', '')
+        furos = function_args.get('furos', '')
+        observacoes = function_args.get('observacoes', '')
 
-        return render(request, 'analise_tubo.html', {'response_text': response_text})
+        # Monta os textos necessários para a segunda chamada.
+        text_cotas = f'O comprimento do tubo é de {comprimento} e o diâmetro externo foi de {diametro_externo}.\n O diâmetro interno do tubo é de {diametro_interno}.\n'
+        text_furos = f'Foram encontrados os seguintes furos no tubo {furos}.\n' if furos else ''
+        text_observacoes = f'Observações que você deverá levar em consideração: {observacoes}'
+
+        final_text = 'Essas são todas as informações necessárias para a sua análise: \n'
+        texts = [text_cotas, text_furos, text_observacoes]
+
+        for text in texts:
+            if text:
+                final_text += text
+
+        # Monta a função para estruturar a SEGUNDA chamada de API.
+        process_function = [{}]
+
+        process_function[0]['type'] = 'funtion'
+        process_function[0]['name'] = 'get_info'
+        process_function[0]['description'] = 'Determina a materia prima e os processos de fabricação necessários para a fabricação de um tubo.'
+        process_function[0]['parameters'] = {}
+
+        process_function[0]['parameters']['type'] = 'object'
+        process_function[0]['parameters']['properties'] = {}
+
+        process_function[0]['parameters']['properties']['materia_prima'] = {}
+        process_function[0]['parameters']['properties']['materia_prima']['type'] = 'string'
+        process_function[0]['parameters']['properties']['materia_prima']['description'] = 'Baseado no catálogo, coloque aqui as medidas Comprimento X Diâmetro externo e diâmetro interno. Lembre-se do sobre metal de pelo menos 10mm tanto no comprimento quanto no diâmetro e que o diâmetro deve ser compatível com o catálogo.'
+
+        process_function[0]['parameters']['properties']['processos_de_fabricacao'] = {}
+        process_function[0]['parameters']['properties']['processos_de_fabricacao']['type'] = 'string'
+        process_function[0]['parameters']['properties']['processos_de_fabricacao']['description'] = 'Liste aqui em tópicos e numerados todos os processos necessários e as máquinas para realizar tal processo (Processo - Máquina). Coloque cada processo em uma linha diferente.'
+
+        process_function[0]['parameters']['required'] = ['materia_prima', 'processos_de_fabricacao']
+
+        # Monta a segunda chamada.
+        kwa = {}
+
+        kwa['model'] = 'gpt-4o'
+        kwa['temperature'] = 0.1
+        kwa['messages'] = [{}]
+        kwa['messages'][0]['role'] = 'user'
+        kwa['messages'][0]['content'] = [{}, {}, {}]
+        kwa['messages'][0]['content'][0]['type'] = 'text'
+        kwa['messages'][0]['content'][0]['text'] = p.PROMPT_TUBO_FINAL
+        kwa['messages'][0]['content'][1]['type'] = 'text'
+        kwa['messages'][0]['content'][1]['text'] = final_text
+        kwa['messages'][0]['content'][2]['type'] = 'text'
+        kwa['messages'][0]['content'][2]['text'] = user_prompt
+
+        kwa['functions'] = process_function
+
+        # Faz a requisição.
+        try:
+            chat_completion = cli.chat.completions.create(**kwa)
+            print('Processamento concluído')
+
+        except Exception as e:
+            print(f'Ocorreu um erro durante o processamento: {e}')
+
+        # Coleta as informações necessárias.
+        function_args = json.loads(chat_completion.choices[0].message.function_call.arguments)
+        materia_prima = function_args.get('materia_prima', '')
+        processos_de_fabricacao = function_args.get('processos_de_fabricacao', '')
+
+        final_response = f'''
+        Analise completa:\n
+        Matéria prima necessária: {materia_prima}\n\n
+        Processos de fabricação: {processos_de_fabricacao}\n
+        '''
+
+        return render(request, 'analise_tubo.html', {'response_text': final_response})
 
     return render(request, 'analise_tubo.html')
 
