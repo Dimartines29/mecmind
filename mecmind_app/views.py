@@ -8,6 +8,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.core.paginator import Paginator
+from django.contrib.auth import get_user_model
 
 #Libs
 import openai
@@ -203,6 +204,13 @@ def analise_eixo(request):
         # Salva o Projeto
         project = m.Project()
 
+        # Informações do usuário.
+        project.user = request.user
+
+        if hasattr(request.user, 'company') and request.user.company:
+            project.company = request.user.company
+
+        # Informações do projeto.
         project.analysis_name = 'eixo'
         project.drawing = image
         project.user_observation = obs_user
@@ -689,8 +697,13 @@ def projetos(request):
 
     return render(request, 'projetos.html', ctx)
 
-def projeto(request):
-    return render(request, 'projeto.html')
+def projeto(request, projeto_id):
+    projeto = m.Project.objects.get(pk=projeto_id)
+    ctx = {}
+
+    ctx['projeto'] = projeto
+
+    return render(request, 'projeto.html', ctx)
 
 def documentacao(request):
     return render(request, 'documentacao.html')

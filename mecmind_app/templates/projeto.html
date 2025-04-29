@@ -8,7 +8,15 @@
 {% block content %}
     <div class="header-banner">
         <div class="banner-content">
-            <h1>Suporte</h1>
+            <h1>Análise {{ projeto.analysis_name }} - </h1>
         </div>
     </div>
+
+    <span>{{ projeto.analysis_name }}</span> <br>
+    <span>{{ projeto.drawing }}</span> <br>
+    <span>{{ projeto.created_date }}</span> <br>
+    <span>{{ projeto.raw_material }}</span> <br>
+    <span>{{ projeto.processes }}</span> <br>
+    <span>{{ projeto.user_observation }}</span> <br>
+    <span>{{ projeto.ia_observation }}</span> <br>
 {% endblock %}

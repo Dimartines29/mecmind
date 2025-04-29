@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils import timezone
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 from mecmind_app import choices as c
 
 class Company(models.Model):
@@ -20,12 +20,9 @@ class Company(models.Model):
         verbose_name = 'Company'
         verbose_name_plural = 'Companies'
 
-class User(User):
+class CustomUser(AbstractUser):
     cpf = models.CharField('CPF', max_length=14, unique=True)
-    active = models.BooleanField(default=True)
-
-    # Informações da Empresa
-    company = models.ForeignKey(Company, on_delete=models.SET_NULL, blank=True, null=True)
+    company = models.ForeignKey('Company', on_delete=models.SET_NULL, null=True)
 
     class Meta:
         verbose_name = 'Usuário'
@@ -35,7 +32,7 @@ class User(User):
         return f'{self.first_name} {self.last_name}'
 
 class Project(models.Model):
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='projects')
+    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='projects')
     company = models.ForeignKey(Company, on_delete=models.SET_NULL, blank=True, null=True)
     analysis_name = models.CharField(max_length=20, choices=c.PROJETO['analise'])
     drawing = models.ImageField(upload_to='projects/%Y/%m/%d', blank=True)

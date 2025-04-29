@@ -34,7 +34,7 @@
         <tbody>
             {% for i in page_obj %}
                 <tr>
-                    <td><a class="list-link" href="#">Análise {{ i.analysis_name }}</a></td>
+                    <td><a class="list-link" href="{% url 'projeto' i.id %}">Análise {{ i.analysis_name }}</a></td>
                     <td>{{ i.created_date|date:"d/m/Y H:i" }}</td>
                     <td>{{ i.raw_material }}</td>
                     <td><span title="{{ i.processes }}">{{ i.processes|truncatechars:40 }}</span></td>

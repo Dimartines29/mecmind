@@ -10,7 +10,7 @@ urlpatterns = [
     path('analise_solda/', views.analise_solda, name='analise_solda'),
     path('analise_geral/', views.analise_geral, name='analise_geral'),
     path('projetos/', views.projetos, name='projetos'),
-    path('projeto/', views.projetos, name='projeto'),
+    path('projeto/<int:projeto_id>/', views.projeto, name='projeto'),
     path('documentacao/', views.documentacao, name='documentacao'),
     path('suporte/', views.suporte, name='suporte'),
 ]
