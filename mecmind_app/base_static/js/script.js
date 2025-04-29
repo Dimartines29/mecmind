@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             reader.readAsDataURL(file);
         } else {
-            imagePreview.src = '/static/images/placeholder.png';
+            imagePreview.src = '/base_static/images/placeholder.png';
             fileName.textContent = 'Nenhum arquivo selecionado';
             document.getElementById('preview').classList.remove('has-image');
         }
@@ -169,7 +169,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (newAnalysisBtn) {
         newAnalysisBtn.addEventListener('click', function() {
             // Limpa o form e retorna para o início
-            imagePreview.src = '/static/images/placeholder.png';
+            imagePreview.src = '/base_static/images/placeholder.png';
             fileName.textContent = 'Nenhum arquivo selecionado';
             document.getElementById('prompt').value = '';
             document.getElementById('preview').classList.remove('has-image');
