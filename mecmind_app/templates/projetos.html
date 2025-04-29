@@ -11,4 +11,41 @@
             <h1>Projetos</h1>
         </div>
     </div>
+
+    <table class="list">
+        <col style="width: 50px;"> <!-- Nome -->
+        <col style="width: 50px;"> <!-- Criação -->
+        <col style="width: 80px;"> <!-- M. Prima -->
+        <col style="width: 200px;"> <!-- Processos -->
+        <col style="width: 200px;"> <!-- Obs. Usuário -->
+        <col style="width: 50px;"> <!-- Obs. IA -->
+
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Criação</th>
+                <th>M. Prima</th>
+                <th>Processos</th>
+                <th>Obs. Usuário</th>
+                <th>Obs. IA</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for i in page_obj %}
+                <tr>
+                    <td><a class="list-link" href="#">Análise {{ i.analysis_name }}</a></td>
+                    <td>{{ i.created_date|date:"d/m/Y H:i" }}</td>
+                    <td>{{ i.raw_material }}</td>
+                    <td><span title="{{ i.processes }}">{{ i.processes|truncatechars:40 }}</span></td>
+                    <td><span title="{{ i.user_observation }}">{{ i.user_observation|truncatechars:40 }}</span></td>
+                    <td><span title="{{ i.ia_observation }}">{{ i.ia_observation|truncatechars:40 }}</span></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="paginator">
+        {% include 'paginator.html' %}
+    </div>
 {% endblock %}

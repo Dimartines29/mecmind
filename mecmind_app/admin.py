@@ -59,7 +59,7 @@ class ProjectAdmin(admin.ModelAdmin):
     list_filter = ('user', 'company', 'analysis_name')
 
     # Pesquisa.
-    search_fields = ('id', 'user__first_name', 'user__last_name', 'company__name')
+    search_fields = ('id', 'created_date')
 
     # Valores exibidos por página.
     list_per_page = 30

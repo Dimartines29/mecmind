@@ -38,7 +38,7 @@ class Project(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='projects')
     company = models.ForeignKey(Company, on_delete=models.SET_NULL, blank=True, null=True)
     analysis_name = models.CharField(max_length=20, choices=c.PROJETO['analise'])
-    drawing = models.ImageField(upload_to='projects/%Y/%m/', blank=True)
+    drawing = models.ImageField(upload_to='projects/%Y/%m/%d', blank=True)
     created_date = models.DateTimeField(default=timezone.now)
     raw_material = models.TextField('Matéria Prima', blank=True)
     processes = models.TextField('Processos', blank=True)

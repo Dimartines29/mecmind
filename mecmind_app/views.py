@@ -7,6 +7,7 @@ import json
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
+from django.core.paginator import Paginator
 
 #Libs
 import openai
@@ -14,6 +15,7 @@ from dotenv import load_dotenv
 
 #Local
 from mecmind_app import prompts as p
+from mecmind_app import models as m
 
 # Carrega as variáveis de ambiente
 load_dotenv()
@@ -37,16 +39,17 @@ def encode_image(image_path):
 def index(request):
     return render(request, 'index.html')
 
+@login_required
 def analise_eixo(request):
     if request.method == 'POST':
-        user_prompt = request.POST.get('prompt', '')
+        obs_user = request.POST.get('prompt', '')
         quantity = request.POST.get('quantidade', '1')
         image = request.FILES['image']
 
         quantity_text = f' A quantidade de peças necessárias para este projeto é de {quantity}.'
 
         # Adiciona a quantidade ao prompt do usuário.
-        user_prompt = 'Observações adicionais do usuário: ' + user_prompt + '\n' + quantity_text
+        user_prompt = 'Observações adicionais do usuário: ' + obs_user + '\n' + quantity_text
 
         # Salva a imagem no diretório
         image_path = os.path.join(IMAGE_UPLOAD_PATH, image.name)
@@ -196,6 +199,18 @@ def analise_eixo(request):
         Matéria prima necessária: {materia_prima}\n\n
         Processos de fabricação: {processos_de_fabricacao}\n
         '''
+
+        # Salva o Projeto
+        project = m.Project()
+
+        project.analysis_name = 'eixo'
+        project.drawing = image
+        project.user_observation = obs_user
+        project.raw_material = materia_prima
+        project.processes = processos_de_fabricacao
+        project.ia_observation = observacoes
+
+        project.save()
 
         return render(request, 'analise_eixo.html', {'response_text': final_response})
 
@@ -662,7 +677,20 @@ def analise_geral(request):
     return render(request, 'analise_geral.html')
 
 def projetos(request):
-    return render(request, 'projetos.html')
+    ctx = {}
+    projetos = m.Project.objects.filter().order_by('-id')  # Aqui o filtro deverá ser pelo nome do usuário logado
+
+    paginator = Paginator(projetos, 10)
+
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    ctx['page_obj'] = page_obj
+
+    return render(request, 'projetos.html', ctx)
+
+def projeto(request):
+    return render(request, 'projeto.html')
 
 def documentacao(request):
     return render(request, 'documentacao.html')
