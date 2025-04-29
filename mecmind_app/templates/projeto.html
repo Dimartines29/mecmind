@@ -1,22 +1,43 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
 
-{% block title %}MecMind - Análise eixos{% endblock %}
-
-{% block extra_css %}{% endblock %}
-
 {% block content %}
-    <div class="header-banner">
-        <div class="banner-content">
-            <h1>Análise {{ projeto.analysis_name }} - </h1>
-        </div>
+<div class="header-banner">
+    <div class="banner-content">
+        <h1>Análise: {{ projeto.analysis_name }} - {{ projeto.created_date|date:"d/m/Y H:i" }}</h1>
+    </div>
+</div>
+
+<section class="project-detail-container">
+    <div class="profile-image-container">
+        <img src="{{ projeto.drawing.url }}" alt="Imagem do desenho" class="drawing-image">
     </div>
 
-    <span>{{ projeto.analysis_name }}</span> <br>
-    <span>{{ projeto.drawing }}</span> <br>
-    <span>{{ projeto.created_date }}</span> <br>
-    <span>{{ projeto.raw_material }}</span> <br>
-    <span>{{ projeto.processes }}</span> <br>
-    <span>{{ projeto.user_observation }}</span> <br>
-    <span>{{ projeto.ia_observation }}</span> <br>
+    <div class="info-card">
+        <div class="info-card-header">
+            <i class="fas fa-user-circle"></i>
+            <h4>{{ projeto.user.first_name }} {{ projeto.user.last_name }}</h4>
+        </div>
+
+        <div class="detail-section">
+            <h5>Matéria-prima</h5>
+            <p>{{ projeto.raw_material|default:"Não informado." }}</p>
+        </div>
+
+        <div class="detail-section">
+            <h5>Processos</h5>
+            <p>{{ projeto.processes|default:"Não informado." }}</p>
+        </div>
+
+        <div class="detail-section">
+            <h5>Observações do Usuário</h5>
+            <p>{{ projeto.user_observation|default:"Nenhuma observação." }}</p>
+        </div>
+
+        <div class="detail-section">
+            <h5>Observações da IA</h5>
+            <p>{{ projeto.ia_observation|default:"Nenhuma observação." }}</p>
+        </div>
+    </div>
+</section>
 {% endblock %}

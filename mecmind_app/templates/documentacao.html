@@ -1,14 +1,45 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
 
-{% block title %}MecMind - Documentação{% endblock %}
-
-{% block extra_css %}{% endblock %}
-
 {% block content %}
-    <div class="header-banner">
-        <div class="banner-content">
-            <h1>Documentação</h1>
-        </div>
+<div class="header-banner">
+    <div class="banner-content">
+        <h1>Documentação do Sistema</h1>
     </div>
+</div>
+
+<section class="page-container">
+    <div class="info-card">
+        <div class="info-card-header">
+            <i class="fas fa-book"></i>
+            <h4>Introdução</h4>
+        </div>
+        <p>Este sistema foi desenvolvido para auxiliar na análise de projetos técnicos de chapas metálicas. Abaixo estão as instruções de uso.</p>
+    </div>
+
+    <div class="info-card">
+        <div class="info-card-header">
+            <i class="fas fa-cogs"></i>
+            <h4>Como usar</h4>
+        </div>
+        <ol class="custom-list">
+            <li>Acesse o painel com seu login institucional.</li>
+            <li>Envie o desenho técnico no formato suportado (.png, .jpg, .pdf).</li>
+            <li>Preencha os campos de matéria-prima e processos, caso deseje.</li>
+            <li>A IA irá gerar automaticamente observações com base no desenho enviado.</li>
+        </ol>
+    </div>
+
+    <div class="info-card">
+        <div class="info-card-header">
+            <i class="fas fa-lightbulb"></i>
+            <h4>Dicas</h4>
+        </div>
+        <ul class="custom-list">
+            <li>Use desenhos com boa resolução.</li>
+            <li>Evite enviar arquivos escaneados com sombras ou ruídos.</li>
+            <li>Preencha as observações manuais para maior controle do projeto.</li>
+        </ul>
+    </div>
+</section>
 {% endblock %}
