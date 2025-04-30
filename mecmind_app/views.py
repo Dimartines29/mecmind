@@ -5,10 +5,11 @@ import json
 
 #Django
 from django.shortcuts import render, redirect
+from django.contrib import auth, messages
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.core.paginator import Paginator
-from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import AuthenticationForm
 
 #Libs
 import openai
@@ -37,10 +38,11 @@ def encode_image(image_path):
     with open(image_path, 'rb') as image_file:
         return base64.b64encode(image_file.read()).decode('utf-8')
 
+@login_required(login_url='/login')
 def index(request):
     return render(request, 'index.html')
 
-@login_required
+@login_required(login_url='/login')
 def analise_eixo(request):
     if request.method == 'POST':
         obs_user = request.POST.get('prompt', '')
@@ -224,6 +226,7 @@ def analise_eixo(request):
 
     return render(request, 'analise_eixo.html')
 
+@login_required(login_url='/login')
 def analise_chapa(request):
     if request.method == 'POST':
         user_prompt = request.POST.get('prompt', '')
@@ -401,6 +404,7 @@ def analise_chapa(request):
 
     return render(request, 'analise_chapa.html')
 
+@login_required(login_url='/login')
 def analise_tubo(request):
     if request.method == 'POST':
         user_prompt = request.POST.get('prompt', '')
@@ -558,6 +562,7 @@ def analise_tubo(request):
 
     return render(request, 'analise_tubo.html')
 
+@login_required(login_url='/login')
 def analise_montagem(request):
     if request.method == 'POST':
         user_prompt = request.POST.get('prompt', '')
@@ -600,6 +605,7 @@ def analise_montagem(request):
 
     return render(request, 'analise_montagem.html')
 
+@login_required(login_url='/login')
 def analise_solda(request):
     if request.method == 'POST':
         user_prompt = request.POST.get('prompt', '')
@@ -642,6 +648,7 @@ def analise_solda(request):
 
     return render(request, 'analise_solda.html')
 
+@login_required(login_url='/login')
 def analise_geral(request):
     if request.method == 'POST':
         user_prompt = request.POST.get('prompt', '')
@@ -684,6 +691,7 @@ def analise_geral(request):
 
     return render(request, 'analise_geral.html')
 
+@login_required(login_url='/login')
 def projetos(request):
     ctx = {}
     projetos = m.Project.objects.filter().order_by('-id')  # Aqui o filtro deverá ser pelo nome do usuário logado
@@ -697,6 +705,7 @@ def projetos(request):
 
     return render(request, 'projetos.html', ctx)
 
+@login_required(login_url='/login')
 def projeto(request, projeto_id):
     projeto = m.Project.objects.get(pk=projeto_id)
     ctx = {}
@@ -705,8 +714,28 @@ def projeto(request, projeto_id):
 
     return render(request, 'projeto.html', ctx)
 
+@login_required(login_url='/login')
 def documentacao(request):
     return render(request, 'documentacao.html')
 
+@login_required(login_url='/login')
 def suporte(request):
     return render(request, 'suporte.html')
+
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('/')
+
+    form = AuthenticationForm(request, data=request.POST or None)
+
+    if request.method == 'POST' and form.is_valid():
+        user = form.get_user()
+        auth.login(request, user)
+
+        return redirect('/')
+
+    return render(request, 'login.html', {'form': form})
+
+def logout_view(request):
+    auth.logout(request)
+    return redirect('/login')

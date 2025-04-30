@@ -26,6 +26,7 @@
                 <li><a href="/projetos" class="{% if request.path == '/projetos' %}active{% endif %}"><i class="fas fa-project-diagram"></i> Projetos</a></li>
                 <li><a href="/documentacao" class="{% if request.path == '/documentacao' %}active{% endif %}"><i class="fas fa-info-circle"></i> Documentação</a></li>
                 <li><a href="/suporte" class="{% if request.path == '/suporte' %}active{% endif %}"><i class="fas fa-headset"></i> Suporte</a></li>
+                <li><a href="{% url 'logout' %}">Sair</a></li>
             </ul>
         </nav>
     </div>
