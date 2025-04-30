@@ -723,18 +723,22 @@ def suporte(request):
     return render(request, 'suporte.html')
 
 def login_view(request):
-    if request.user.is_authenticated:
-        return redirect('/')
+    form = AuthenticationForm(request)
 
-    form = AuthenticationForm(request, data=request.POST or None)
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
 
-    if request.method == 'POST' and form.is_valid():
-        user = form.get_user()
-        auth.login(request, user)
+        if form.is_valid():
+            user = form.get_user()
+            auth.login(request, user)
 
-        return redirect('/')
+            messages.success(request, 'Logado com sucesso!')
 
-    return render(request, 'login.html', {'form': form})
+            return redirect('/')
+
+        messages.error(request, 'Login inválido')
+
+    return render(request, 'login.html',{'form': form})
 
 def logout_view(request):
     auth.logout(request)

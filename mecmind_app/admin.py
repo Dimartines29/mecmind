@@ -1,8 +1,14 @@
 from django.contrib import admin
 from mecmind_app import models as m
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
+from django.contrib.auth.admin import UserAdmin
 
 @admin.register(m.CustomUser)
-class CustomUserAdmin(admin.ModelAdmin):
+class CustomUserAdmin(UserAdmin):
+    model = m.CustomUser
+    add_form = UserCreationForm
+    form = UserChangeForm
+
     # Define o que será exibido no painel admin da tabela Usuário.
     list_display = ('id', 'first_name', 'last_name', 'company')
 
