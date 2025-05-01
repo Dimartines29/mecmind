@@ -30,6 +30,21 @@ class CustomUserAdmin(UserAdmin):
     # Define onde fica o link da tabela.
     list_display_links = ('id', 'first_name')
 
+    fieldsets = (
+        (None, {'fields': ('username', 'password')}),
+        ('Informações Pessoais', {'fields': ('first_name', 'last_name', 'email', 'cpf')}),
+        ('Empresa', {'fields': ('company',)}),
+        ('Permissões', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Datas importantes', {'fields': ('last_login', 'date_joined')}),
+    )
+
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('username', 'password1', 'password2', 'first_name', 'last_name', 'cpf', 'company'),
+        }),
+    )
+
 @admin.register(m.Company)
 class CompanyAdmin(admin.ModelAdmin):
     # Define o que será exibido no painel admin da tabela Empresa.

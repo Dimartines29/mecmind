@@ -44,6 +44,7 @@ def index(request):
 
 @login_required(login_url='/login')
 def analise_eixo(request):
+    ctx = {}
     if request.method == 'POST':
         obs_user = request.POST.get('prompt', '')
         quantity = request.POST.get('quantidade', '1')
@@ -124,13 +125,12 @@ def analise_eixo(request):
             print(f'Ocorreu um erro durante o processamento: {e}')
 
         # Coleta as informações necessárias.
-        function_args = json.loads(chat_completion.choices[0].message.function_call.arguments)
-        comprimento = function_args.get('comprimento', '')
-        diametro_maior = function_args.get('diametro_maior', '')
-        diametros = function_args.get('diametros', '')
-        furos = function_args.get('furos', '')
-        rasgo_de_chaveta = function_args.get('rasgo_de_chaveta', '')
-        observacoes = function_args.get('observacoes', '')
+        comprimento = json.loads(chat_completion.choices[0].message.function_call.arguments).get('comprimento', '')
+        diametro_maior = json.loads(chat_completion.choices[0].message.function_call.arguments).get('diametro_maior', '')
+        diametros = json.loads(chat_completion.choices[0].message.function_call.arguments).get('diametros', '')
+        furos = json.loads(chat_completion.choices[0].message.function_call.arguments).get('furos', '')
+        rasgo_de_chaveta = json.loads(chat_completion.choices[0].message.function_call.arguments).get('rasgo_de_chaveta', '')
+        observacoes = json.loads(chat_completion.choices[0].message.function_call.arguments).get('observacoes', '')
 
         # Monta os textos necessários para a segunda chamada.
         text_cotas = f'O comprimento do eixo é de {comprimento} e o maior diâmetro encontrado foi de {diametro_maior}.\n'
@@ -159,11 +159,11 @@ def analise_eixo(request):
 
         process_function[0]['parameters']['properties']['materia_prima'] = {}
         process_function[0]['parameters']['properties']['materia_prima']['type'] = 'string'
-        process_function[0]['parameters']['properties']['materia_prima']['description'] = 'Baseado no catálogo, coloque aqui as medidas Comprimento X Diâmetro (MAIOR). Lembre-se do sobre metal de pelo menos 10mm tanto no comprimento quanto no diâmetro e que o diâmetro deve ser compatível com as bitolas presentes no catálogo.'
+        process_function[0]['parameters']['properties']['materia_prima']['description'] = 'Baseado no catálogo, coloque aqui o tipo do material e as medidas Comprimento X Diâmetro MAIOR (Barra redonda - Diamêtro x Comprimento). Lembre-se do sobre metal de pelo menos 10mm tanto no comprimento quanto no diâmetro e que o diâmetro deve ser compatível com as bitolas presentes no catálogo.'
 
         process_function[0]['parameters']['properties']['processos_de_fabricacao'] = {}
         process_function[0]['parameters']['properties']['processos_de_fabricacao']['type'] = 'string'
-        process_function[0]['parameters']['properties']['processos_de_fabricacao']['description'] = 'Liste aqui em tópicos e numerados todos os processos necessários e as máquinas para realizar tal processo (Processo - Máquina). Coloque cada processo em uma linha diferente.'
+        process_function[0]['parameters']['properties']['processos_de_fabricacao']['description'] = 'Liste aqui em tópicos e numerados todos os processos necessários, as máquinas para realizar tal processo e explique o porquê do processo (Processo - Máquina - Explicação). Coloque cada processo em uma linha diferente.'
 
         process_function[0]['parameters']['required'] = ['materia_prima', 'processos_de_fabricacao']
 
@@ -193,15 +193,12 @@ def analise_eixo(request):
             print(f'Ocorreu um erro durante o processamento: {e}')
 
         # Coleta as informações necessárias.
-        function_args = json.loads(chat_completion.choices[0].message.function_call.arguments)
-        materia_prima = function_args.get('materia_prima', '')
-        processos_de_fabricacao = function_args.get('processos_de_fabricacao', '')
+        materia_prima = json.loads(chat_completion.choices[0].message.function_call.arguments).get('materia_prima', '')
+        processos_de_fabricacao = json.loads(chat_completion.choices[0].message.function_call.arguments).get('processos_de_fabricacao', '')
 
-        final_response = f'''
-        Analise completa:\n
-        Matéria prima necessária: {materia_prima}\n\n
-        Processos de fabricação: {processos_de_fabricacao}\n
-        '''
+        ctx['materia_prima'] = materia_prima
+        ctx['processos_de_fabricacao'] = processos_de_fabricacao
+        ctx['observacoes'] = observacoes
 
         # Salva o Projeto
         project = m.Project()
@@ -222,7 +219,7 @@ def analise_eixo(request):
 
         project.save()
 
-        return render(request, 'analise_eixo.html', {'response_text': final_response})
+        return render(request, 'analise_eixo.html', ctx)
 
     return render(request, 'analise_eixo.html')
 
@@ -694,7 +691,7 @@ def analise_geral(request):
 @login_required(login_url='/login')
 def projetos(request):
     ctx = {}
-    projetos = m.Project.objects.filter().order_by('-id')  # Aqui o filtro deverá ser pelo nome do usuário logado
+    projetos = m.Project.objects.filter(user=request.user).order_by('-id')  # Aqui o filtro deverá ser pelo nome do usuário logado
 
     paginator = Paginator(projetos, 10)
 

@@ -47,6 +47,7 @@ PROMPT_EIXO_FINAL = '''
     3. **Processos de Fabricação:**
     - Liste APENAS os processos de fabricação necessários (corte, usinagem etc.).
     - Atenha-se exclusivamente aos processos que podem ser confirmados pela análise das medidas e detalhes do desenho.
+    - Inclua na sua resposta a justificativa de cada processo, mostrando ao usuário o porquê de cada um deles.
 
     3.1 **Fabricação de rasgo de chaveta (se aplicável):**
     - Caso tenha sido identificado um rasgo de chaveta, determine o processo ideal para sua execução.

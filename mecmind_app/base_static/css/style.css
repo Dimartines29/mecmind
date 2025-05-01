@@ -272,16 +272,6 @@ textarea:focus {
     display: inline-block;
 }
 
-.response-text {
-    background-color: var(--white);
-    padding: 25px;
-    border-radius: 10px;
-    line-height: 1.8;
-    white-space: pre-wrap;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-    border: 1px solid var(--light-gray);
-}
-
 .placeholder {
     color: #8c9cb9;
     font-style: italic;
