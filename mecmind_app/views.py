@@ -76,18 +76,22 @@ def analise_eixo(request):
         eixos_function[0]['parameters']['properties']['diametros'] = {}
         eixos_function[0]['parameters']['properties']['diametros']['type'] = 'string'
         eixos_function[0]['parameters']['properties']['diametros']['description'] = 'Analise e procure por outros diâmetros no eixo. Se encontrar, forneça as medidas aqui'
+        eixos_function[0]['parameters']['properties']['diametros']['nullable'] = True
 
         eixos_function[0]['parameters']['properties']['furos'] = {}
         eixos_function[0]['parameters']['properties']['furos']['type'] = 'string'
         eixos_function[0]['parameters']['properties']['furos']['description'] = 'Descreva todos os furos encontrados no eixo e seus diâmetros, se não observar furos, esse campo deve permanecer vazio'
+        eixos_function[0]['parameters']['properties']['furos']['nullable'] = True
 
         eixos_function[0]['parameters']['properties']['rasgo_de_chaveta'] = {}
         eixos_function[0]['parameters']['properties']['rasgo_de_chaveta']['type'] = 'string'
         eixos_function[0]['parameters']['properties']['rasgo_de_chaveta']['description'] = 'Descreva se identificou rasgos de chaveta no eixo, se sim, indique todas as medidas, se não, este campo deve permanecer vazio'
+        eixos_function[0]['parameters']['properties']['rasgo_de_chaveta']['nullable'] = True
 
-        eixos_function[0]['parameters']['properties']['observações'] = {}
-        eixos_function[0]['parameters']['properties']['observações']['type'] = 'string'
-        eixos_function[0]['parameters']['properties']['observações']['description'] = 'Observações importantes ou dúvidas encontradas na análise'
+        eixos_function[0]['parameters']['properties']['observacoes'] = {}
+        eixos_function[0]['parameters']['properties']['observacoes']['type'] = 'string'
+        eixos_function[0]['parameters']['properties']['observacoes']['description'] = 'Observações importantes ou dúvidas encontradas na análise'
+        eixos_function[0]['parameters']['properties']['observacoes']['nullable'] = True
 
         eixos_function[0]['parameters']['required'] = ['comprimento', 'diametro_maior']
 

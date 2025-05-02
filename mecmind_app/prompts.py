@@ -11,6 +11,8 @@ PROMPT_EIXO_ANALISE = '''
         - A posição do rasgo no eixo: central, próximo à extremidade ou entre ombros.
         - Notações comuns como "chaveta", "key", "keyway", ou símbolos padrões conforme norma.
    - Caso haja medidas implícitas ou que exijam cálculo, indique o processo para chegar à medida final.
+   - Se atente a medidas de diâmetros  'dentro' e 'fora' do eixo, pois algumas cotas podem estar entre as linhas de desenho do eixo.
+   - Observe bem todas as medidas de comprimento, procure pelas 'setas' que indicam onde começa e termina a medida. (Algumas medidas precisam ser somadas, mas outras não, então fique atento a isso, pois geralmente a medida mais externa ao desenho é a medida de comprimento total e não precisa ser somada com outras medidas.)
 
     2. **Chain-of-Thought (Raciocínio Passo a Passo):**
     Analise com cuidado a geometria do eixo, analise todos os detalhes e procure por diâmetros maiores e menores, chanfros e etc. Reflita em voz alta sobre a forma geometrica do eixo.
