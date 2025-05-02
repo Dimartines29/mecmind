@@ -34,9 +34,9 @@ if not os.path.exists(IMAGE_UPLOAD_PATH):
 cli = openai.OpenAI(api_key=openai_api_key)
 
 # Encoda a imagem
-def encode_image(image_path):
-    with open(image_path, 'rb') as image_file:
-        return base64.b64encode(image_file.read()).decode('utf-8')
+def encode_image(image_file):
+    image_content = image_file.read()
+    return base64.b64encode(image_content).decode('utf-8')
 
 @login_required(login_url='/login')
 def index(request):
@@ -46,23 +46,13 @@ def index(request):
 def analise_eixo(request):
     ctx = {}
     if request.method == 'POST':
-        obs_user = request.POST.get('prompt', '')
-        quantity = request.POST.get('quantidade', '1')
-        image = request.FILES['image']
-
-        quantity_text = f' A quantidade de peças necessárias para este projeto é de {quantity}.'
+        quantity_text = f' A quantidade de peças necessárias para este projeto é de {request.POST.get("quantidade", "1")}.'
 
         # Adiciona a quantidade ao prompt do usuário.
-        user_prompt = 'Observações adicionais do usuário: ' + obs_user + '\n' + quantity_text
-
-        # Salva a imagem no diretório
-        image_path = os.path.join(IMAGE_UPLOAD_PATH, image.name)
-        with open(image_path, 'wb+') as destination:
-            for chunk in image.chunks():
-                destination.write(chunk)
+        user_prompt = 'Observações adicionais do usuário: ' + request.POST.get("prompt", "") + '\n' + quantity_text
 
         # Encoda a imagem
-        base64_image = encode_image(image_path)
+        base64_image = encode_image(request.FILES['image'])
 
         # Monta a função para estruturar a primeira chamada de API.
         eixos_function = [{}]
@@ -211,8 +201,8 @@ def analise_eixo(request):
 
         # Informações do projeto.
         project.analysis_name = 'eixo'
-        project.drawing = image
-        project.user_observation = obs_user
+        project.drawing = request.FILES['image']
+        project.user_observation = request.POST.get('prompt', '')
         project.raw_material = materia_prima
         project.processes = processos_de_fabricacao
         project.ia_observation = observacoes
