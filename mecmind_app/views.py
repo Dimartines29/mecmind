@@ -58,51 +58,10 @@ def analise_eixo(request):
         # Encoda a imagem
         base64_image = encode_image(request.FILES['image'])
 
-        # Monta a função para estruturar a primeira chamada de API.
-        eixos_function = [{}]
-
-        eixos_function[0]['type'] = 'funtion'
-        eixos_function[0]['name'] = 'get_info'
-        eixos_function[0]['description'] = 'Obtém os dados mais importantes do desenho mecânico de eixos'
-        eixos_function[0]['parameters'] = {}
-
-        eixos_function[0]['parameters']['type'] = 'object'
-        eixos_function[0]['parameters']['properties'] = {}
-
-        eixos_function[0]['parameters']['properties']['comprimento'] = {}
-        eixos_function[0]['parameters']['properties']['comprimento']['type'] = 'number'
-        eixos_function[0]['parameters']['properties']['comprimento']['description'] = 'Comprimento total do eixo, atente-se as medidas implícitas e forneça o resultado final'
-
-        eixos_function[0]['parameters']['properties']['diametro_maior'] = {}
-        eixos_function[0]['parameters']['properties']['diametro_maior']['type'] = 'number'
-        eixos_function[0]['parameters']['properties']['diametro_maior']['description'] = 'Maior diâmetro do eixo, atente-se as medidas implícitas e forneça o resultado final'
-
-        eixos_function[0]['parameters']['properties']['diametros'] = {}
-        eixos_function[0]['parameters']['properties']['diametros']['type'] = 'string'
-        eixos_function[0]['parameters']['properties']['diametros']['description'] = 'Analise e procure por outros diâmetros no eixo. Se encontrar, forneça as medidas aqui'
-        eixos_function[0]['parameters']['properties']['diametros']['nullable'] = True
-
-        eixos_function[0]['parameters']['properties']['furos'] = {}
-        eixos_function[0]['parameters']['properties']['furos']['type'] = 'string'
-        eixos_function[0]['parameters']['properties']['furos']['description'] = 'Descreva todos os furos encontrados no eixo e seus diâmetros, se não observar furos, esse campo deve permanecer vazio'
-        eixos_function[0]['parameters']['properties']['furos']['nullable'] = True
-
-        eixos_function[0]['parameters']['properties']['rasgo_de_chaveta'] = {}
-        eixos_function[0]['parameters']['properties']['rasgo_de_chaveta']['type'] = 'string'
-        eixos_function[0]['parameters']['properties']['rasgo_de_chaveta']['description'] = 'Descreva se identificou rasgos de chaveta no eixo, se sim, indique todas as medidas, se não, este campo deve permanecer vazio'
-        eixos_function[0]['parameters']['properties']['rasgo_de_chaveta']['nullable'] = True
-
-        eixos_function[0]['parameters']['properties']['observacoes'] = {}
-        eixos_function[0]['parameters']['properties']['observacoes']['type'] = 'string'
-        eixos_function[0]['parameters']['properties']['observacoes']['description'] = 'Observações importantes ou dúvidas encontradas na análise'
-        eixos_function[0]['parameters']['properties']['observacoes']['nullable'] = True
-
-        eixos_function[0]['parameters']['required'] = ['comprimento', 'diametro_maior']
-
         # Monta o dicionário para a primeira chamada.
         kwa = {}
 
-        kwa['model'] = 'gpt-4o'
+        kwa['model'] = 'chatgpt-4o-latest'
         kwa['temperature'] = 0.1
         kwa['messages'] = [{}]
         kwa['messages'][0]['role'] = 'user'
@@ -111,8 +70,6 @@ def analise_eixo(request):
         kwa['messages'][0]['content'][0]['text'] = p.PROMPT_EIXO_ANALISE
         kwa['messages'][0]['content'][1]['type'] = 'image_url'
         kwa['messages'][0]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
-
-        kwa['functions'] = eixos_function
 
         # Faz a requisição.
         try:
@@ -130,27 +87,8 @@ def analise_eixo(request):
 
             return render(request, 'analise_eixo.html')
 
-        # Coleta as informações necessárias.
-        comprimento = json.loads(chat_completion.choices[0].message.function_call.arguments).get('comprimento', '')
-        diametro_maior = json.loads(chat_completion.choices[0].message.function_call.arguments).get('diametro_maior', '')
-        diametros = json.loads(chat_completion.choices[0].message.function_call.arguments).get('diametros', '')
-        furos = json.loads(chat_completion.choices[0].message.function_call.arguments).get('furos', '')
-        rasgo_de_chaveta = json.loads(chat_completion.choices[0].message.function_call.arguments).get('rasgo_de_chaveta', '')
-        observacoes = json.loads(chat_completion.choices[0].message.function_call.arguments).get('observacoes', '')
-
-        # Monta os textos necessários para a segunda chamada.
-        text_cotas = f'O comprimento do eixo é de {comprimento} e o maior diâmetro encontrado foi de {diametro_maior}.\n'
-        text_diametros = f'Também foram encontrados outros diâmetros: {diametros}\n' if diametros else ''
-        text_furos = f'Foram encontrados os seguintes furos no eixo {furos}.\n' if furos else ''
-        text_rasgo_de_chaveta = f'Foram encontrados os seguintes rasgos de chaveta no eixo {rasgo_de_chaveta}.\n' if rasgo_de_chaveta else ''
-        text_observacoes = f'Observações que você deverá levar em consideração: {observacoes}'
-
         final_text = 'Essas são todas as informações necessárias para a sua análise: \n'
-        texts = [text_cotas, text_diametros, text_furos, text_rasgo_de_chaveta, text_observacoes]
-
-        for text in texts:
-            if text:
-                final_text += text
+        final_text += chat_completion.choices[0].message.content
 
         # Monta a função para estruturar a SEGUNDA chamada de API.
         process_function = [{}]
@@ -170,6 +108,10 @@ def analise_eixo(request):
         process_function[0]['parameters']['properties']['processos_de_fabricacao'] = {}
         process_function[0]['parameters']['properties']['processos_de_fabricacao']['type'] = 'string'
         process_function[0]['parameters']['properties']['processos_de_fabricacao']['description'] = 'Liste aqui em tópicos e numerados todos os processos necessários, as máquinas para realizar tal processo e explique o porquê do processo (Processo - Máquina - Explicação). Coloque cada processo em uma linha diferente.'
+
+        process_function[0]['parameters']['properties']['observacoes'] = {}
+        process_function[0]['parameters']['properties']['observacoes']['type'] = 'string'
+        process_function[0]['parameters']['properties']['observacoes']['description'] = 'Observações importantes encontradas na análise e que o usuário deve levar em consideração'
 
         process_function[0]['parameters']['required'] = ['materia_prima', 'processos_de_fabricacao']
 
@@ -207,6 +149,7 @@ def analise_eixo(request):
         # Coleta as informações necessárias.
         materia_prima = json.loads(chat_completion.choices[0].message.function_call.arguments).get('materia_prima', '')
         processos_de_fabricacao = json.loads(chat_completion.choices[0].message.function_call.arguments).get('processos_de_fabricacao', '')
+        observacoes = json.loads(chat_completion.choices[0].message.function_call.arguments).get('observacoes', '')
 
         ctx['materia_prima'] = materia_prima
         ctx['processos_de_fabricacao'] = processos_de_fabricacao

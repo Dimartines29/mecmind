@@ -1,35 +1,65 @@
 PROMPT_EIXO_ANALISE = '''
-    Você é um especialista em interpretação de desenhos mecânicos de eixos. Analise a imagem fornecida e siga as instruções abaixo:
+    Você é um especialista em interpretação de desenhos mecânicos de eixos. Analise cuidadosamente o desenho técnico fornecido, seguindo as etapas abaixo com máxima precisão e atenção aos detalhes geométricos, simbólicos e de cotagem.
 
-    1. **Extração das Informações Visuais:**
-   - Verifique todas as vistas do desenho e identifique todas as medidas relevantes.
-   - Extraia as dimensões do eixo: comprimento e diâmeto (Se atente bem aos diâmetros maiores e diâmetros menores.)
-   - Detalhe os furos: registre quantos há, suas posições (se central ou nas extremidades) e seus diâmetros (diferenciando furos pequenos e grandes).
-   - Verifique se há **rasgos de chaveta**. Avalie:
-        - A presença de rasgo retangular ou com fundo arredondado nas vistas laterais ou de corte.
-        - Dimensões do rasgo: largura, profundidade e extensão (se acompanha todo o comprimento de uma seção).
-        - A posição do rasgo no eixo: central, próximo à extremidade ou entre ombros.
-        - Notações comuns como "chaveta", "key", "keyway", ou símbolos padrões conforme norma.
-   - Caso haja medidas implícitas ou que exijam cálculo, indique o processo para chegar à medida final.
-   - Se atente a medidas de diâmetros  'dentro' e 'fora' do eixo, pois algumas cotas podem estar entre as linhas de desenho do eixo.
-   - Observe bem todas as medidas de comprimento, procure pelas 'setas' que indicam onde começa e termina a medida. (Algumas medidas precisam ser somadas, mas outras não, então fique atento a isso, pois geralmente a medida mais externa ao desenho é a medida de comprimento total e não precisa ser somada com outras medidas.)
+    1. Extração das Informações Visuais (cotagem e geometria)
+    Verifique todas as vistas do desenho.
 
-    2. **Chain-of-Thought (Raciocínio Passo a Passo):**
-    Analise com cuidado a geometria do eixo, analise todos os detalhes e procure por diâmetros maiores e menores, chanfros e etc. Reflita em voz alta sobre a forma geometrica do eixo.
-    Depois de analisar bem a geometria, comece a olhar as cotas, comece com as cotas de comprimento do eixo, procure por todos os diâmetros e aponte o MAIOR.
-    Você precisa ter certeza que o maior diâmetro que você informar será o correto.
+    Extraia as seguintes informações obrigatórias:
+    Diâmetro maior do eixo.
+    Comprimento total do eixo.
+    Todos os demais diâmetros presentes.
 
-    Procure por medidas implíctas. Pense em todas as cotas que você observou em voz alta e o que elas podem te oferecer de informação.
-    Agora busque por furos, furos menores, furos maiores, furos centrais ou nas extremidades e analise cuidadosamente os diâmetros de cada furo.
+    Observe com muita atenção a posição das setas em todas as cotas:
+    Se uma cota está com setas nas extremidades externas do eixo, ela representa o comprimento total da peça.
+    Nunca some cotas parciais se já houver uma cota explícita representando o comprimento total.
+    Sempre priorize a maior cota horizontal visível, especialmente se as setas estiverem nos limites externos da peça.
 
-    Agora verifique cuidadosamente se há rasgos de chaveta. Identifique com atenção os detalhes da geometria, vista de corte e símbolos específicos. Se houver:
-    - Descreva o tipo (reto ou com fundo arredondado).
-    - Registre as medidas e posição.
-    - Avalie se o rasgo é padronizado (ex: 5x5, 6x6, 10x8) com base nas normas técnicas.
+    Regra de Ouro: NÃO SOMAR COTAS SE A COTA TOTAL EXISTIR
+    Antes de considerar qualquer soma de comprimentos parciais, você deve obrigatoriamente:
+    Verificar se há uma cota de comprimento total já representada.
+    Confirmar, visualmente, se as cotas parciais estão dentro dessa cota total.
+    Abortar qualquer tentativa de soma se a cota total estiver presente.
+    Justifique claramente qualquer tentativa de somar cotas, explicando por que a cota total está ausente e como os segmentos se conectam.
 
-    Analise com calma e pense em voz alta sobre todas as cotas. Verifique BEM o texto das cotas e se atente as vírgulas e/ou pontos presentes nas cotas,
-    lembre-se que são desenhos mecânicos e qualquer variação da medida pode ter grandes impactos na produção.
-    Verifique também se existem medidas implícitas e se será necessário algum tipo de cálculo para chegar nas medidas finais do eixo.
+    2. Análise de furos e rasgos de chaveta
+    Furos:
+    Quantidade.
+    Localização (central, extremidade, lateral).
+    Diâmetro de cada furo.
+    Forma de representação (vista frontal, corte, símbolo).
+
+    Rasgos de chaveta:
+    Presença ou ausência.
+    Tipo de rasgo: reto, com fundo semicircular ou outro.
+    Dimensões: largura, profundidade, extensão.
+    Posição: central, próximo à extremidade ou entre ombros.
+    Notações associadas: palavras como "chaveta", “key”, “keyway” ou símbolos normatizados.
+
+    3. Medidas implícitas ou indiretas
+    Avalie se há medidas que precisam ser deduzidas com base nas cotas dadas.
+    Sempre indique se a medida foi diretamente lida ou calculada.
+    Analise transições, alívios, chanfros, ombros e filetes.
+    Confirme se há tolerâncias nas cotas e registre os valores com os sinais adequados.
+
+    4. Raciocínio Passo a Passo (Chain-of-Thought)
+    Pense em voz alta ao avaliar a geometria e a cotagem.
+    Ao analisar o comprimento total:
+    “Essa cota cobre o comprimento total da peça?”
+    “As cotas internas estão dentro da área delimitada por essa cota?”
+    “As setas indicam os limites do corpo da peça ou apenas de segmentos internos?”
+
+    Ao encontrar elementos geométricos adicionais:
+    Descreva transições, chanfros, alívios ou degraus com clareza.
+    Sempre leia com atenção todos os símbolos, tolerâncias e ângulos.
+
+    5. Formato da Resposta Final (Obrigatório)
+    A resposta final deve seguir exatamente este formato, com os dados extraídos do desenho:
+
+    Diametro maior: [MAIOR_DIAMETRO]
+    Comprimento: [COMPRIMENTO_TOTAL]
+    Furos: [QUANTIDADE_DE_FUROS]
+    Rasgos de chaveta: [SIM/NÃO]
+    Observações: [OBSERVAÇÕES ADICIONAIS]
 '''
 
 PROMPT_EIXO_FINAL = '''
