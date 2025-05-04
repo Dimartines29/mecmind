@@ -9,7 +9,7 @@
     <div class="container">
         <header>
             <h1>Análise de Desenho Técnico Para Eixos</h1>
-            <p>Envie seu desenho técnico e receba todos os dados neccessários para compra e fabricação.</p>
+            <p>Envie seu desenho técnico e receba todos os dados necessários para compra e fabricação.</p>
         </header>
 
         <div class="status-indicator">
@@ -26,6 +26,14 @@
                 <div class="step-text">Resultado</div>
             </div>
         </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="message {{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
 
         <div class="upload-container">
             <form id="uploadForm" action="{% url 'analise_eixo' %}" method="POST" enctype="multipart/form-data">

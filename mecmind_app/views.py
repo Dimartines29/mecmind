@@ -113,10 +113,14 @@ def analise_eixo(request):
         # Faz a requisição.
         try:
             chat_completion = cli.chat.completions.create(**kwa)
-            print('Processamento concluído')
+
+        except openai.OpenAIError as e:  # Colocar um LOG de erro para exibir no terminal aqui.
+            messages.error(request, 'Não foi possível processar o desenho devido a um erro na API da OpenAI, tente novamente mais tarde.')
+            return render(request, 'analise_eixo.html')
 
         except Exception as e:
-            print(f'Ocorreu um erro durante o processamento: {e}')
+            messages.error(request, 'Ocorreu um erro inesperado. Por favor, entre em contato com o suporte.')
+            return render(request, 'analise_eixo.html')
 
         # Coleta as informações necessárias.
         comprimento = json.loads(chat_completion.choices[0].message.function_call.arguments).get('comprimento', '')
@@ -181,10 +185,16 @@ def analise_eixo(request):
         # Faz a requisição.
         try:
             chat_completion = cli.chat.completions.create(**kwa)
-            print('Processamento concluído')
+
+        except openai.OpenAIError as e:
+            print(f'Erro na API OpenAI: {e}')
+            messages.error(request, 'Não foi possível processar o desenho. Por favor, tente novamente mais tarde.')
+            return render(request, 'analise_eixo.html', {'error': 'api_error'})
 
         except Exception as e:
-            print(f'Ocorreu um erro durante o processamento: {e}')
+            print(f'Erro inesperado: {e}')
+            messages.error(request, 'Ocorreu um erro inesperado. Por favor, tente novamente.')
+            return render(request, 'analise_eixo.html', {'error': 'erro_geral'})
 
         # Coleta as informações necessárias.
         materia_prima = json.loads(chat_completion.choices[0].message.function_call.arguments).get('materia_prima', '')
