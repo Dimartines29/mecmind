@@ -1,7 +1,8 @@
 #Python
 import os
-import base64
 import json
+import base64
+import logging
 
 #Django
 from django.shortcuts import render, redirect
@@ -21,6 +22,9 @@ from mecmind_app import models as m
 
 # Carrega as variáveis de ambiente
 load_dotenv()
+
+# LOG
+logger = logging.getLogger('mecmind_app')
 
 # OpenAI API key
 openai_api_key = os.getenv('OPENAI_API_KEY')
@@ -114,12 +118,16 @@ def analise_eixo(request):
         try:
             chat_completion = cli.chat.completions.create(**kwa)
 
-        except openai.OpenAIError as e:  # Colocar um LOG de erro para exibir no terminal aqui.
+        except openai.OpenAIError as e:
+            logger.error(f"Error occurred: {str(e)}", exc_info=True)
             messages.error(request, 'Não foi possível processar o desenho devido a um erro na API da OpenAI, tente novamente mais tarde.')
+
             return render(request, 'analise_eixo.html')
 
         except Exception as e:
+            logger.error(f"Error occurred: {str(e)}", exc_info=True)
             messages.error(request, 'Ocorreu um erro inesperado. Por favor, entre em contato com o suporte.')
+
             return render(request, 'analise_eixo.html')
 
         # Coleta as informações necessárias.
@@ -187,14 +195,14 @@ def analise_eixo(request):
             chat_completion = cli.chat.completions.create(**kwa)
 
         except openai.OpenAIError as e:
-            print(f'Erro na API OpenAI: {e}')
-            messages.error(request, 'Não foi possível processar o desenho. Por favor, tente novamente mais tarde.')
-            return render(request, 'analise_eixo.html', {'error': 'api_error'})
+            logger.error(f"Error occurred: {str(e)}", exc_info=True)
+            messages.error(request, 'Não foi possível processar o desenho devido a um erro na API da OpenAI, tente novamente mais tarde.')
+            return render(request, 'analise_eixo.html')
 
         except Exception as e:
-            print(f'Erro inesperado: {e}')
-            messages.error(request, 'Ocorreu um erro inesperado. Por favor, tente novamente.')
-            return render(request, 'analise_eixo.html', {'error': 'erro_geral'})
+            logger.error(f"Error occurred: {str(e)}", exc_info=True)
+            messages.error(request, 'Ocorreu um erro inesperado. Por favor, entre em contato com o suporte.')
+            return render(request, 'analise_eixo.html')
 
         # Coleta as informações necessárias.
         materia_prima = json.loads(chat_completion.choices[0].message.function_call.arguments).get('materia_prima', '')

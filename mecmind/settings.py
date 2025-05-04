@@ -103,6 +103,49 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'colored': {
+            '()': 'colorlog.ColoredFormatter',
+            'format': '%(log_color)s%(levelname)s: %(message)s',
+            'log_colors': {
+                'ERROR': 'bold_red',
+                'CRITICAL': 'bold_red',
+            },
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': 'django_errors.log',
+            'formatter': 'verbose',
+        },
+        'console': {
+            'level': 'ERROR',
+            'class': 'logging.StreamHandler',
+            'formatter': 'colored',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file', 'console'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'mecmind_app': {
+            'handlers': ['file', 'console'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    },
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
