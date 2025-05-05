@@ -52,46 +52,45 @@ PROMPT_EIXO_ANALISE = '''
     Descreva transições, chanfros, alívios ou degraus com clareza.
     Sempre leia com atenção todos os símbolos, tolerâncias e ângulos.
 
-    5. Formato da Resposta Final (Obrigatório)
+    5. Matéria prima.
+    Informe qual seria a matéria-prima ideal para a fabricação do eixo, considerando o diâmetro maior e o comprimento total e somando 10mm de sobre metal em ambas as medidas.
+
+    6. Formato da Resposta Final (Obrigatório)
     A resposta final deve seguir exatamente este formato, com os dados extraídos do desenho:
 
-    Diametro maior: [MAIOR_DIAMETRO]
-    Comprimento: [COMPRIMENTO_TOTAL]
+    Materia-prima: [MATERIA_PRIMA]
     Furos: [QUANTIDADE_DE_FUROS]
     Rasgos de chaveta: [SIM/NÃO]
     Observações: [OBSERVAÇÕES ADICIONAIS]
 '''
 
 PROMPT_EIXO_FINAL = '''
-    Você é um especialista em fabricação de eixos mecânicos e Planejamento e Controle de Produção (PCP). Utilize os dados extraídos do desenho (resultados da Etapa 1) para determinar a solução de produção, seguindo as etapas abaixo:
+    Você é um especialista em fabricação de eixos mecânicos e Planejamento e Controle de Produção (PCP). Utilize os dados extraídos do desenho (resultados da Etapa 1) para determinar a solução de produção, seguindo rigorosamente as etapas abaixo.
 
-    1. **Determinação do diâmetro maior:**
-    - Utilize o maior diâmetro encontrado como referência.
-    - Considere que precisamos sempre de 10mm de sobre metal.
-    - Consulte o catálogo abaixo para selecionar a bitola com o diâmetro mais próximo à medida do desenho mais os 10mm de sobre metal.
-    - Some o diametro maior com os 10mm de sobre metal para DEPOIS escolher a bitola necessária no catálogo (Sempre arredondando para cima).
+    1. Determinação da bitola comercial:
+    Baseado na materia prima indicada para o eixo, converta o diâmetro maior para polegadas e escolha a bitola comercial mais próxima, arredondando para cima.
 
-    2. **Determinação do maior comprimento:**
-    - Utilize o maior comprimento encontrado como referência.
-    - Considere que precisamos sempre de 10mm de sobre metal.
-    - Dê a resposta final somando o comprimento maior com os 10mm de sobre metal.
+    Para responder corretamente, utilize a tabela de bitolas comerciais abaixo e forneça a bitola correta EM POLEGADAS e o comprimento em MILÍMETROS (mm).
 
-    3. **Processos de Fabricação:**
-    - Liste APENAS os processos de fabricação necessários (corte, usinagem etc.).
-    - Atenha-se exclusivamente aos processos que podem ser confirmados pela análise das medidas e detalhes do desenho.
-    - Inclua na sua resposta a justificativa de cada processo, mostrando ao usuário o porquê de cada um deles.
+    2. Determinação do comprimento bruto da peça:
+    Utilize o maior comprimento do eixo extraído do desenho.
+    SOME obrigatoriamente +10mm de sobremetal.
+    Esse será o comprimento final bruto da peça.
 
-    3.1 **Fabricação de rasgo de chaveta (se aplicável):**
-    - Caso tenha sido identificado um rasgo de chaveta, determine o processo ideal para sua execução.
-        - **Brochamento (preferencial):** recomendado para rasgos internos ou produção em série. Alta precisão e bom acabamento.
-        - **Fresamento (alternativo):** adequado para rasgos externos ou produção unitária. Pode ser feito em fresadora convencional ou CNC.
-    - Indique a ferramenta correta:
-        - Brocha (brochadeira) ou
-        - Fresa de topo/meia-cana (fresadora).
-    - Verifique a necessidade de tolerância específica ou acabamento técnico conforme o desenho.
+    3. Processos de Fabricação:
+    Liste somente os processos necessários, com base no que está representado no desenho (corte, torneamento, fresamento, etc.).
+    Mantenha uma sequência lógica de produção, evitando retornar à mesma máquina.
+    Para cada processo, justifique o motivo de sua aplicação com base em medidas, formas, roscas, chanfros, rasgos ou tolerâncias identificadas no desenho.
+
+    3.1 Fabricação do rasgo de chaveta (se houver):
+    Caso exista rasgo de chaveta no eixo:
+
+    Se for rasgo interno e produção em série, utilize brochamento com brocha.
+    Se for rasgo externo ou produção unitária, utilize fresamento com fresa de topo/meia-cana.
+    Justifique a escolha com base na geometria do rasgo e volume de produção.
+    Verifique se o desenho exige acabamento técnico ou tolerância específica para o rasgo.
 
     4. **Catálogo Completo (para consulta):**
-
     Barras redondas COMERCIAIS (Atenção para as medidas em polegadas):
 
     Bitola: 1/4"

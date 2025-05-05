@@ -93,7 +93,7 @@ def analise_eixo(request):
         # Monta a função para estruturar a SEGUNDA chamada de API.
         process_function = [{}]
 
-        process_function[0]['type'] = 'funtion'
+        process_function[0]['type'] = 'function'
         process_function[0]['name'] = 'get_info'
         process_function[0]['description'] = 'Determina a materia prima e os processos de fabricação necessários para a fabricação de um eixo.'
         process_function[0]['parameters'] = {}
@@ -103,7 +103,7 @@ def analise_eixo(request):
 
         process_function[0]['parameters']['properties']['materia_prima'] = {}
         process_function[0]['parameters']['properties']['materia_prima']['type'] = 'string'
-        process_function[0]['parameters']['properties']['materia_prima']['description'] = 'Baseado no catálogo, coloque aqui o tipo do material e as medidas Comprimento X Diâmetro MAIOR (Barra redonda - Diamêtro x Comprimento). Lembre-se do sobre metal de pelo menos 10mm tanto no comprimento quanto no diâmetro e que o diâmetro deve ser compatível com as bitolas presentes no catálogo.'
+        process_function[0]['parameters']['properties']['materia_prima']['description'] = 'Informe a matéria-prima no formato: Barra redonda - Diâmetro (Em polegada e de acordo com o catálogo fornecido) x Comprimento (Em milimetros).'
 
         process_function[0]['parameters']['properties']['processos_de_fabricacao'] = {}
         process_function[0]['parameters']['properties']['processos_de_fabricacao']['type'] = 'string'
