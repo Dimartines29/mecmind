@@ -49,6 +49,7 @@ def index(request):
 @login_required(login_url='/login')
 def analise_eixo(request):
     ctx = {}
+
     if request.method == 'POST':
         quantity_text = f' A quantidade de peças necessárias para este projeto é de {request.POST.get("quantidade", "1")}.'
 
@@ -180,70 +181,21 @@ def analise_eixo(request):
 
 @login_required(login_url='/login')
 def analise_chapa(request):
-    if request.method == 'POST':
-        user_prompt = request.POST.get('prompt', '')
-        quantity = request.POST.get('quantidade', '1')
-        image = request.FILES['image']
+    ctx = {}
 
-        quantity_text = f' A quantidade de chapas necessárias para este projeto é de {quantity} chapa(s).'
+    if request.method == 'POST':
+        quantity_text = f' A quantidade de peças necessárias para este projeto é de {request.POST.get("quantidade", "1")}.'
 
         # Adiciona a quantidade ao prompt do usuário.
-        user_prompt = 'Observações adicionais do usuário: ' + user_prompt + '\n' + quantity_text
-
-        # Salva a imagem no diretório
-        image_path = os.path.join(IMAGE_UPLOAD_PATH, image.name)
-        with open(image_path, 'wb+') as destination:
-            for chunk in image.chunks():
-                destination.write(chunk)
+        user_prompt = 'Observações adicionais do usuário: ' + request.POST.get("prompt", "") + '\n' + quantity_text
 
         # Encoda a imagem
-        base64_image = encode_image(image_path)
-
-        # Monta a função para estruturar a primeira chamada de API.
-        chapas_function = [{}]
-
-        chapas_function[0]['type'] = 'funtion'
-        chapas_function[0]['name'] = 'get_info'
-        chapas_function[0]['description'] = 'Obtém os dados mais importantes do desenho mecânico de chapas'
-        chapas_function[0]['parameters'] = {}
-
-        chapas_function[0]['parameters']['type'] = 'object'
-        chapas_function[0]['parameters']['properties'] = {}
-
-        chapas_function[0]['parameters']['properties']['espessura'] = {}
-        chapas_function[0]['parameters']['properties']['espessura']['type'] = 'number'
-        chapas_function[0]['parameters']['properties']['espessura']['description'] = 'Maior espessura encontrada da chapa, atente-se as medidas implícitas e forneça o resultado final'
-
-        chapas_function[0]['parameters']['properties']['comprimento'] = {}
-        chapas_function[0]['parameters']['properties']['comprimento']['type'] = 'number'
-        chapas_function[0]['parameters']['properties']['comprimento']['description'] = 'Comprimento total da chapa, atente-se as medidas implícitas (como raios, que podem impactar na medida final da peça) e forneça o resultado final'
-
-        chapas_function[0]['parameters']['properties']['largura'] = {}
-        chapas_function[0]['parameters']['properties']['largura']['type'] = 'number'
-        chapas_function[0]['parameters']['properties']['largura']['description'] = 'Largura total da chapa, atente-se as medidas implícitas (como raios, que podem impactar na medida final da peça) e forneça o resultado final'
-
-        chapas_function[0]['parameters']['properties']['rebaixos'] = {}
-        chapas_function[0]['parameters']['properties']['rebaixos']['type'] = 'string'
-        chapas_function[0]['parameters']['properties']['rebaixos']['description'] = 'Analise e procure por rebaixos na chapa. Se encontrar, forneça as medidas maiores e menores de espessura aqui'
-
-        chapas_function[0]['parameters']['properties']['furos'] = {}
-        chapas_function[0]['parameters']['properties']['furos']['type'] = 'string'
-        chapas_function[0]['parameters']['properties']['furos']['description'] = 'Descreva todos os furos encontrados nas chapas e seus diâmetros, se não observar furos, esse campo deve permanecer vazio'
-
-        chapas_function[0]['parameters']['properties']['dobras'] = {}
-        chapas_function[0]['parameters']['properties']['dobras']['type'] = 'string'
-        chapas_function[0]['parameters']['properties']['dobras']['description'] = 'Descreva se identificou dobras na chapa, se sim, indique todas as medidas, se não, este campo deve permanecer vazio'
-
-        chapas_function[0]['parameters']['properties']['observações'] = {}
-        chapas_function[0]['parameters']['properties']['observações']['type'] = 'string'
-        chapas_function[0]['parameters']['properties']['observações']['description'] = 'Observações importantes ou dúvidas encontradas na análise'
-
-        chapas_function[0]['parameters']['required'] = ['espessura', 'comprimento', 'largura']
+        base64_image = encode_image(request.FILES['image'])
 
         # Monta o dicionário para a primeira chamada: Models -- 'gpt-4-turbo' 'gpt-4o' 'gpt-4o-mini'
         kwa = {}
 
-        kwa['model'] = 'gpt-4o'
+        kwa['model'] = 'chatgpt-4o-latest'
         kwa['temperature'] = 0.1
         kwa['messages'] = [{}]
         kwa['messages'][0]['role'] = 'user'
@@ -253,39 +205,24 @@ def analise_chapa(request):
         kwa['messages'][0]['content'][1]['type'] = 'image_url'
         kwa['messages'][0]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
 
-        kwa['functions'] = chapas_function
-
         # Faz a requisição.
         try:
             chat_completion = cli.chat.completions.create(**kwa)
-            print('Processamento concluído')
+
+        except openai.OpenAIError as e:
+            logger.error(f"Error occurred: {str(e)}", exc_info=True)
+            messages.error(request, 'Não foi possível processar o desenho devido a um erro na API da OpenAI, tente novamente mais tarde.')
+
+            return render(request, 'analise_chapa.html')
 
         except Exception as e:
-            print(f'Ocorreu um erro durante o processamento: {e}')
+            logger.error(f"Error occurred: {str(e)}", exc_info=True)
+            messages.error(request, 'Ocorreu um erro inesperado. Por favor, entre em contato com o suporte.')
 
-        # Coleta as informações necessárias.
-        function_args = json.loads(chat_completion.choices[0].message.function_call.arguments)
-        espessura = function_args.get('espessura', '')
-        comprimento = function_args.get('comprimento', '')
-        largura = function_args.get('largura', '')
-        rebaixos = function_args.get('rebaixos', '')
-        furos = function_args.get('furos', '')
-        dobras = function_args.get('dobras', '')
-        observacoes = function_args.get('observacoes', '')
-
-        # Monta os textos necessários para a segunda chamada.
-        text_cotas = f'A espessura da chapa é de {espessura}, seu comprimento é de {comprimento} e a largura é {largura}.\n'
-        text_rebaixos = f'Foram encontrados os seguintes rebaixos na chapa {rebaixos}.\n' if rebaixos else ''
-        text_furos = f'Foram encontrados os seguintes furos na chapa {furos}.\n' if furos else ''
-        text_dobras = f'Foram encontradas as seguintes dobras na chapa {dobras}.\n' if dobras else ''
-        text_observacoes = f'Observações que você deverá levar em consideração: {observacoes}'
+            return render(request, 'analise_chapa.html')
 
         final_text = 'Essas são todas as informações necessárias para a sua análise: \n'
-        texts = [text_cotas, text_rebaixos, text_furos, text_dobras, text_observacoes]
-
-        for text in texts:
-            if text:
-                final_text += text
+        final_text += chat_completion.choices[0].message.content
 
         # Monta a função para estruturar a SEGUNDA chamada de API.
         process_function = [{}]
@@ -332,27 +269,46 @@ def analise_chapa(request):
         # Faz a requisição.
         try:
             chat_completion = cli.chat.completions.create(**kwa)
-            print('Processamento concluído')
+
+        except openai.OpenAIError as e:
+            logger.error(f"Error occurred: {str(e)}", exc_info=True)
+            messages.error(request, 'Não foi possível processar o desenho devido a um erro na API da OpenAI, tente novamente mais tarde.')
+            return render(request, 'analise_chapa.html')
 
         except Exception as e:
-            print(f'Ocorreu um erro durante o processamento: {e}')
+            logger.error(f"Error occurred: {str(e)}", exc_info=True)
+            messages.error(request, 'Ocorreu um erro inesperado. Por favor, entre em contato com o suporte.')
+            return render(request, 'analise_chapa.html')
 
         # Coleta as informações necessárias.
-        function_args = json.loads(chat_completion.choices[0].message.function_call.arguments)
-        materia_prima = function_args.get('materia_prima', '')
-        processos_de_fabricacao = function_args.get('processos_de_fabricacao', '')
-        aproveitamento = function_args.get('aproveitamento', '')
+        materia_prima = json.loads(chat_completion.choices[0].message.function_call.arguments).get('materia_prima', '')
+        processos_de_fabricacao = json.loads(chat_completion.choices[0].message.function_call.arguments).get('processos_de_fabricacao', '')
+        aproveitamento = json.loads(chat_completion.choices[0].message.function_call.arguments).get('aproveitamento', '')
 
-        final_response = f'''
-        Analise completa:\n
-        Matéria prima necessária: {materia_prima}\n\n
-        Processos de fabricação: {processos_de_fabricacao}\n
-        '''
+        ctx['materia_prima'] = materia_prima
+        ctx['processos_de_fabricacao'] = processos_de_fabricacao
+        ctx['aproveitamento'] = aproveitamento
 
-        if aproveitamento:
-            final_response += aproveitamento
+        # Salva o Projeto
+        project = m.Project()
 
-        return render(request, 'analise_chapa.html', {'response_text': final_response})
+        # Informações do usuário.
+        project.user = request.user
+
+        if hasattr(request.user, 'company') and request.user.company:
+            project.company = request.user.company
+
+        # Informações do projeto.
+        project.analysis_name = 'chapa'
+        project.drawing = request.FILES['image']
+        project.user_observation = request.POST.get('prompt', '')
+        project.raw_material = materia_prima
+        project.processes = processos_de_fabricacao
+        project.ia_observation = aproveitamento
+
+        project.save()
+
+        return render(request, 'analise_chapa.html', ctx)
 
     return render(request, 'analise_chapa.html')
 

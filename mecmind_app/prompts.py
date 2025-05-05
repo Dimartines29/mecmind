@@ -155,6 +155,16 @@ PROMPT_CHAPA_ANALISE = '''
     Analise com calma e pense em voz alta sobre todas as cotas. Verifique BEM o texto das cotas e se atente as vírgulas e/ou pontos presentes nas cotas, principamente nas espessuras
     lembre-se que são desenhos mecânicos e qualquer variação da medida pode ter grandes impactos na produção.
     Verifique também se existem medidas implícitas e se será necessário algum tipo de cálculo para chegar no comprimento, largura ou espessura final da chapa.
+
+    3. RESPOSTA FINAL:
+    - A resposta final deve seguir exatamente este formato, com os dados extraídos do desenho:
+    Espessura: [ESPESSURA]
+    Comprimento: [COMPRIMENTO]
+    Largura: [LARGURA]
+    Rebaixos: [Indique os rebaixos, se houver]
+    Furos: [QUANTIDADE DE FUROS]
+    Dobras: [Indique as dobras, se houver]
+    Observações: [OBSERVAÇÕES ADICIONAIS]
 '''
 
 PROMPT_CHAPA_FINAL = '''
