@@ -2,8 +2,8 @@
     <div class="pagination">
         <span class="step-links">
             {% if page_obj.has_previous %}
-                <a href="?page=1&filters={{request.GET.filters}}"><i class="fas fa-angle-double-left"></i></a>
-                <a href="?page={{ page_obj.previous_page_number }}&filters={{request.GET.filters}}"><i class="fas fa-chevron-left"></i></a>
+                <a href="?page=1&analysis_type={{ selected_analysis }}&date_from={{ selected_date_from }}&date_to={{ selected_date_to }}"><i class="fas fa-angle-double-left"></i></a>
+                <a href="?page={{ page_obj.previous_page_number }}&analysis_type={{ selected_analysis }}&date_from={{ selected_date_from }}&date_to={{ selected_date_to }}"><i class="fas fa-chevron-left"></i></a>
 
             {% else %}
                 <a class="disable"><i class="fas fa-angle-double-left"></i></a>
@@ -15,8 +15,8 @@
             </span>
 
             {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}&filters={{request.GET.filters}}"><i class="fas fa-chevron-right"></i></a>
-                <a href="?page={{ page_obj.paginator.num_pages }}&filters={{request.GET.filters}}"><i class="fas fa-angle-double-right"></i></a>
+                <a href="?page={{ page_obj.next_page_number }}&analysis_type={{ selected_analysis }}&date_from={{ selected_date_from }}&date_to={{ selected_date_to }}"><i class="fas fa-chevron-right"></i></a>
+                <a href="?page={{ page_obj.paginator.num_pages }}&analysis_type={{ selected_analysis }}&date_from={{ selected_date_from }}&date_to={{ selected_date_to }}"><i class="fas fa-angle-double-right"></i></a>
 
             {% else %}
                 <a class="disable"><i class="fas fa-chevron-right"></i></a>

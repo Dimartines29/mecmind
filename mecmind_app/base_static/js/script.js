@@ -9,6 +9,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const exportBtn = document.getElementById('exportBtn');
     const shareBtn = document.getElementById('shareBtn');
     const newAnalysisBtn = document.getElementById('newAnalysisBtn');
+    const filterForm = document.getElementById('filter-form');
+    const dateFromInput = document.getElementById('date_from');
+    const dateToInput = document.getElementById('date_to');
 
     // Atualiza a pré-visualização da imagem quando um arquivo é selecionado
     imageInput.addEventListener('change', function() {
@@ -188,6 +191,48 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Validação de datas
+    if (dateFromInput && dateToInput) {
+        dateToInput.addEventListener('change', function() {
+            if (dateFromInput.value && dateToInput.value) {
+                const fromDate = new Date(dateFromInput.value);
+                const toDate = new Date(dateToInput.value);
+
+                if (toDate < fromDate) {
+                    showToast('A data final não pode ser anterior à data inicial', 'error');
+                    dateToInput.value = '';
+                    return;
+                }
+
+                submitWithAnimation();
+            }
+        });
+
+        dateFromInput.addEventListener('change', function() {
+            if (dateFromInput.value && dateToInput.value) {
+                const fromDate = new Date(dateFromInput.value);
+                const toDate = new Date(dateToInput.value);
+
+                if (toDate < fromDate) {
+                    showToast('A data final não pode ser anterior à data inicial', 'error');
+                    dateFromInput.value = '';
+                    return;
+                }
+
+                submitWithAnimation();
+            }
+        });
+    }
+
+    // Função para enviar o formulário com animação
+    function submitWithAnimation() {
+        document.querySelector('.filter-container').classList.add('filtering');
+
+        setTimeout(() => {
+            filterForm.submit();
+        }, 300);
+    }
+
     // Adiciona estilos para o toast via JavaScript
     const style = document.createElement('style');
     style.textContent = `
@@ -306,6 +351,21 @@ document.addEventListener('DOMContentLoaded', function() {
         .footer-links a:hover {
             color: var(--light-gray);
             transform: translateY(-2px);
+        }
+        .filter-container.filtering {
+            opacity: 0.8;
+            transform: scale(0.98);
+            transition: all 0.3s ease;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            transition: all 0.3s ease;
+        }
+
+        .filter-group select:hover,
+        .filter-group input:hover {
+            border-color: var(--electric-blue);
         }
     `;
     document.head.appendChild(style);

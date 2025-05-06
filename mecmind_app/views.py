@@ -3,6 +3,7 @@ import os
 import json
 import base64
 import logging
+from datetime import datetime, time
 
 #Django
 from django.shortcuts import render, redirect
@@ -19,6 +20,7 @@ from dotenv import load_dotenv
 #Local
 from mecmind_app import prompts as p
 from mecmind_app import models as m
+from mecmind_app import choices as c
 
 # Carrega as variáveis de ambiente
 load_dotenv()
@@ -602,14 +604,40 @@ def analise_geral(request):
 @login_required(login_url='/login')
 def projetos(request):
     ctx = {}
-    projetos = m.Project.objects.filter(user=request.user).order_by('-id')  # Aqui o filtro deverá ser pelo nome do usuário logado
 
+    analysis_type = request.GET.get('analysis_type', '')
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+
+    # Inicia a query filtrada pelo usuário logado
+    query = m.Project.objects.filter(user=request.user)
+
+    # Aplica os filtros se fornecidos
+    if analysis_type:
+        query = query.filter(analysis_name=analysis_type)
+
+    if date_from:
+        date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()
+        query = query.filter(created_date__gte=datetime.combine(date_from_obj, time.min))
+
+    if date_to:
+        date_to_obj = datetime.strptime(date_to, '%Y-%m-%d').date()
+        query = query.filter(created_date__lte=datetime.combine(date_to_obj, time.max))
+
+    # Ordena os resultados por ID em ordem decrescente
+    projetos = query.order_by('-id')
+
+    # Paginação
     paginator = Paginator(projetos, 10)
-
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
+    # Prepara os dados para o contexto
     ctx['page_obj'] = page_obj
+    ctx['analysis_choices'] = c.PROJETO['analise']
+    ctx['selected_analysis'] = analysis_type
+    ctx['selected_date_from'] = date_from
+    ctx['selected_date_to'] = date_to
 
     return render(request, 'projetos.html', ctx)
 
