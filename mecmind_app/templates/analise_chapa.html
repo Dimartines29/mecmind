@@ -75,16 +75,21 @@
             <h2><i class="fas fa-clipboard-check"></i> Resultado da Análise</h2>
 
             <h3>Matéria prima</h3>
-            <span>{{ materia_prima }}</span> <br><br>
+            <span>{{ materia_prima }}</span><br><br>
 
-            <h3>Processos de fabricação</h3>
-            <span>{{ processos_de_fabricacao }}</span> <br><br>
+            <h3>Máquinas utilizadas</h3>
+            {% for maq in maquinas %}
+                <span>{{ maq }}</span><br>
+            {% endfor %}<br>
 
-            <h3>Aproveitamento de chapa</h3>
-            {% if aproveitamento %}
-                <span>{{ aproveitamento }}</span> <br>
+            <h3>Processo detalhado</h3>
+            <span>{{ processos }}</span><br><br>
+
+            <h3>Observações adicionais</h3>
+            {% if observacoes %}
+                <span>{{ observacoes }}</span> <br>
             {% else %}
-                <span>Não é necessário aproveitamento para esse projeto</span> <br>
+                <span>Não existem observações adicionais para este projeto.</span> <br>
             {% endif %}
 
             <div class="action-buttons" {% if not materia_prima %}style="display:none"{% endif %}>

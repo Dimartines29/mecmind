@@ -123,7 +123,7 @@ def analise_eixo(request):
         process_function[0]['parameters']['properties']['observacoes']['type'] = 'string'
         process_function[0]['parameters']['properties']['observacoes']['description'] = 'Observações importantes encontradas na análise e que o usuário deve levar em consideração'
 
-        process_function[0]['parameters']['required'] = ['materia_prima', 'processos_de_fabricacao']
+        process_function[0]['parameters']['required'] = ['materia_prima', 'maquinas', 'processos']
 
         # Monta a segunda chamada.
         kwa = {}
@@ -252,15 +252,22 @@ def analise_chapa(request):
         process_function[0]['parameters']['properties']['materia_prima']['type'] = 'string'
         process_function[0]['parameters']['properties']['materia_prima']['description'] = 'Baseado no catálogo, coloque aqui as medidas Comprimento X Largura X Espessura (A Espessura deve ser compatível com as presentes no catálogo)'
 
-        process_function[0]['parameters']['properties']['processos_de_fabricacao'] = {}
-        process_function[0]['parameters']['properties']['processos_de_fabricacao']['type'] = 'string'
-        process_function[0]['parameters']['properties']['processos_de_fabricacao']['description'] = 'Liste aqui todos os processos necessários e as máquinas para realizar tal processo (Processo - Máquina)'
+        process_function[0]['parameters']['properties']['maquinas'] = {}
+        process_function[0]['parameters']['properties']['maquinas']['type'] = 'array'
+        process_function[0]['parameters']['properties']['maquinas']['description'] = 'Liste aqui todas as máquinas necessárias para a fabricação da chapa.'
+        process_function[0]['parameters']['properties']['maquinas']['items'] = {}
+        process_function[0]['parameters']['properties']['maquinas']['items']['type'] = 'string'
+        process_function[0]['parameters']['properties']['maquinas']['items']['description'] = 'Nome da máquina necessária para o processo.'
+
+        process_function[0]['parameters']['properties']['processos'] = {}
+        process_function[0]['parameters']['properties']['processos']['type'] = 'string'
+        process_function[0]['parameters']['properties']['processos']['description'] = 'Explique aqui o processo que cada máquina irá realizar. Coloque cada processo como um tópico, mas sem numeração.'
 
         process_function[0]['parameters']['properties']['aproveitamento'] = {}
         process_function[0]['parameters']['properties']['aproveitamento']['type'] = 'string'
         process_function[0]['parameters']['properties']['aproveitamento']['description'] = 'Se solicitado mais de uma chapa, verifique a necessidade de um aproveitamento e o descreva aqui'
 
-        process_function[0]['parameters']['required'] = ['materia_prima', 'processos_de_fabricacao']
+        process_function[0]['parameters']['required'] = ['materia_prima', 'maquinas', 'processos']
 
         # Monta a segunda chamada.
         kwa = {}
@@ -295,11 +302,13 @@ def analise_chapa(request):
 
         # Coleta as informações necessárias.
         materia_prima = json.loads(chat_completion.choices[0].message.function_call.arguments).get('materia_prima', '')
-        processos_de_fabricacao = json.loads(chat_completion.choices[0].message.function_call.arguments).get('processos_de_fabricacao', '')
+        maquinas = json.loads(chat_completion.choices[0].message.function_call.arguments).get('maquinas', [])
+        processos = json.loads(chat_completion.choices[0].message.function_call.arguments).get('processos', '')
         aproveitamento = json.loads(chat_completion.choices[0].message.function_call.arguments).get('aproveitamento', '')
 
         ctx['materia_prima'] = materia_prima
-        ctx['processos_de_fabricacao'] = processos_de_fabricacao
+        ctx['maquinas'] = maquinas
+        ctx['processos'] = processos
         ctx['aproveitamento'] = aproveitamento
 
         # Salva o Projeto
@@ -316,7 +325,8 @@ def analise_chapa(request):
         project.drawing = request.FILES['image']
         project.user_observation = request.POST.get('prompt', '')
         project.raw_material = materia_prima
-        project.processes = processos_de_fabricacao
+        project.machines = ', '.join(maquinas)
+        project.processes = processos
         project.ia_observation = aproveitamento
 
         project.save()

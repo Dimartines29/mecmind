@@ -179,7 +179,8 @@ PROMPT_CHAPA_FINAL = '''
     - Considere que, se o grau de acabamento for alto, pode ser necessária uma chapa com espessura um pouco maior para garantir qualidade.
 
     2. **Processos de Fabricação:**
-    - Liste APENAS os processos de fabricação necessários (corte a laser, dobra, usinagem etc.).
+    - IMPORTANTE: As requisições das chapas, na maioria das vezes já são nas medidas desejadas, ou seja, não é necessário um adicionar um processo de corte a laser, a chapa já é recebida cortada.
+    - Liste APENAS os processos de fabricação necessários (dobra, usinagem etc.).
     - Atenha-se exclusivamente aos processos que podem ser confirmados pela análise das medidas e detalhes do desenho.
     - Para chapas com espessura superior a 8 mm, inclua a verificação de usinagem.
 
