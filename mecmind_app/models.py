@@ -38,6 +38,7 @@ class Project(models.Model):
     drawing = models.ImageField(upload_to='projects/%Y/%m/%d', blank=True)
     created_date = models.DateTimeField(default=timezone.now)
     raw_material = models.TextField('Matéria Prima', blank=True)
+    machines = models.TextField('Máquinas', blank=True)
     processes = models.TextField('Processos', blank=True)
     user_observation = models.TextField('Observações do Usuário', blank=True)
     ia_observation = models.TextField('Observações da IA', blank=True)

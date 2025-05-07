@@ -78,9 +78,12 @@ PROMPT_EIXO_FINAL = '''
     Esse será o comprimento final bruto da peça.
 
     3. Processos de Fabricação:
-    Liste somente os processos necessários, com base no que está representado no desenho (corte, torneamento, fresamento, etc.).
+    Liste somente os processos necessários, com base no que está representado no desenho (torneamento, fresamento, etc.).
+    IMPORTANTE: As peças são solicitadas para compra na medida com o sobre metal, portanto, não é necessário considerar o primeiro processo de corte.
+
     Mantenha uma sequência lógica de produção, evitando retornar à mesma máquina.
     Para cada processo, justifique o motivo de sua aplicação com base em medidas, formas, roscas, chanfros, rasgos ou tolerâncias identificadas no desenho.
+    Você deverá escrever todas as máquinas que serão utilizadas para a fabricação do eixo e depois explicar esse processo.
 
     3.1 Fabricação do rasgo de chaveta (se houver):
     Caso exista rasgo de chaveta no eixo:

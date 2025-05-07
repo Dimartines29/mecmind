@@ -108,9 +108,16 @@ def analise_eixo(request):
         process_function[0]['parameters']['properties']['materia_prima']['type'] = 'string'
         process_function[0]['parameters']['properties']['materia_prima']['description'] = 'Informe a matéria-prima no formato: Barra redonda - Diâmetro (Em polegada e de acordo com o catálogo fornecido) x Comprimento (Em milimetros).'
 
-        process_function[0]['parameters']['properties']['processos_de_fabricacao'] = {}
-        process_function[0]['parameters']['properties']['processos_de_fabricacao']['type'] = 'string'
-        process_function[0]['parameters']['properties']['processos_de_fabricacao']['description'] = 'Liste aqui em tópicos e numerados todos os processos necessários, as máquinas para realizar tal processo e explique o porquê do processo (Processo - Máquina - Explicação). Coloque cada processo em uma linha diferente.'
+        process_function[0]['parameters']['properties']['maquinas'] = {}
+        process_function[0]['parameters']['properties']['maquinas']['type'] = 'array'
+        process_function[0]['parameters']['properties']['maquinas']['description'] = 'Liste aqui todas as máquinas necessárias para a fabricação do eixo.'
+        process_function[0]['parameters']['properties']['maquinas']['items'] = {}
+        process_function[0]['parameters']['properties']['maquinas']['items']['type'] = 'string'
+        process_function[0]['parameters']['properties']['maquinas']['items']['description'] = 'Nome da máquina necessária para o processo.'
+
+        process_function[0]['parameters']['properties']['processos'] = {}
+        process_function[0]['parameters']['properties']['processos']['type'] = 'string'
+        process_function[0]['parameters']['properties']['processos']['description'] = 'Explique aqui o processo que cada máquina irá realizar. Coloque cada processo como um tópico, mas sem numeração.'
 
         process_function[0]['parameters']['properties']['observacoes'] = {}
         process_function[0]['parameters']['properties']['observacoes']['type'] = 'string'
@@ -134,6 +141,7 @@ def analise_eixo(request):
         kwa['messages'][0]['content'][2]['text'] = user_prompt
 
         kwa['functions'] = process_function
+        kwa['function_call'] = {'name': 'get_info'}
 
         # Faz a requisição.
         try:
@@ -151,11 +159,13 @@ def analise_eixo(request):
 
         # Coleta as informações necessárias.
         materia_prima = json.loads(chat_completion.choices[0].message.function_call.arguments).get('materia_prima', '')
-        processos_de_fabricacao = json.loads(chat_completion.choices[0].message.function_call.arguments).get('processos_de_fabricacao', '')
+        maquinas = json.loads(chat_completion.choices[0].message.function_call.arguments).get('maquinas', [])
+        processos = json.loads(chat_completion.choices[0].message.function_call.arguments).get('processos', '')
         observacoes = json.loads(chat_completion.choices[0].message.function_call.arguments).get('observacoes', '')
 
         ctx['materia_prima'] = materia_prima
-        ctx['processos_de_fabricacao'] = processos_de_fabricacao
+        ctx['maquinas'] = maquinas
+        ctx['processos'] = processos
         ctx['observacoes'] = observacoes
 
         # Salva o Projeto
@@ -172,7 +182,8 @@ def analise_eixo(request):
         project.drawing = request.FILES['image']
         project.user_observation = request.POST.get('prompt', '')
         project.raw_material = materia_prima
-        project.processes = processos_de_fabricacao
+        project.machines = ', '.join(maquinas)
+        project.processes = processos
         project.ia_observation = observacoes
 
         project.save()
