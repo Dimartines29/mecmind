@@ -12,91 +12,108 @@
             <p>Envie seu desenho técnico e receba todos os dados necessários para compra e fabricação.</p>
         </header>
 
-        <div class="status-indicator">
-            <div class="step active">
-                <div class="step-icon">1</div>
-                <div class="step-text">Upload</div>
-            </div>
-            <div class="step" id="step-analyzing">
-                <div class="step-icon">2</div>
-                <div class="step-text">Análise</div>
-            </div>
-            <div class="step" id="step-result">
-                <div class="step-icon">3</div>
-                <div class="step-text">Resultado</div>
-            </div>
-        </div>
-
-        {% if messages %}
-            {% for message in messages %}
-                <div class="message {{ message.tags }}">
-                    {{ message }}
+        {% if not materia_prima %}
+            <div class="status-indicator">
+                <div class="step active">
+                    <div class="step-icon">1</div>
+                    <div class="step-text">Upload</div>
                 </div>
-            {% endfor %}
-        {% endif %}
+                <div class="step" id="step-analyzing">
+                    <div class="step-icon">2</div>
+                    <div class="step-text">Análise</div>
+                </div>
+                <div class="step" id="step-result">
+                    <div class="step-icon">3</div>
+                    <div class="step-text">Resultado</div>
+                </div>
+            </div>
 
-        <div class="upload-container">
-            <form id="uploadForm" action="{% url 'analise_chapa' %}" method="POST" enctype="multipart/form-data">
-                {% csrf_token %}
-                <div class="image-preview-container">
-                    <div id="preview">
-                        <img id="imagePreview" src="{% static 'images/placeholder.png' %}" alt="Preview">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="message {{ message.tags }}">
+                        {{ message }}
                     </div>
-
-                    <div class="file-input-container">
-                        <label for="image" class="upload-btn">
-                            <i class="fas fa-upload"></i> Escolher arquivo
-                        </label>
-                        <input type="file" id="image" name="image" accept="image/*" required>
-                        <span id="file-name">Nenhum arquivo selecionado</span>
-                    </div>
-                </div>
-
-                <div class="quantidade">
-                    <i class="fas fa-layer-group"></i> <label> Qtd. Chapas: </label>
-                    <input type="number" id="quantidade" name="quantidade" min="1" max="1000" step="1" required>
-                </div>
-
-                <div class="prompt-container">
-                    <label for="prompt">
-                        <i class="fas fa-comment-dots"></i> Observações adicionais (Opcional):
-                    </label>
-                    <textarea id="prompt" name="prompt" placeholder="Escreva aqui informações relevantes para a análise do projeto, como especificações de materiais, restrições de fabricação ou outras considerações importantes..."></textarea>
-                </div>
-
-                <button type="submit" id="analyzeBtn" class="analyze-btn">
-                    <span class="btn-text"><i class="fas fa-search"></i> Analisar projeto</span>
-                    <span class="loader"></span>
-                </button>
-            </form>
-        </div>
-
-        <div class="response-container {% if materia_prima %}active{% endif %}">
-            <h2><i class="fas fa-clipboard-check"></i> Resultado da Análise</h2>
-
-            <h3>Matéria prima</h3>
-            <span>{{ materia_prima }}</span><br><br>
-
-            <h3>Máquinas utilizadas</h3>
-            {% for maq in maquinas %}
-                <span>{{ maq }}</span><br>
-            {% endfor %}<br>
-
-            <h3>Processo detalhado</h3>
-            <span>{{ processos }}</span><br><br>
-
-            <h3>Observações adicionais</h3>
-            {% if observacoes %}
-                <span>{{ observacoes }}</span> <br>
-            {% else %}
-                <span>Não existem observações adicionais para este projeto.</span> <br>
+                {% endfor %}
             {% endif %}
 
-            <div class="action-buttons" {% if not materia_prima %}style="display:none"{% endif %}>
-                <button class="action-btn" id="newAnalysisBtn">
-                    <i class="fas fa-redo"></i> Nova Análise
-                </button>
+            <div class="upload-container">
+                <form id="uploadForm" action="{% url 'analise_chapa' %}" method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="image-preview-container">
+                        <div id="preview">
+                            <img id="imagePreview" src="{% static 'images/placeholder.png' %}" alt="Preview">
+                        </div>
+
+                        <div class="file-input-container">
+                            <label for="image" class="upload-btn">
+                                <i class="fas fa-upload"></i> Escolher arquivo
+                            </label>
+                            <input type="file" id="image" name="image" accept="image/*" required>
+                            <span id="file-name">Nenhum arquivo selecionado</span>
+                        </div>
+                    </div>
+
+                    <div class="quantidade">
+                        <i class="fas fa-layer-group"></i> <label> Qtd. Chapas: </label>
+                        <input type="number" id="quantidade" name="quantidade" min="1" max="1000" step="1" required>
+                    </div>
+
+                    <div class="prompt-container">
+                        <label for="prompt">
+                            <i class="fas fa-comment-dots"></i> Observações adicionais (Opcional):
+                        </label>
+                        <textarea id="prompt" name="prompt" placeholder="Escreva aqui informações relevantes para a análise do projeto, como especificações de materiais, restrições de fabricação ou outras considerações importantes..."></textarea>
+                    </div>
+
+                    <button type="submit" id="analyzeBtn" class="analyze-btn">
+                        <span class="btn-text"><i class="fas fa-search"></i> Analisar projeto</span>
+                        <span class="loader"></span>
+                    </button>
+                </form>
             </div>
-        </div>
+            {% else %}
+            <div class="response-container {% if materia_prima %}active{% endif %}">
+                <h2><i class="fas fa-clipboard-check"></i> Resultado da Análise</h2>
+
+                <div class="result-container">
+                    <div class="result-image-container">
+                        <img src="{{ image_url }}" alt="Desenho analisado" class="result-image">
+                    </div>
+
+                    <div class="result-info">
+                        <div class="result-section">
+                            <h3><i class="fas fa-hammer"></i> Matéria Prima</h3>
+                            <p>{{ materia_prima }}</p>
+                        </div>
+
+                        <div class="result-section">
+                            <h3><i class="fas fa-cogs"></i> Máquinas utilizadas</h3>
+
+                            {% for maq in maquinas %}
+                                <p>{{ maq }}</p>
+                            {% endfor %}
+                        </div>
+
+                        <div class="result-section">
+                            <h3><i class="fas fa-cogs"></i> Processos</h3>
+                            <p>{{ processos }}</p>
+                        </div>
+
+                        {% if aproveitamento %}
+                        <div class="result-section">
+                            <h3><i class="fas fa-exclamation-circle"></i> Aproveitamento de chapa</h3>
+                            <p>{{ aproveitamento }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="action-btn" id="newAnalysisBtn">
+                        <i class="fas fa-redo"></i> Nova Análise
+                    </button>
+                </div>
+            </div>
+        {% endif %}
     </div>
 {% endblock %}

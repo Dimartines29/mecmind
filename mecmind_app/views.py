@@ -308,11 +308,6 @@ def analise_chapa(request):
         processos = json.loads(chat_completion.choices[0].message.function_call.arguments).get('processos', '')
         aproveitamento = json.loads(chat_completion.choices[0].message.function_call.arguments).get('aproveitamento', '')
 
-        ctx['materia_prima'] = materia_prima
-        ctx['maquinas'] = maquinas
-        ctx['processos'] = processos
-        ctx['aproveitamento'] = aproveitamento
-
         # Salva o Projeto
         project = m.Project()
 
@@ -332,6 +327,13 @@ def analise_chapa(request):
         project.ia_observation = aproveitamento
 
         project.save()
+
+        # Adiciona as informações ao contexto
+        ctx['materia_prima'] = materia_prima
+        ctx['maquinas'] = maquinas
+        ctx['processos'] = processos
+        ctx['aproveitamento'] = aproveitamento
+        ctx['image_url'] = project.drawing.url
 
         return render(request, 'analise_chapa.html', ctx)
 
