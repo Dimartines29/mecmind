@@ -163,11 +163,6 @@ def analise_eixo(request):
         processos = json.loads(chat_completion.choices[0].message.function_call.arguments).get('processos', '')
         observacoes = json.loads(chat_completion.choices[0].message.function_call.arguments).get('observacoes', '')
 
-        ctx['materia_prima'] = materia_prima
-        ctx['maquinas'] = maquinas
-        ctx['processos'] = processos
-        ctx['observacoes'] = observacoes
-
         # Salva o Projeto
         project = m.Project()
 
@@ -187,6 +182,13 @@ def analise_eixo(request):
         project.ia_observation = observacoes
 
         project.save()
+
+        # Adiciona as informações ao contexto
+        ctx['materia_prima'] = materia_prima
+        ctx['maquinas'] = maquinas
+        ctx['processos'] = processos
+        ctx['observacoes'] = observacoes
+        ctx['image_url'] = project.drawing.url
 
         return render(request, 'analise_eixo.html', ctx)
 
@@ -333,7 +335,7 @@ def analise_chapa(request):
 
         return render(request, 'analise_chapa.html', ctx)
 
-    return render(request, 'analise_chapa.html')
+    return render(request, 'analise_chapa.html', ctx)
 
 @login_required(login_url='/login')
 def analise_tubo(request):

@@ -9,109 +9,115 @@ document.addEventListener('DOMContentLoaded', function() {
     const exportBtn = document.getElementById('exportBtn');
     const shareBtn = document.getElementById('shareBtn');
     const newAnalysisBtn = document.getElementById('newAnalysisBtn');
-    const filterForm = document.getElementById('filter-form');
-    const dateFromInput = document.getElementById('date_from');
-    const dateToInput = document.getElementById('date_to');
 
     // Atualiza a pré-visualização da imagem quando um arquivo é selecionado
-    imageInput.addEventListener('change', function() {
-        const file = this.files[0];
-        if (file) {
-            const reader = new FileReader();
+    if (imageInput) {
+        imageInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
 
-            reader.onload = function(e) {
-                imagePreview.src = e.target.result;
-                fileName.textContent = file.name;
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    fileName.textContent = file.name;
 
-                // Remover placeholder text do preview quando há imagem
-                document.getElementById('preview').classList.add('has-image');
+                    // Remover placeholder text do preview quando há imagem
+                    document.getElementById('preview').classList.add('has-image');
+                }
+
+                reader.readAsDataURL(file);
+            } else {
+                imagePreview.src = '/base_static/images/placeholder.png';
+                fileName.textContent = 'Nenhum arquivo selecionado';
+                document.getElementById('preview').classList.remove('has-image');
             }
-
-            reader.readAsDataURL(file);
-        } else {
-            imagePreview.src = '/base_static/images/placeholder.png';
-            fileName.textContent = 'Nenhum arquivo selecionado';
-            document.getElementById('preview').classList.remove('has-image');
-        }
-    });
+        });
+    }
 
     // Adiciona indicador de carregamento durante o envio do formulário
-    uploadForm.addEventListener('submit', function(e) {
-        // Verifica se um arquivo foi selecionado
-        if (!imageInput.files[0]) {
-            e.preventDefault();
-            showToast('Por favor, selecione uma imagem para analisar.', 'error');
-            return;
-        }
+    if (uploadForm) {
+        uploadForm.addEventListener('submit', function(e) {
+            // Verifica se um arquivo foi selecionado
+            if (!imageInput.files[0]) {
+                e.preventDefault();
+                showToast('Por favor, selecione uma imagem para analisar.', 'error');
+                return;
+            }
 
-        // Atualiza o estado dos passos
-        stepAnalyzing.classList.add('active');
+            // Atualiza o estado dos passos
+            stepAnalyzing.classList.add('active');
 
-        // Ativa o indicador de carregamento
-        analyzeBtn.classList.add('loading');
-        analyzeBtn.disabled = true;
+            // Ativa o indicador de carregamento
+            analyzeBtn.classList.add('loading');
+            analyzeBtn.disabled = true;
 
-        // Animação suave de rolagem para o botão
-        analyzeBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Animação suave de rolagem para o botão
+            analyzeBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-        // Salva o texto do prompt em localStorage para persistir após o reload
-        const promptText = document.getElementById('prompt').value;
-        localStorage.setItem('lastPrompt', promptText);
+            // Salva o texto do prompt em localStorage para persistir após o reload
+            const promptText = document.getElementById('prompt').value;
+            localStorage.setItem('lastPrompt', promptText);
 
-        // O formulário será enviado normalmente
-    });
+            // O formulário será enviado normalmente
+        });
+    }
 
     // Restaura o último prompt usado (se houver)
     const lastPrompt = localStorage.getItem('lastPrompt');
-    if (lastPrompt) {
-        document.getElementById('prompt').value = lastPrompt;
+    const promptElement = document.getElementById('prompt');
+    if (lastPrompt && promptElement) {
+        promptElement.value = lastPrompt;
     }
 
     // Permite arrastar e soltar imagens
     const previewArea = document.getElementById('preview');
 
-    previewArea.addEventListener('dragover', function(e) {
-        e.preventDefault();
-        this.style.borderColor = '#6384e6';
-        this.style.backgroundColor = 'rgba(65, 105, 225, 0.1)';
-        this.classList.add('drag-over');
-    });
+    if (previewArea) {
+        previewArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#6384e6';
+            this.style.backgroundColor = 'rgba(65, 105, 225, 0.1)';
+            this.classList.add('drag-over');
+        });
 
-    previewArea.addEventListener('dragleave', function(e) {
-        e.preventDefault();
-        this.style.borderColor = '';
-        this.style.backgroundColor = '';
-        this.classList.remove('drag-over');
-    });
+        previewArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '';
+            this.style.backgroundColor = '';
+            this.classList.remove('drag-over');
+        });
 
-    previewArea.addEventListener('drop', function(e) {
-        e.preventDefault();
-        this.style.borderColor = '';
-        this.style.backgroundColor = '';
-        this.classList.remove('drag-over');
+        previewArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '';
+            this.style.backgroundColor = '';
+            this.classList.remove('drag-over');
 
-        const file = e.dataTransfer.files[0];
-        if (file && file.type.match('image.*')) {
-            imageInput.files = e.dataTransfer.files;
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.match('image.*') && imageInput) {
+                imageInput.files = e.dataTransfer.files;
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                imagePreview.src = e.target.result;
-                fileName.textContent = file.name;
-                document.getElementById('preview').classList.add('has-image');
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    fileName.textContent = file.name;
+                    document.getElementById('preview').classList.add('has-image');
+                }
+                reader.readAsDataURL(file);
+
+                showToast('Imagem carregada com sucesso!', 'success');
+            } else {
+                showToast('Por favor, selecione apenas arquivos de imagem.', 'error');
             }
-            reader.readAsDataURL(file);
+        });
 
-            showToast('Imagem carregada com sucesso!', 'success');
-        } else {
-            showToast('Por favor, selecione apenas arquivos de imagem.', 'error');
-        }
-    });
-
-    // Clique no preview também deve acionar a seleção de arquivos
-    previewArea.addEventListener('click', function() {
-        imageInput.click();
-    });
+        // Clique no preview também deve acionar a seleção de arquivos
+        previewArea.addEventListener('click', function() {
+            if (imageInput) {
+                imageInput.click();
+            }
+        });
+    }
 
     // Adiciona rolagem suave para o resultado após envio
     if (document.querySelector('.response-container.active')) {
@@ -121,11 +127,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // Se temos uma resposta, atualiza os passos
-        stepAnalyzing.classList.add('active');
-        stepResult.classList.add('active');
+        if (stepAnalyzing) stepAnalyzing.classList.add('active');
+        if (stepResult) stepResult.classList.add('active');
 
         // Mostra os botões de ação
-        document.querySelector('.action-buttons').style.display = 'flex';
+        const actionButtons = document.querySelector('.action-buttons');
+        if (actionButtons) actionButtons.style.display = 'flex';
     }
 
     // Função toast para feedback visual
@@ -171,66 +178,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (newAnalysisBtn) {
         newAnalysisBtn.addEventListener('click', function() {
-            // Limpa o form e retorna para o início
-            imagePreview.src = '/base_static/images/placeholder.png';
-            fileName.textContent = 'Nenhum arquivo selecionado';
-            document.getElementById('prompt').value = '';
-            document.getElementById('preview').classList.remove('has-image');
+            console.log("Nova análise clicada");
+            showToast('Preparando nova análise...', 'info');
 
-            // Reset nos passos
-            stepAnalyzing.classList.remove('active');
-            stepResult.classList.remove('active');
-
-            // Oculta a resposta
-            document.querySelector('.response-container').classList.remove('active');
-
-            // Rola para o topo
-            window.scrollTo({top: 0, behavior: 'smooth'});
-
-            showToast('Preparado para nova análise', 'success');
+            // Redireciona para a página de análise limpa
+            window.location.href = window.location.pathname;
         });
-    }
-
-    // Validação de datas
-    if (dateFromInput && dateToInput) {
-        dateToInput.addEventListener('change', function() {
-            if (dateFromInput.value && dateToInput.value) {
-                const fromDate = new Date(dateFromInput.value);
-                const toDate = new Date(dateToInput.value);
-
-                if (toDate < fromDate) {
-                    showToast('A data final não pode ser anterior à data inicial', 'error');
-                    dateToInput.value = '';
-                    return;
-                }
-
-                submitWithAnimation();
-            }
-        });
-
-        dateFromInput.addEventListener('change', function() {
-            if (dateFromInput.value && dateToInput.value) {
-                const fromDate = new Date(dateFromInput.value);
-                const toDate = new Date(dateToInput.value);
-
-                if (toDate < fromDate) {
-                    showToast('A data final não pode ser anterior à data inicial', 'error');
-                    dateFromInput.value = '';
-                    return;
-                }
-
-                submitWithAnimation();
-            }
-        });
-    }
-
-    // Função para enviar o formulário com animação
-    function submitWithAnimation() {
-        document.querySelector('.filter-container').classList.add('filtering');
-
-        setTimeout(() => {
-            filterForm.submit();
-        }, 300);
     }
 
     // Adiciona estilos para o toast via JavaScript
@@ -351,21 +304,6 @@ document.addEventListener('DOMContentLoaded', function() {
         .footer-links a:hover {
             color: var(--light-gray);
             transform: translateY(-2px);
-        }
-        .filter-container.filtering {
-            opacity: 0.8;
-            transform: scale(0.98);
-            transition: all 0.3s ease;
-        }
-
-        .filter-group select,
-        .filter-group input {
-            transition: all 0.3s ease;
-        }
-
-        .filter-group select:hover,
-        .filter-group input:hover {
-            border-color: var(--electric-blue);
         }
     `;
     document.head.appendChild(style);
