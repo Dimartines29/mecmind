@@ -341,62 +341,21 @@ def analise_chapa(request):
 
 @login_required(login_url='/login')
 def analise_tubo(request):
-    if request.method == 'POST':
-        user_prompt = request.POST.get('prompt', '')
-        quantity = request.POST.get('quantidade', '1')
-        image = request.FILES['image']
+    ctx = {}
 
-        quantity_text = f' A quantidade de peças necessárias para este projeto é de {quantity}.'
+    if request.method == 'POST':
+        quantity_text = f' A quantidade de peças necessárias para este projeto é de {request.POST.get("quantidade", "1")}.'
 
         # Adiciona a quantidade ao prompt do usuário.
-        user_prompt = 'Observações adicionais do usuário: ' + user_prompt + '\n' + quantity_text
-
-        # Salva a imagem no diretório
-        image_path = os.path.join(IMAGE_UPLOAD_PATH, image.name)
-        with open(image_path, 'wb+') as destination:
-            for chunk in image.chunks():
-                destination.write(chunk)
+        user_prompt = 'Observações adicionais do usuário: ' + request.POST.get("prompt", "") + '\n' + quantity_text
 
         # Encoda a imagem
-        base64_image = encode_image(image_path)
-
-        # Monta a função para estruturar a primeira chamada de API.
-        tubos_function = [{}]
-
-        tubos_function[0]['type'] = 'funtion'
-        tubos_function[0]['name'] = 'get_info'
-        tubos_function[0]['description'] = 'Obtém os dados mais importantes do desenho mecânico de tubos'
-        tubos_function[0]['parameters'] = {}
-
-        tubos_function[0]['parameters']['type'] = 'object'
-        tubos_function[0]['parameters']['properties'] = {}
-
-        tubos_function[0]['parameters']['properties']['comprimento'] = {}
-        tubos_function[0]['parameters']['properties']['comprimento']['type'] = 'number'
-        tubos_function[0]['parameters']['properties']['comprimento']['description'] = 'Comprimento total do tubo, atente-se as medidas implícitas e forneça o resultado final'
-
-        tubos_function[0]['parameters']['properties']['diametro_externo'] = {}
-        tubos_function[0]['parameters']['properties']['diametro_externo']['type'] = 'number'
-        tubos_function[0]['parameters']['properties']['diametro_externo']['description'] = 'Diâmetro externo do tubo, atente-se as medidas implícitas e forneça o resultado final'
-
-        tubos_function[0]['parameters']['properties']['diametro_interno'] = {}
-        tubos_function[0]['parameters']['properties']['diametro_interno']['type'] = 'string'
-        tubos_function[0]['parameters']['properties']['diametro_interno']['description'] = 'Diâmetro interno do tubo, atente-se as medidas implícitas e forneça o resultado final'
-
-        tubos_function[0]['parameters']['properties']['furos'] = {}
-        tubos_function[0]['parameters']['properties']['furos']['type'] = 'string'
-        tubos_function[0]['parameters']['properties']['furos']['description'] = 'Descreva todos os furos encontrados no tubo e seus diâmetros, se não observar furos, esse campo deve permanecer vazio'
-
-        tubos_function[0]['parameters']['properties']['observações'] = {}
-        tubos_function[0]['parameters']['properties']['observações']['type'] = 'string'
-        tubos_function[0]['parameters']['properties']['observações']['description'] = 'Observações importantes ou dúvidas encontradas na análise'
-
-        tubos_function[0]['parameters']['required'] = ['comprimento', 'diametro_externo']
+        base64_image = encode_image(request.FILES['image'])
 
         # Monta o dicionário para a primeira chamada.
         kwa = {}
 
-        kwa['model'] = 'gpt-4o'
+        kwa['model'] = 'chatgpt-4o-latest'
         kwa['temperature'] = 0.1
         kwa['messages'] = [{}]
         kwa['messages'][0]['role'] = 'user'
@@ -406,40 +365,29 @@ def analise_tubo(request):
         kwa['messages'][0]['content'][1]['type'] = 'image_url'
         kwa['messages'][0]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
 
-        kwa['functions'] = tubos_function
-
         # Faz a requisição.
         try:
             chat_completion = cli.chat.completions.create(**kwa)
-            print('Processamento concluído')
+
+        except openai.OpenAIError as e:
+            logger.error(f"Error occurred: {str(e)}", exc_info=True)
+            messages.error(request, 'Não foi possível processar o desenho devido a um erro na API da OpenAI, tente novamente mais tarde.')
+
+            return render(request, 'analise_tubo.html')
 
         except Exception as e:
-            print(f'Ocorreu um erro durante o processamento: {e}')
+            logger.error(f"Error occurred: {str(e)}", exc_info=True)
+            messages.error(request, 'Ocorreu um erro inesperado. Por favor, entre em contato com o suporte.')
 
-        # Coleta as informações necessárias.
-        function_args = json.loads(chat_completion.choices[0].message.function_call.arguments)
-        comprimento = function_args.get('comprimento', '')
-        diametro_externo = function_args.get('diametro_externo', '')
-        diametro_interno = function_args.get('diametro_interno', '')
-        furos = function_args.get('furos', '')
-        observacoes = function_args.get('observacoes', '')
-
-        # Monta os textos necessários para a segunda chamada.
-        text_cotas = f'O comprimento do tubo é de {comprimento} e o diâmetro externo foi de {diametro_externo}.\n O diâmetro interno do tubo é de {diametro_interno}.\n'
-        text_furos = f'Foram encontrados os seguintes furos no tubo {furos}.\n' if furos else ''
-        text_observacoes = f'Observações que você deverá levar em consideração: {observacoes}'
+            return render(request, 'analise_tubo.html')
 
         final_text = 'Essas são todas as informações necessárias para a sua análise: \n'
-        texts = [text_cotas, text_furos, text_observacoes]
-
-        for text in texts:
-            if text:
-                final_text += text
+        final_text += chat_completion.choices[0].message.content
 
         # Monta a função para estruturar a SEGUNDA chamada de API.
         process_function = [{}]
 
-        process_function[0]['type'] = 'funtion'
+        process_function[0]['type'] = 'function'
         process_function[0]['name'] = 'get_info'
         process_function[0]['description'] = 'Determina a materia prima e os processos de fabricação necessários para a fabricação de um tubo.'
         process_function[0]['parameters'] = {}
@@ -449,13 +397,24 @@ def analise_tubo(request):
 
         process_function[0]['parameters']['properties']['materia_prima'] = {}
         process_function[0]['parameters']['properties']['materia_prima']['type'] = 'string'
-        process_function[0]['parameters']['properties']['materia_prima']['description'] = 'Baseado no catálogo, coloque aqui as medidas Comprimento X Diâmetro externo e diâmetro interno. Lembre-se do sobre metal de pelo menos 10mm tanto no comprimento quanto no diâmetro e que o diâmetro deve ser compatível com o catálogo.'
+        process_function[0]['parameters']['properties']['materia_prima']['description'] = 'Informe a matéria-prima baseando-se no catálogo.'
 
-        process_function[0]['parameters']['properties']['processos_de_fabricacao'] = {}
-        process_function[0]['parameters']['properties']['processos_de_fabricacao']['type'] = 'string'
-        process_function[0]['parameters']['properties']['processos_de_fabricacao']['description'] = 'Liste aqui em tópicos e numerados todos os processos necessários e as máquinas para realizar tal processo (Processo - Máquina). Coloque cada processo em uma linha diferente.'
+        process_function[0]['parameters']['properties']['maquinas'] = {}
+        process_function[0]['parameters']['properties']['maquinas']['type'] = 'array'
+        process_function[0]['parameters']['properties']['maquinas']['description'] = 'Liste aqui todas as máquinas necessárias para a fabricação do tubo.'
+        process_function[0]['parameters']['properties']['maquinas']['items'] = {}
+        process_function[0]['parameters']['properties']['maquinas']['items']['type'] = 'string'
+        process_function[0]['parameters']['properties']['maquinas']['items']['description'] = 'Nome da máquina necessária para o processo.'
 
-        process_function[0]['parameters']['required'] = ['materia_prima', 'processos_de_fabricacao']
+        process_function[0]['parameters']['properties']['processos'] = {}
+        process_function[0]['parameters']['properties']['processos']['type'] = 'string'
+        process_function[0]['parameters']['properties']['processos']['description'] = 'Explique aqui o processo que cada máquina irá realizar. Coloque cada processo como um tópico, mas sem numeração.'
+
+        process_function[0]['parameters']['properties']['observacoes'] = {}
+        process_function[0]['parameters']['properties']['observacoes']['type'] = 'string'
+        process_function[0]['parameters']['properties']['observacoes']['description'] = 'Observações importantes encontradas na análise e que o usuário deve levar em consideração'
+
+        process_function[0]['parameters']['required'] = ['materia_prima', 'maquinas', 'processos']
 
         # Monta a segunda chamada.
         kwa = {}
@@ -473,27 +432,56 @@ def analise_tubo(request):
         kwa['messages'][0]['content'][2]['text'] = user_prompt
 
         kwa['functions'] = process_function
+        kwa['function_call'] = {'name': 'get_info'}
 
         # Faz a requisição.
         try:
             chat_completion = cli.chat.completions.create(**kwa)
-            print('Processamento concluído')
+
+        except openai.OpenAIError as e:
+            logger.error(f"Error occurred: {str(e)}", exc_info=True)
+            messages.error(request, 'Não foi possível processar o desenho devido a um erro na API da OpenAI, tente novamente mais tarde.')
+            return render(request, 'analise_tubo.html')
 
         except Exception as e:
-            print(f'Ocorreu um erro durante o processamento: {e}')
+            logger.error(f"Error occurred: {str(e)}", exc_info=True)
+            messages.error(request, 'Ocorreu um erro inesperado. Por favor, entre em contato com o suporte.')
+            return render(request, 'analise_tubo.html')
 
         # Coleta as informações necessárias.
-        function_args = json.loads(chat_completion.choices[0].message.function_call.arguments)
-        materia_prima = function_args.get('materia_prima', '')
-        processos_de_fabricacao = function_args.get('processos_de_fabricacao', '')
+        materia_prima = json.loads(chat_completion.choices[0].message.function_call.arguments).get('materia_prima', '')
+        maquinas = json.loads(chat_completion.choices[0].message.function_call.arguments).get('maquinas', [])
+        processos = json.loads(chat_completion.choices[0].message.function_call.arguments).get('processos', '')
+        observacoes = json.loads(chat_completion.choices[0].message.function_call.arguments).get('observacoes', '')
 
-        final_response = f'''
-        Analise completa:\n
-        Matéria prima necessária: {materia_prima}\n\n
-        Processos de fabricação: {processos_de_fabricacao}\n
-        '''
+        # Salva o Projeto
+        project = m.Project()
 
-        return render(request, 'analise_tubo.html', {'response_text': final_response})
+        # Informações do usuário.
+        project.user = request.user
+
+        if hasattr(request.user, 'company') and request.user.company:
+            project.company = request.user.company
+
+        # Informações do projeto.
+        project.analysis_name = 'tubo'
+        project.drawing = request.FILES['image']
+        project.user_observation = request.POST.get('prompt', '')
+        project.raw_material = materia_prima
+        project.machines = ', '.join(maquinas)
+        project.processes = processos
+        project.ia_observation = observacoes
+
+        project.save()
+
+        # Adiciona as informações ao contexto
+        ctx['materia_prima'] = materia_prima
+        ctx['maquinas'] = maquinas
+        ctx['processos'] = processos
+        ctx['observacoes'] = observacoes
+        ctx['image_url'] = project.drawing.url
+
+        return render(request, 'analise_tubo.html', ctx)
 
     return render(request, 'analise_tubo.html')
 
@@ -692,9 +680,6 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             auth.login(request, user)
-
-            messages.success(request, 'Logado com sucesso!')
-
             return redirect('/')
 
         messages.error(request, 'Login inválido')
