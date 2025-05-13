@@ -12,6 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.core.paginator import Paginator
 from django.contrib.auth.forms import AuthenticationForm
+from django.core.exceptions import PermissionDenied
 
 #Libs
 import openai
@@ -653,6 +654,49 @@ def projetos(request):
     ctx['selected_date_to'] = date_to
 
     return render(request, 'projetos.html', ctx)
+
+@login_required(login_url='/login')
+def projetos_empresa(request):
+    if not request.user.groups.filter(name='Gerente').exists():
+        raise PermissionDenied("Acesso negado: você precisa ser um Gerente para acessar esta página.")
+
+    ctx = {}
+
+    analysis_type = request.GET.get('analysis_type', '')
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+
+    # Inicia a query filtrada pela empresa do usuário logado.
+    query = m.Project.objects.filter(company=request.user.company)
+
+    # Aplica os filtros se fornecidos
+    if analysis_type:
+        query = query.filter(analysis_name=analysis_type)
+
+    if date_from:
+        date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()
+        query = query.filter(created_date__gte=datetime.combine(date_from_obj, time.min))
+
+    if date_to:
+        date_to_obj = datetime.strptime(date_to, '%Y-%m-%d').date()
+        query = query.filter(created_date__lte=datetime.combine(date_to_obj, time.max))
+
+    # Ordena os resultados por ID em ordem decrescente
+    projetos = query.order_by('-id')
+
+    # Paginação
+    paginator = Paginator(projetos, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    # Prepara os dados para o contexto
+    ctx['page_obj'] = page_obj
+    ctx['analysis_choices'] = c.PROJETO['analise']
+    ctx['selected_analysis'] = analysis_type
+    ctx['selected_date_from'] = date_from
+    ctx['selected_date_to'] = date_to
+
+    return render(request, 'projetos_empresa.html', ctx)
 
 @login_required(login_url='/login')
 def projeto(request, projeto_id):
