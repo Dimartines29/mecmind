@@ -662,6 +662,7 @@ def projetos_empresa(request):
 
     ctx = {}
 
+    user_filter = request.GET.get('user_filter', '')
     analysis_type = request.GET.get('analysis_type', '')
     date_from = request.GET.get('date_from', '')
     date_to = request.GET.get('date_to', '')
@@ -669,7 +670,22 @@ def projetos_empresa(request):
     # Inicia a query filtrada pela empresa do usuário logado.
     query = m.Project.objects.filter(company=request.user.company)
 
+    # Identificação de usuários da empresa.
+    users = []
+
+    for user in m.CustomUser.objects.filter(company=request.user.company):
+        users.append(f'{user.first_name} {user.last_name}')
+
     # Aplica os filtros se fornecidos
+    if user_filter:
+        #Passa o filtro para o contexto antes de processar a string.
+        ctx['user_filter'] = user_filter
+
+        user_filter = user_filter.split(' ')
+        first_name = user_filter[0]
+        last_name = user_filter[1] if len(user_filter) > 1 else ''
+        query = query.filter(user__first_name=first_name, user__last_name=last_name)
+
     if analysis_type:
         query = query.filter(analysis_name=analysis_type)
 
@@ -691,6 +707,7 @@ def projetos_empresa(request):
 
     # Prepara os dados para o contexto
     ctx['page_obj'] = page_obj
+    ctx['users'] = users
     ctx['analysis_choices'] = c.PROJETO['analise']
     ctx['selected_analysis'] = analysis_type
     ctx['selected_date_from'] = date_from

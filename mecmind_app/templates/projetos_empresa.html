@@ -13,8 +13,19 @@
     </div>
 
     <div class="filter-container">
-        <form method="get" action="{% url 'projetos' %}" id="filter-form">
+        <form method="get" action="{% url 'projetos_empresa' %}" id="filter-form">
             <div class="filter-row">
+                <div class="filter-group">
+                    <label for="analysis_type">Usuário:</label>
+
+                    <select name="user_filter" id="user_filter">
+                        <option value="">Todos</option>
+                        {% for value in users %}
+                            <option value="{{ value }}" {% if user_filter == value %}selected{% endif %}>{{ value }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
                 <div class="filter-group">
                     <label for="analysis_type">Tipo de Análise:</label>
 
@@ -41,7 +52,7 @@
                         <i class="fas fa-filter"></i> Filtrar
                     </button>
 
-                    <a href="{% url 'projetos' %}" class="filter-button clear">
+                    <a href="{% url 'projetos_empresa' %}" class="filter-button clear">
                         <i class="fas fa-times"></i> Limpar
                     </a>
                 </div>
