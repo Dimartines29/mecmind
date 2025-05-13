@@ -109,16 +109,16 @@ def analise_eixo(request):
         process_function[0]['parameters']['properties']['materia_prima']['type'] = 'string'
         process_function[0]['parameters']['properties']['materia_prima']['description'] = 'Informe a matéria-prima no formato: Barra redonda - Diâmetro (Em polegada e de acordo com o catálogo fornecido) x Comprimento (Em milimetros).'
 
-        process_function[0]['parameters']['properties']['maquinas'] = {}
-        process_function[0]['parameters']['properties']['maquinas']['type'] = 'array'
-        process_function[0]['parameters']['properties']['maquinas']['description'] = 'Liste aqui todas as máquinas necessárias para a fabricação do eixo.'
-        process_function[0]['parameters']['properties']['maquinas']['items'] = {}
-        process_function[0]['parameters']['properties']['maquinas']['items']['type'] = 'string'
-        process_function[0]['parameters']['properties']['maquinas']['items']['description'] = 'Nome da máquina necessária para o processo.'
-
         process_function[0]['parameters']['properties']['processos'] = {}
         process_function[0]['parameters']['properties']['processos']['type'] = 'string'
         process_function[0]['parameters']['properties']['processos']['description'] = 'Explique aqui o processo que cada máquina irá realizar. Coloque cada processo como um tópico, mas sem numeração.'
+
+        process_function[0]['parameters']['properties']['maquinas'] = {}
+        process_function[0]['parameters']['properties']['maquinas']['type'] = 'array'
+        process_function[0]['parameters']['properties']['maquinas']['description'] = 'Baseado nos processos que você descreveu, liste aqui todas as máquinas necessárias para a fabricação do eixo.'
+        process_function[0]['parameters']['properties']['maquinas']['items'] = {}
+        process_function[0]['parameters']['properties']['maquinas']['items']['type'] = 'string'
+        process_function[0]['parameters']['properties']['maquinas']['items']['description'] = 'Nome da máquina necessária para o processo.'
 
         process_function[0]['parameters']['properties']['observacoes'] = {}
         process_function[0]['parameters']['properties']['observacoes']['type'] = 'string'

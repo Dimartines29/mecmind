@@ -50,19 +50,19 @@
     </div>
 
     <table class="list">
-        <col style="width: 50px;"> <!-- Nome -->
+        <col style="width: 50px;"> <!-- Análise -->
+        <col style="width: 50px;"> <!-- Usuário -->
         <col style="width: 50px;"> <!-- Criação -->
         <col style="width: 150px;"> <!-- M. Prima -->
         <col style="width: 150px;"> <!-- Máquinas -->
-        <col style="width: 200px;"> <!-- Obs. Usuário -->
 
         <thead>
             <tr>
-                <th>Nome</th>
+                <th>Análise</th>
+                <th>Usuário</th>
                 <th>Criação</th>
                 <th>M. Prima</th>
                 <th>Máquinas</th>
-                <th>Obs. Usuário</th>
             </tr>
         </thead>
 
@@ -70,10 +70,10 @@
             {% for i in page_obj %}
                 <tr>
                     <td><a class="list-link" href="{% url 'projeto' i.id %}">Análise {{ i.analysis_name }}</a></td>
+                    <td>{{ i.user }}</td>
                     <td>{{ i.created_date|date:"d/m/Y H:i" }}</td>
                     <td><span title="{{ i.raw_material }}">{{ i.raw_material|truncatechars:40 }}</span></td>
                     <td><span title="{{ i.machines }}">{{ i.machines|truncatechars:40 }}</span></td>
-                    <td><span title="{{ i.user_observation }}">{{ i.user_observation|truncatechars:40 }}</span></td>
                 </tr>
             {% endfor %}
         </tbody>

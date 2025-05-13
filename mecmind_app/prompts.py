@@ -9,6 +9,11 @@ PROMPT_EIXO_ANALISE = '''
     Comprimento total do eixo.
     Todos os demais diâmetros presentes.
 
+    Passos para identificar o comprimento total do eixo:
+    - Observe todas as cotas horizontais e verticais que não estão associadas a diâmetros, furos ou rasgos.
+    - Busque por cotas que representem o comprimento total do eixo. (Verifique se a seta da cota está posicionada nas extremidades externas do eixo).
+    - Se não houver uma cota explícita, some as cotas parciais, mas somente se não houver uma cota total já representada. (Muita atenção na soma e da sua real necessidade).
+
     Observe com muita atenção a posição das setas em todas as cotas:
     Se uma cota está com setas nas extremidades externas do eixo, ela representa o comprimento total da peça.
     Nunca some cotas parciais se já houver uma cota explícita representando o comprimento total.
