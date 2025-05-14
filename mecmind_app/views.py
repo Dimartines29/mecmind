@@ -717,12 +717,16 @@ def projetos_empresa(request):
 
 @login_required(login_url='/login')
 def projeto(request, projeto_id):
-    projeto = m.Project.objects.get(pk=projeto_id)
     ctx = {}
+    projeto = m.Project.objects.get(pk=projeto_id)
 
-    ctx['projeto'] = projeto
+    if (request.user.groups.filter(name='Gerente').exists() and request.user.company == projeto.company) or request.user == projeto.user:
+        ctx['projeto'] = projeto
+        return render(request, 'projeto.html', ctx)
 
-    return render(request, 'projeto.html', ctx)
+
+    else:
+        raise PermissionDenied("Acesso negado: você precisa ser um Gerente para acessar esta página.")
 
 @login_required(login_url='/login')
 def documentacao(request):
