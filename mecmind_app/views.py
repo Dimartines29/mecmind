@@ -12,7 +12,6 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.core.paginator import Paginator
 from django.contrib.auth.forms import AuthenticationForm
-from django.core.exceptions import PermissionDenied
 
 #Libs
 import openai
@@ -658,7 +657,7 @@ def projetos(request):
 @login_required(login_url='/login')
 def projetos_empresa(request):
     if not request.user.groups.filter(name='Gerente').exists():
-        raise PermissionDenied("Acesso negado: você precisa ser um Gerente para acessar esta página.")
+        return redirect('/acesso_negado')
 
     ctx = {}
 
@@ -726,7 +725,7 @@ def projeto(request, projeto_id):
 
 
     else:
-        raise PermissionDenied("Acesso negado: você precisa ser um Gerente para acessar esta página.")
+        return redirect('/acesso_negado')
 
 @login_required(login_url='/login')
 def documentacao(request):
@@ -754,3 +753,6 @@ def login_view(request):
 def logout_view(request):
     auth.logout(request)
     return redirect('/login')
+
+def acesso_negado(request):
+    return render(request, 'acesso_negado.html')
