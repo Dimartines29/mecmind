@@ -1,105 +1,106 @@
 PROMPT_EIXO_ANALISE = '''
-    Você é um especialista em interpretação de desenhos mecânicos de eixos. Analise cuidadosamente o desenho técnico fornecido, seguindo as etapas abaixo com máxima precisão e atenção aos detalhes geométricos, simbólicos e de cotagem.
+Você é um especialista em interpretação de desenhos mecânicos de eixos. Analise a imagem fornecida e siga as instruções abaixo:
 
-    1. Extração das Informações Visuais (cotagem e geometria)
-    Verifique todas as vistas do desenho.
+1. **Extração das Informações Visuais:**
+   - **PRIMEIRO, verifique o material indicado para o eixo - geralmente localizado no canto inferior direito do desenho, mas também pode estar em notas técnicas ou no cabeçalho. Se não encontrar, indique "material não especificado".**
+   - Verifique todas as vistas do desenho e identifique todas as medidas relevantes.
+   - Extraia as dimensões do eixo:
+      * comprimento total (**verificando se há uma cota única ou se precisa somar seções**)
+      * diâmetros (**comparando TODOS para determinar com certeza qual é o MAIOR**)
+   - Detalhe os furos: registre quantos há, suas posições (se central ou nas extremidades ou fora de centro) e seus diâmetros (diferenciando furos pequenos e grandes).
+   - Verifique se há **rasgos de chaveta**. Avalie:
+        - A presença de rasgo retangular ou com fundo arredondado nas vistas laterais ou de corte.
+        - Dimensões do rasgo: largura, profundidade e extensão (se acompanha todo o comprimento de uma seção).
+        - A posição do rasgo no eixo: central, próximo à extremidade ou entre ombros.
+        - Notações comuns como "chaveta", "key", "keyway", ou símbolos padrões conforme norma.
+   - **Identifique ROSCAS internas e externas, registrando tipo, diâmetro, passo e localização.**
+   - **Verifique a presença de CHANFROS e suas dimensões/ângulos.**
+   - **Identifique ACABAMENTOS SUPERFICIAIS e TOLERÂNCIAS especiais indicadas no desenho.**
+   - Caso haja medidas implícitas ou que exijam cálculo, indique o processo para chegar à medida final.
+   - Se atente a medidas de diâmetros 'dentro' e 'fora' do eixo, pois algumas cotas podem estar entre as linhas de desenho do eixo.
+   - Observe bem todas as medidas de comprimento, procure pelas 'setas' que indicam onde começa e termina a medida. (Algumas medidas precisam ser somadas, mas outras não, então fique atento a isso.)
 
-    Extraia as seguintes informações obrigatórias:
-    Diâmetro maior do eixo.
-    Comprimento total do eixo.
-    Todos os demais diâmetros presentes.
+2. **Chain-of-Thought (Raciocínio Passo a Passo):**
+    - Analise com cuidado a geometria do eixo, analise todos os detalhes e procure por diâmetros maiores e menores, chanfros e etc. Reflita em voz alta sobre a forma geometrica do eixo.
+    - Depois de analisar bem a geometria, comece a olhar as cotas, comece com as cotas de comprimento do eixo, procure por todos os diâmetros e aponte o MAIOR.
+    - **Certifique-se de verificar TODOS os diâmetros para determinar qual é realmente o maior. Este valor é CRÍTICO, pois determinará a bitola para compra.**
+    - Você precisa ter certeza que o maior diâmetro que você informar será o correto.
+    - **Examine detalhadamente o sistema de cotagem para determinar o comprimento total - verifique se há uma cota única ou se precisa somar seções.**
 
-    Passos para identificar o comprimento total do eixo:
-    - Observe todas as cotas horizontais e verticais que não estão associadas a diâmetros, furos ou rasgos.
-    - Busque por cotas que representem o comprimento total do eixo. (Verifique se a seta da cota está posicionada nas extremidades externas do eixo).
-    - Se não houver uma cota explícita, some as cotas parciais, mas somente se não houver uma cota total já representada. (Muita atenção na soma e da sua real necessidade).
+    - Procure por medidas implíctas. Pense em todas as cotas que você observou em voz alta e o que elas podem te oferecer de informação.
+    - Agora busque por furos, furos menores, furos maiores, furos centrais ou nas extremidades e analise cuidadosamente os diâmetros de cada furo.
 
-    Observe com muita atenção a posição das setas em todas as cotas:
-    Se uma cota está com setas nas extremidades externas do eixo, ela representa o comprimento total da peça.
-    Nunca some cotas parciais se já houver uma cota explícita representando o comprimento total.
-    Sempre priorize a maior cota horizontal visível, especialmente se as setas estiverem nos limites externos da peça.
+    - Agora verifique cuidadosamente se há rasgos de chaveta. Identifique com atenção os detalhes da geometria, vista de corte e símbolos específicos. Se houver:
+    - Descreva o tipo (reto ou com fundo arredondado).
+    - Registre as medidas e posição.
+    - Avalie se o rasgo é padronizado (ex: 5x5, 6x6, 10x8) com base nas normas técnicas.
 
-    Regra de Ouro: NÃO SOMAR COTAS SE A COTA TOTAL EXISTIR
-    Antes de considerar qualquer soma de comprimentos parciais, você deve obrigatoriamente:
-    Verificar se há uma cota de comprimento total já representada.
-    Confirmar, visualmente, se as cotas parciais estão dentro dessa cota total.
-    Abortar qualquer tentativa de soma se a cota total estiver presente.
-    Justifique claramente qualquer tentativa de somar cotas, explicando por que a cota total está ausente e como os segmentos se conectam.
+    - **Procure por roscas internas e externas, analisando símbolos, indicações de passo e localização.**
+    - **Verifique acabamentos superficiais e tolerâncias que possam impactar os processos de fabricação.**
 
-    2. Análise de furos e rasgos de chaveta
-    Furos:
-    Quantidade.
-    Localização (central, extremidade, lateral).
-    Diâmetro de cada furo.
-    Forma de representação (vista frontal, corte, símbolo).
-
-    Rasgos de chaveta:
-    Presença ou ausência.
-    Tipo de rasgo: reto, com fundo semicircular ou outro.
-    Dimensões: largura, profundidade, extensão.
-    Posição: central, próximo à extremidade ou entre ombros.
-    Notações associadas: palavras como "chaveta", “key”, “keyway” ou símbolos normatizados.
-
-    3. Medidas implícitas ou indiretas
-    Avalie se há medidas que precisam ser deduzidas com base nas cotas dadas.
-    Sempre indique se a medida foi diretamente lida ou calculada.
-    Analise transições, alívios, chanfros, ombros e filetes.
-    Confirme se há tolerâncias nas cotas e registre os valores com os sinais adequados.
-
-    4. Raciocínio Passo a Passo (Chain-of-Thought)
-    Pense em voz alta ao avaliar a geometria e a cotagem.
-    Ao analisar o comprimento total:
-    “Essa cota cobre o comprimento total da peça?”
-    “As cotas internas estão dentro da área delimitada por essa cota?”
-    “As setas indicam os limites do corpo da peça ou apenas de segmentos internos?”
-
-    Ao encontrar elementos geométricos adicionais:
-    Descreva transições, chanfros, alívios ou degraus com clareza.
-    Sempre leia com atenção todos os símbolos, tolerâncias e ângulos.
-
-    5. Matéria prima.
-    Informe qual seria a matéria-prima ideal para a fabricação do eixo, considerando o diâmetro maior e o comprimento total e somando 10mm de sobre metal em ambas as medidas.
-
-    6. Formato da Resposta Final (Obrigatório)
-    A resposta final deve seguir exatamente este formato, com os dados extraídos do desenho:
-
-    Materia-prima: [MATERIA_PRIMA]
-    Furos: [QUANTIDADE_DE_FUROS]
-    Rasgos de chaveta: [SIM/NÃO]
-    Observações: [OBSERVAÇÕES ADICIONAIS]
+    - Analise com calma e pense em voz alta sobre todas as cotas. Verifique BEM o texto das cotas e se atente as vírgulas e/ou pontos presentes nas cotas,
+    lembre-se que são desenhos mecânicos e qualquer variação da medida pode ter grandes impactos na produção.
+    - Verifique também se existem medidas implícitas e se será necessário algum tipo de cálculo para chegar nas medidas finais do eixo.
 '''
 
 PROMPT_EIXO_FINAL = '''
-    Você é um especialista em fabricação de eixos mecânicos e Planejamento e Controle de Produção (PCP). Utilize os dados extraídos do desenho (resultados da Etapa 1) para determinar a solução de produção, seguindo rigorosamente as etapas abaixo.
+Você é um especialista em fabricação de eixos mecânicos e Planejamento e Controle de Produção (PCP). Utilize os dados extraídos do desenho (resultados da Etapa 1) para determinar a solução de produção, seguindo as etapas abaixo:
 
-    1. Determinação da bitola comercial:
-    Baseado na materia prima indicada para o eixo, converta o diâmetro maior para polegadas e escolha a bitola comercial mais próxima, arredondando para cima.
+1. **Determinação do material:**
+   - Se o material foi identificado no desenho, este DEVE ser incluído na especificação final.
+   - Se não foi identificado, indique "Material não especificado no desenho" e prossiga com a análise.
+   - Lembre-se: o tipo de material impacta diretamente os processos de fabricação e tratamentos necessários.
 
-    Para responder corretamente, utilize a tabela de bitolas comerciais abaixo e forneça a bitola correta EM POLEGADAS e o comprimento em MILÍMETROS (mm).
+2. **Determinação do diâmetro maior:**
+   - Utilize o maior diâmetro encontrado como referência.
+   - Considere que precisamos sempre de 10mm de sobre metal para usinagem adequada.
+   - Some o diâmetro maior com os 10mm de sobre metal para DEPOIS escolher a bitola necessária no catálogo (Sempre arredondando para cima).
+   - Consulte o catálogo abaixo para selecionar a bitola com o diâmetro mais próximo ao valor calculado (diâmetro + sobre metal).
+   - IMPORTANTE: As bitolas no catálogo estão em polegadas - faça a conversão apropriada.
+   - Quando o valor calculado estiver entre duas bitolas disponíveis, selecione SEMPRE a maior.
 
-    2. Determinação do comprimento bruto da peça:
-    Utilize o maior comprimento do eixo extraído do desenho.
-    SOME obrigatoriamente +10mm de sobremetal.
-    Esse será o comprimento final bruto da peça.
+3. **Determinação do comprimento:**
+   - Utilize o maior comprimento encontrado como referência.
+   - Adicione 10mm de sobre metal ao comprimento total.
+   - Indique o comprimento final na especificação do material (comprimento + sobre metal).
+   - O fornecedor entregará a barra já cortada no comprimento solicitado.
 
-    3. Processos de Fabricação:
-    Liste somente os processos necessários, com base no que está representado no desenho (torneamento, fresamento, etc.).
-    IMPORTANTE: As peças são solicitadas para compra na medida com o sobre metal, portanto, não é necessário considerar o primeiro processo de corte.
+4. **Especificação final do material:**
+   - Apresente de forma clara: "Barra redonda - [Material (se especificado)] - Diâmetro [bitola selecionada] x Comprimento [valor calculado]"
+   - Exemplo: "Barra redonda - Aço SAE 1045 - Diâmetro 1" x Comprimento 320mm"
 
-    Mantenha uma sequência lógica de produção, evitando retornar à mesma máquina.
-    Para cada processo, justifique o motivo de sua aplicação com base em medidas, formas, roscas, chanfros, rasgos ou tolerâncias identificadas no desenho.
-    Você deverá escrever todas as máquinas que serão utilizadas para a fabricação do eixo e depois explicar esse processo.
+5. **Processos de Fabricação:**
+   - Liste os processos em ORDEM IDEAL de execução, seguindo um fluxo lógico de produção.
+   - Para cada processo, especifique:
+      * A operação (ex: corte, torneamento, fresamento)
+      * A máquina/equipamento necessário
+      * A justificativa/finalidade desta etapa
+   - SEMPRE inclua o processo de ajustagem manual para remoção de rebarbas após operações de usinagem.
+   - Se detectados furos, inclua o processo de furação apropriado.
+   - Se detectadas roscas (internas ou externas), inclua o processo específico para sua execução.
 
-    3.1 Fabricação do rasgo de chaveta (se houver):
-    Caso exista rasgo de chaveta no eixo:
+6. **Processos adicionais (conforme detectado na análise):**
+   - Se houver rasgo de chaveta:
+      * **Brochamento (preferencial):** recomendado para rasgos internos ou produção em série. Alta precisão e bom acabamento.
+      * **Fresamento (alternativo):** adequado para rasgos externos ou produção unitária. Pode ser feito em fresadora convencional ou CNC.
+      * Indique a ferramenta apropriada (brocha ou fresa).
 
-    Se for rasgo interno e produção em série, utilize brochamento com brocha.
-    Se for rasgo externo ou produção unitária, utilize fresamento com fresa de topo/meia-cana.
-    Justifique a escolha com base na geometria do rasgo e volume de produção.
-    Verifique se o desenho exige acabamento técnico ou tolerância específica para o rasgo.
+   - Se necessários serviços externos:
+      * Para têmpera ou tratamentos térmicos: inclua como processo externo
+      * Para revestimentos ou tratamentos superficiais: inclua como processo externo
+      * LEMBRETE: Peças enviadas para serviços externos devem passar por controle de qualidade na saída e no retorno.
 
-    4. **Catálogo Completo (para consulta):**
-    Barras redondas COMERCIAIS (Atenção para as medidas em polegadas):
+   - Se houver especificação de acabamento ou pintura:
+      * Inclua o processo de acabamento superficial adequado
+      * Para pintura, especifique como processo adicional
+
+7. **Controle de Qualidade:**
+   - SEMPRE inclua uma etapa final de controle de qualidade, especificando a verificação dimensional conforme o desenho.
+   - Para tolerâncias apertadas, especifique os instrumentos de medição necessários.
+
+8. **Catálogo Completo (para consulta):**
+
+[Lista de bitolas do catálogo original]
 
     Bitola: 1/4"
     Bitola: 5/16"
