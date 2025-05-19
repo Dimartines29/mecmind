@@ -23,6 +23,9 @@ body {
     color: var(--dark-blue);
     background-color: #f0f4ff;
     padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .container {
@@ -34,7 +37,7 @@ body {
 
 header {
     text-align: center;
-    padding: 40px 20px;
+    padding: clamp(20px, 5vw, 40px) clamp(10px, 3vw, 20px);
     background: linear-gradient(135deg, var(--royal-blue), var(--dark-blue));
     color: var(--white);
     position: relative;
@@ -55,20 +58,20 @@ header::before {
 header h1 {
     margin-bottom: 15px;
     font-weight: 700;
-    font-size: 2.4rem;
+    font-size: clamp(1.5rem, 4vw, 2.4rem);
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     position: relative;
 }
 
 header p {
-    font-size: 1.1rem;
+    font-size: clamp(0.9rem, 2vw, 1.1rem);
     max-width: 600px;
     margin: 0 auto;
     position: relative;
 }
 
 .upload-container {
-    padding: 35px;
+    padding: clamp(15px, 4vw, 35px);
     border-bottom: 1px solid var(--light-gray);
     background-color: #fafcff;
 }
@@ -81,8 +84,8 @@ header p {
 }
 
 #preview {
-    width: 320px;
-    height: 320px;
+    width: min(90%, 320px);
+    height: min(90vw, 320px);
     border: 2px dashed var(--royal-blue);
     border-radius: 10px;
     margin-bottom: 20px;
@@ -145,6 +148,8 @@ input[type="file"] {
     font-size: 14px;
     color: var(--dark-blue);
     font-style: italic;
+    word-break: break-word;
+    max-width: 100%;
 }
 
 .prompt-container {
@@ -160,8 +165,15 @@ input[type="file"] {
     font-size: 1.05rem;
 }
 
+.quantidade {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
 .quantidade label {
-    margin-bottom: 10px;
     font-weight: 600;
     color: var(--dark-blue);
     font-size: 1.05rem;
@@ -251,7 +263,7 @@ textarea:focus {
 }
 
 .response-container {
-    padding: 35px;
+    padding: clamp(15px, 4vw, 35px);
     display: none;
     background-color: #fafcff;
 }
@@ -273,6 +285,7 @@ textarea:focus {
     padding-bottom: 15px;
     border-bottom: 2px solid var(--royal-blue);
     display: inline-block;
+    font-size: clamp(1.2rem, 3vw, 1.6rem);
 }
 
 .placeholder {
@@ -285,15 +298,17 @@ textarea:focus {
     display: flex;
     justify-content: center;
     margin: 20px 0;
+    flex-wrap: wrap;
+    gap: 20px;
 }
 
 .step {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin: 0 15px;
     position: relative;
     flex: 1;
+    min-width: 80px;
     max-width: 100px;
 }
 
@@ -305,6 +320,17 @@ textarea:focus {
     width: 30px;
     height: 2px;
     background-color: var(--light-gray);
+}
+
+@media (max-width: 600px) {
+    .step {
+        min-width: 70px;
+    }
+
+    .step:not(:last-child)::after {
+        width: 20px;
+        right: -20px;
+    }
 }
 
 .step-icon {
@@ -355,8 +381,8 @@ textarea:focus {
     }
 
     #preview {
-        width: 250px;
-        height: 250px;
+        width: min(90%, 250px);
+        height: min(90vw, 250px);
     }
 
     .upload-container,
@@ -366,6 +392,44 @@ textarea:focus {
 
     .analyze-btn {
         padding: 14px;
+    }
+
+    .main-content {
+        padding: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 5px;
+    }
+
+    .container {
+        border-radius: 8px;
+    }
+
+    header {
+        padding: 20px 10px;
+    }
+
+    .upload-container,
+    .response-container {
+        padding: 15px;
+    }
+
+    .upload-btn {
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+
+    .analyze-btn {
+        padding: 12px;
+        font-size: 15px;
+    }
+
+    .quantidade {
+        flex-direction: column;
+        align-items: flex-start;
     }
 }
 
@@ -390,6 +454,7 @@ textarea:focus {
     opacity: 0;
     visibility: hidden;
     transition: all 0.3s ease;
+    z-index: 10;
 }
 
 [data-tooltip]:hover::after {
@@ -397,17 +462,26 @@ textarea:focus {
     visibility: visible;
 }
 
+@media (max-width: 480px) {
+    [data-tooltip]::after {
+        white-space: normal;
+        width: 160px;
+        text-align: center;
+    }
+}
+
 .login-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: calc(100vh - 80px);
+    min-height: calc(100vh - 80px);
     background-color: #f5f7fb;
+    padding: 20px;
 }
 
 .login-box {
     background-color: #ffffff;
-    padding: 40px;
+    padding: clamp(20px, 5vw, 40px);
     border-radius: 10px;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
     width: 100%;
@@ -457,7 +531,7 @@ textarea:focus {
 }
 
 .message {
-  max-width: 600px;
+  max-width: 100%;
   margin: var(--spacing) auto;
   margin-top: calc(var(--spacing) * 2);
   padding: var(--spacing);
@@ -486,4 +560,79 @@ textarea:focus {
 .message.info {
   background: rgba(0, 0, 255, 0.3);
   border: 1px solid rgba(0, 0, 255, 0.3);
+}
+
+/* Improved styling for action buttons */
+.action-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 25px;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    flex: 1;
+    min-width: 120px;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    background-color: #4169E1;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-btn i {
+    margin-right: 8px;
+}
+
+.action-btn:hover {
+    background-color: #6384e6;
+    transform: translateY(-2px);
+}
+
+.action-btn#newAnalysisBtn {
+    background-color: #0A1931;
+}
+
+.action-btn#newAnalysisBtn:hover {
+    background-color: #162a48;
+}
+
+/* Result container styling */
+.result-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    padding: 20px;
+    background-color: #fafcff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+@media (max-width: 768px) {
+    .result-container {
+        grid-template-columns: 1fr;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .action-btn {
+        width: 100%;
+    }
+}
+
+/* Toast styles for mobile */
+.toast {
+    max-width: 90vw;
+    text-align: center;
+    padding: 12px 16px;
+    z-index: 9999;
 }

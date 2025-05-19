@@ -10,6 +10,56 @@ document.addEventListener('DOMContentLoaded', function() {
     const shareBtn = document.getElementById('shareBtn');
     const newAnalysisBtn = document.getElementById('newAnalysisBtn');
 
+    // Mobile navigation toggle
+    const mobileNavToggle = document.createElement('button');
+    mobileNavToggle.className = 'mobile-nav-toggle';
+    mobileNavToggle.innerHTML = '<i class="fas fa-bars"></i>';
+
+    const topBar = document.querySelector('.top-bar');
+    const mainNav = document.querySelector('.main-nav');
+
+    if (topBar && mainNav) {
+        // Only add the mobile toggle if it doesn't already exist
+        if (!document.querySelector('.mobile-nav-toggle')) {
+            topBar.insertBefore(mobileNavToggle, mainNav);
+
+            mobileNavToggle.addEventListener('click', function() {
+                mainNav.classList.toggle('active');
+                // Change icon based on menu state
+                this.innerHTML = mainNav.classList.contains('active')
+                    ? '<i class="fas fa-times"></i>'
+                    : '<i class="fas fa-bars"></i>';
+            });
+
+            // Close mobile menu when clicking on links
+            const navLinks = mainNav.querySelectorAll('a');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth <= 768) {
+                        mainNav.classList.remove('active');
+                        mobileNavToggle.innerHTML = '<i class="fas fa-bars"></i>';
+                    }
+                });
+            });
+        }
+    }
+
+    // Add data-label attributes to table cells for mobile view
+    const tables = document.querySelectorAll('.list');
+    tables.forEach(table => {
+        const headers = Array.from(table.querySelectorAll('th')).map(th => th.textContent.trim());
+        const rows = table.querySelectorAll('tbody tr');
+
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            cells.forEach((cell, i) => {
+                if (headers[i]) {
+                    cell.setAttribute('data-label', headers[i]);
+                }
+            });
+        });
+    });
+
     // Atualiza a pré-visualização da imagem quando um arquivo é selecionado
     if (imageInput) {
         imageInput.addEventListener('change', function() {
@@ -19,7 +69,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 reader.onload = function(e) {
                     imagePreview.src = e.target.result;
-                    fileName.textContent = file.name;
+                    // Truncate filename if too long
+                    const displayName = file.name.length > 25
+                        ? file.name.substring(0, 22) + '...'
+                        : file.name;
+                    fileName.textContent = displayName;
+                    fileName.title = file.name; // Add full name as tooltip
 
                     // Remover placeholder text do preview quando há imagem
                     document.getElementById('preview').classList.add('has-image');
@@ -27,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 reader.readAsDataURL(file);
             } else {
-                imagePreview.src = '/base_static/images/placeholder.png';
+                imagePreview.src = '/static/images/placeholder.png';
                 fileName.textContent = 'Nenhum arquivo selecionado';
                 document.getElementById('preview').classList.remove('has-image');
             }
@@ -38,25 +93,27 @@ document.addEventListener('DOMContentLoaded', function() {
     if (uploadForm) {
         uploadForm.addEventListener('submit', function(e) {
             // Verifica se um arquivo foi selecionado
-            if (!imageInput.files[0]) {
+            if (!imageInput || !imageInput.files[0]) {
                 e.preventDefault();
                 showToast('Por favor, selecione uma imagem para analisar.', 'error');
                 return;
             }
 
             // Atualiza o estado dos passos
-            stepAnalyzing.classList.add('active');
+            if (stepAnalyzing) stepAnalyzing.classList.add('active');
 
             // Ativa o indicador de carregamento
-            analyzeBtn.classList.add('loading');
-            analyzeBtn.disabled = true;
+            if (analyzeBtn) {
+                analyzeBtn.classList.add('loading');
+                analyzeBtn.disabled = true;
 
-            // Animação suave de rolagem para o botão
-            analyzeBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Animação suave de rolagem para o botão
+                analyzeBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
 
             // Salva o texto do prompt em localStorage para persistir após o reload
-            const promptText = document.getElementById('prompt').value;
-            localStorage.setItem('lastPrompt', promptText);
+            const promptText = document.getElementById('prompt');
+            if (promptText) localStorage.setItem('lastPrompt', promptText.value);
 
             // O formulário será enviado normalmente
         });
@@ -100,7 +157,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     imagePreview.src = e.target.result;
-                    fileName.textContent = file.name;
+                    // Truncate filename if too long
+                    const displayName = file.name.length > 25
+                        ? file.name.substring(0, 22) + '...'
+                        : file.name;
+                    fileName.textContent = displayName;
+                    fileName.title = file.name; // Add full name as tooltip
+
                     document.getElementById('preview').classList.add('has-image');
                 }
                 reader.readAsDataURL(file);
@@ -135,26 +198,47 @@ document.addEventListener('DOMContentLoaded', function() {
         if (actionButtons) actionButtons.style.display = 'flex';
     }
 
-    // Função toast para feedback visual
+    // Handle window resize for responsive elements
+    window.addEventListener('resize', function() {
+        // Close mobile menu when resizing to desktop
+        if (window.innerWidth > 768 && mainNav && mainNav.classList.contains('active')) {
+            mainNav.classList.remove('active');
+            if (mobileNavToggle) mobileNavToggle.innerHTML = '<i class="fas fa-bars"></i>';
+        }
+    });
+
+    // Improved toast function for better mobile visibility
     function showToast(message, type = 'info') {
-        // Cria o elemento toast se não existir
-        let toast = document.getElementById('toast');
-        if (!toast) {
-            toast = document.createElement('div');
-            toast.id = 'toast';
-            document.body.appendChild(toast);
+        // Remove existing toast if present
+        const existingToast = document.getElementById('toast');
+        if (existingToast) {
+            existingToast.remove();
         }
 
-        // Define a classe de estilo com base no tipo
+        // Create the toast element
+        const toast = document.createElement('div');
+        toast.id = 'toast';
         toast.className = `toast ${type}`;
         toast.textContent = message;
 
-        // Mostra o toast
-        toast.classList.add('show');
+        // Add close button for mobile
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'toast-close';
+        closeBtn.innerHTML = '&times;';
+        closeBtn.addEventListener('click', () => toast.classList.remove('show'));
+        toast.appendChild(closeBtn);
 
-        // Remove após 3 segundos
+        document.body.appendChild(toast);
+
+        // Show the toast
+        setTimeout(() => toast.classList.add('show'), 10);
+
+        // Remove after 3 seconds
         setTimeout(() => {
-            toast.classList.remove('show');
+            if (toast.classList.contains('show')) {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }
         }, 3000);
     }
 
@@ -204,11 +288,15 @@ document.addEventListener('DOMContentLoaded', function() {
             opacity: 0;
             transition: opacity 0.3s ease, transform 0.3s ease;
             pointer-events: none;
+            max-width: 90%;
+            word-break: break-word;
+            text-align: center;
         }
 
         .toast.show {
             opacity: 1;
             transform: translateX(-50%) translateY(0);
+            pointer-events: auto;
         }
 
         .toast.success {
@@ -221,6 +309,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
         .toast.info {
             background-color: #4169E1;
+        }
+
+        .toast-close {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+            padding: 0 5px;
+        }
+
+        .toast-close:hover {
+            opacity: 1;
         }
 
         #preview.has-image::before {
@@ -243,10 +349,12 @@ document.addEventListener('DOMContentLoaded', function() {
             justify-content: space-between;
             margin-top: 25px;
             gap: 15px;
+            flex-wrap: wrap;
         }
 
         .action-btn {
             flex: 1;
+            min-width: 120px;
             padding: 12px;
             border: none;
             border-radius: 6px;
@@ -277,6 +385,21 @@ document.addEventListener('DOMContentLoaded', function() {
             background-color: #162a48;
         }
 
+        @media (max-width: 768px) {
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .action-btn {
+                width: 100%;
+            }
+
+            .toast {
+                padding: 10px 20px 10px 15px;
+                font-size: 13px;
+            }
+        }
+
         .footer-content {
             display: flex;
             flex-direction: column;
@@ -293,6 +416,8 @@ document.addEventListener('DOMContentLoaded', function() {
         .footer-links {
             display: flex;
             gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
         .footer-links a {
@@ -304,6 +429,45 @@ document.addEventListener('DOMContentLoaded', function() {
         .footer-links a:hover {
             color: var(--light-gray);
             transform: translateY(-2px);
+        }
+
+        /* Improved mobile nav for base.html */
+        @media (max-width: 768px) {
+            .mobile-nav-toggle {
+                display: block;
+                background: transparent;
+                border: none;
+                color: white;
+                font-size: 1.5rem;
+                cursor: pointer;
+                padding: 10px;
+            }
+
+            .main-nav {
+                width: 100%;
+                height: 0;
+                overflow: hidden;
+                transition: height 0.3s ease;
+            }
+
+            .main-nav.active {
+                height: auto;
+            }
+
+            .main-nav ul {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .main-nav a {
+                text-align: center;
+                padding: 12px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .main-nav a.active::after {
+                display: none;
+            }
         }
     `;
     document.head.appendChild(style);
