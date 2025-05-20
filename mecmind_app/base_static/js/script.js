@@ -442,32 +442,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 cursor: pointer;
                 padding: 10px;
             }
-
-            .main-nav {
-                width: 100%;
-                height: 0;
-                overflow: hidden;
-                transition: height 0.3s ease;
-            }
-
-            .main-nav.active {
-                height: auto;
-            }
-
-            .main-nav ul {
-                flex-direction: column;
-                width: 100%;
-            }
-
-            .main-nav a {
-                text-align: center;
-                padding: 12px;
-                border-top: 1px solid rgba(255, 255, 255, 0.1);
-            }
-
-            .main-nav a.active::after {
-                display: none;
-            }
         }
     `;
     document.head.appendChild(style);
