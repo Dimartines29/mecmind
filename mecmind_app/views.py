@@ -39,6 +39,16 @@ if not os.path.exists(IMAGE_UPLOAD_PATH):
 
 cli = openai.OpenAI(api_key=openai_api_key)
 
+# Decoda filtros
+def decode_filters(encoded_str):
+    try:
+        padding = '=' * (-len(encoded_str) % 4)
+        decoded_bytes = base64.urlsafe_b64decode(encoded_str + padding)
+        return json.loads(decoded_bytes.decode('utf-8'))
+
+    except Exception:
+        return {}
+
 # Encoda a imagem
 def encode_image(image_file):
     image_content = image_file.read()
@@ -618,9 +628,18 @@ def analise_geral(request):
 def projetos(request):
     ctx = {}
 
-    analysis_type = request.GET.get('analysis_type', '')
-    date_from = request.GET.get('date_from', '')
-    date_to = request.GET.get('date_to', '')
+    encoded_filters = request.GET.get('filters', '')
+
+    if encoded_filters:
+        filters = decode_filters(encoded_filters)
+        analysis_type = filters.get('analysis_type', '')
+        date_from = filters.get('date_from', '')
+        date_to = filters.get('date_to', '')
+
+    else:
+        analysis_type = request.GET.get('analysis_type', '')
+        date_from = request.GET.get('date_from', '')
+        date_to = request.GET.get('date_to', '')
 
     # Inicia a query filtrada pelo usuário logado
     query = m.Project.objects.filter(user=request.user)
@@ -651,6 +670,7 @@ def projetos(request):
     ctx['selected_analysis'] = analysis_type
     ctx['selected_date_from'] = date_from
     ctx['selected_date_to'] = date_to
+    ctx['encoded_filters'] = encoded_filters
 
     return render(request, 'projetos.html', ctx)
 
@@ -661,10 +681,20 @@ def projetos_empresa(request):
 
     ctx = {}
 
-    user_filter = request.GET.get('user_filter', '')
-    analysis_type = request.GET.get('analysis_type', '')
-    date_from = request.GET.get('date_from', '')
-    date_to = request.GET.get('date_to', '')
+    encoded_filters = request.GET.get('filters', '')
+
+    if encoded_filters:
+        filters = decode_filters(encoded_filters)
+        user_filter = filters.get('user_filter', '')
+        analysis_type = filters.get('analysis_type', '')
+        date_from = filters.get('date_from', '')
+        date_to = filters.get('date_to', '')
+
+    else:
+        user_filter = request.GET.get('user_filter', '')
+        analysis_type = request.GET.get('analysis_type', '')
+        date_from = request.GET.get('date_from', '')
+        date_to = request.GET.get('date_to', '')
 
     # Inicia a query filtrada pela empresa do usuário logado.
     query = m.Project.objects.filter(company=request.user.company)
@@ -711,6 +741,7 @@ def projetos_empresa(request):
     ctx['selected_analysis'] = analysis_type
     ctx['selected_date_from'] = date_from
     ctx['selected_date_to'] = date_to
+    ctx['encoded_filters'] = encoded_filters
 
     return render(request, 'projetos_empresa.html', ctx)
 

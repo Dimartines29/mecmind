@@ -9,6 +9,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const exportBtn = document.getElementById('exportBtn');
     const shareBtn = document.getElementById('shareBtn');
     const newAnalysisBtn = document.getElementById('newAnalysisBtn');
+    const filterForm = document.getElementById('filter-form');
+
+    if (filterForm) {
+        filterForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(filterForm);
+            const filters = {};
+            for (const [key, value] of formData.entries()) {
+                if (value) {
+                    filters[key] = value;
+                }
+            }
+            const jsonString = JSON.stringify(filters);
+            let encoded = btoa(unescape(encodeURIComponent(jsonString)));
+            encoded = encoded.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+            const url = filterForm.action + '?filters=' + encodeURIComponent(encoded);
+            window.location.href = url;
+        });
+    }
 
     // Mobile navigation toggle
     const mobileNavToggle = document.createElement('button');
