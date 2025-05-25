@@ -138,7 +138,7 @@ def analise_eixo(request):
         # Monta a segunda chamada.
         kwa = {}
 
-        kwa['model'] = 'gpt-4o'
+        kwa['model'] = 'gpt-4.1'
         kwa['temperature'] = 0.3
         kwa['messages'] = [{}]
         kwa['messages'][0]['role'] = 'user'
@@ -217,100 +217,195 @@ def analise_chapa(request):
         # Encoda a imagem
         base64_image = encode_image(request.FILES['image'])
 
-        # Monta o dicionário para a primeira chamada: Models -- 'gpt-4-turbo' 'gpt-4o' 'gpt-4o-mini'
-        kwa = {}
+        if 'chapa-dobra' in request.POST:
+            kwa = {}
 
-        kwa['model'] = 'chatgpt-4o-latest'
-        kwa['temperature'] = 0.1
-        kwa['messages'] = [{}]
-        kwa['messages'][0]['role'] = 'user'
-        kwa['messages'][0]['content'] = [{}, {}]
-        kwa['messages'][0]['content'][0]['type'] = 'text'
-        kwa['messages'][0]['content'][0]['text'] = p.PROMPT_CHAPA_ANALISE
-        kwa['messages'][0]['content'][1]['type'] = 'image_url'
-        kwa['messages'][0]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
+            kwa['model'] = 'chatgpt-4o-latest'
+            kwa['temperature'] = 0.1
+            kwa['messages'] = [{}]
+            kwa['messages'][0]['role'] = 'user'
+            kwa['messages'][0]['content'] = [{}, {}]
+            kwa['messages'][0]['content'][0]['type'] = 'text'
+            kwa['messages'][0]['content'][0]['text'] = p.PROMPT_CHAPA_DOBRAS_ANALISE
+            kwa['messages'][0]['content'][1]['type'] = 'image_url'
+            kwa['messages'][0]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
 
-        # Faz a requisição.
-        try:
-            chat_completion = cli.chat.completions.create(**kwa)
+            # Faz a requisição.
+            try:
+                chat_completion = cli.chat.completions.create(**kwa)
 
-        except openai.OpenAIError as e:
-            logger.error(f"Error occurred: {str(e)}", exc_info=True)
-            messages.error(request, 'Não foi possível processar o desenho devido a um erro na API da OpenAI, tente novamente mais tarde.')
+            except openai.OpenAIError as e:
+                logger.error(f"Error occurred: {str(e)}", exc_info=True)
+                messages.error(request, 'Não foi possível processar o desenho devido a um erro na API da OpenAI, tente novamente mais tarde.')
 
-            return render(request, 'analise_chapa.html')
+                return render(request, 'analise_chapa.html')
 
-        except Exception as e:
-            logger.error(f"Error occurred: {str(e)}", exc_info=True)
-            messages.error(request, 'Ocorreu um erro inesperado. Por favor, entre em contato com o suporte.')
+            except Exception as e:
+                logger.error(f"Error occurred: {str(e)}", exc_info=True)
+                messages.error(request, 'Ocorreu um erro inesperado. Por favor, entre em contato com o suporte.')
 
-            return render(request, 'analise_chapa.html')
+                return render(request, 'analise_chapa.html')
 
-        final_text = 'Essas são todas as informações necessárias para a sua análise: \n'
-        final_text += chat_completion.choices[0].message.content
+            final_text = 'Essas são todas as informações necessárias para a sua análise: \n'
+            final_text += chat_completion.choices[0].message.content
 
-        # Monta a função para estruturar a SEGUNDA chamada de API.
-        process_function = [{}]
+            # Monta a função para estruturar a SEGUNDA chamada de API.
+            process_function = [{}]
 
-        process_function[0]['type'] = 'funtion'
-        process_function[0]['name'] = 'get_info'
-        process_function[0]['description'] = 'Determina a materia prima e os processos de fabricação necessários para a fabricação de uma chapa'
-        process_function[0]['parameters'] = {}
+            process_function[0]['type'] = 'funtion'
+            process_function[0]['name'] = 'get_info'
+            process_function[0]['description'] = 'Determina a materia prima e os processos de fabricação necessários para a fabricação de uma chapa'
+            process_function[0]['parameters'] = {}
 
-        process_function[0]['parameters']['type'] = 'object'
-        process_function[0]['parameters']['properties'] = {}
+            process_function[0]['parameters']['type'] = 'object'
+            process_function[0]['parameters']['properties'] = {}
 
-        process_function[0]['parameters']['properties']['materia_prima'] = {}
-        process_function[0]['parameters']['properties']['materia_prima']['type'] = 'string'
-        process_function[0]['parameters']['properties']['materia_prima']['description'] = 'Baseado no catálogo, coloque aqui as medidas Comprimento X Largura X Espessura (A Espessura deve ser compatível com as presentes no catálogo)'
+            process_function[0]['parameters']['properties']['materia_prima'] = {}
+            process_function[0]['parameters']['properties']['materia_prima']['type'] = 'string'
+            process_function[0]['parameters']['properties']['materia_prima']['description'] = 'Baseado no catálogo, coloque aqui as medidas Comprimento X Largura X Espessura (A Espessura deve ser compatível com as presentes no catálogo)'
 
-        process_function[0]['parameters']['properties']['maquinas'] = {}
-        process_function[0]['parameters']['properties']['maquinas']['type'] = 'array'
-        process_function[0]['parameters']['properties']['maquinas']['description'] = 'Liste aqui todas as máquinas necessárias para a fabricação da chapa.'
-        process_function[0]['parameters']['properties']['maquinas']['items'] = {}
-        process_function[0]['parameters']['properties']['maquinas']['items']['type'] = 'string'
-        process_function[0]['parameters']['properties']['maquinas']['items']['description'] = 'Nome da máquina necessária para o processo.'
+            process_function[0]['parameters']['properties']['maquinas'] = {}
+            process_function[0]['parameters']['properties']['maquinas']['type'] = 'array'
+            process_function[0]['parameters']['properties']['maquinas']['description'] = 'Liste aqui todas as máquinas necessárias para a fabricação da chapa.'
+            process_function[0]['parameters']['properties']['maquinas']['items'] = {}
+            process_function[0]['parameters']['properties']['maquinas']['items']['type'] = 'string'
+            process_function[0]['parameters']['properties']['maquinas']['items']['description'] = 'Nome da máquina necessária para o processo.'
 
-        process_function[0]['parameters']['properties']['processos'] = {}
-        process_function[0]['parameters']['properties']['processos']['type'] = 'string'
-        process_function[0]['parameters']['properties']['processos']['description'] = 'Explique aqui o processo que cada máquina irá realizar. Coloque cada processo como um tópico, mas sem numeração.'
+            process_function[0]['parameters']['properties']['processos'] = {}
+            process_function[0]['parameters']['properties']['processos']['type'] = 'string'
+            process_function[0]['parameters']['properties']['processos']['description'] = 'Explique aqui o processo que cada máquina irá realizar. Coloque cada processo como um tópico, mas sem numeração.'
 
-        process_function[0]['parameters']['properties']['aproveitamento'] = {}
-        process_function[0]['parameters']['properties']['aproveitamento']['type'] = 'string'
-        process_function[0]['parameters']['properties']['aproveitamento']['description'] = 'Se solicitado mais de uma chapa, verifique a necessidade de um aproveitamento e o descreva aqui'
+            process_function[0]['parameters']['properties']['aproveitamento'] = {}
+            process_function[0]['parameters']['properties']['aproveitamento']['type'] = 'string'
+            process_function[0]['parameters']['properties']['aproveitamento']['description'] = 'Se solicitado mais de uma chapa, verifique a necessidade de um aproveitamento e o descreva aqui'
 
-        process_function[0]['parameters']['required'] = ['materia_prima', 'maquinas', 'processos']
+            process_function[0]['parameters']['required'] = ['materia_prima', 'maquinas', 'processos']
 
-        # Monta a segunda chamada.
-        kwa = {}
+            # Monta a segunda chamada.
+            kwa = {}
 
-        kwa['model'] = 'gpt-4o'
-        kwa['temperature'] = 0.1
-        kwa['messages'] = [{}]
-        kwa['messages'][0]['role'] = 'user'
-        kwa['messages'][0]['content'] = [{}, {}, {}]
-        kwa['messages'][0]['content'][0]['type'] = 'text'
-        kwa['messages'][0]['content'][0]['text'] = p.PROMPT_CHAPA_FINAL
-        kwa['messages'][0]['content'][1]['type'] = 'text'
-        kwa['messages'][0]['content'][1]['text'] = final_text
-        kwa['messages'][0]['content'][2]['type'] = 'text'
-        kwa['messages'][0]['content'][2]['text'] = user_prompt
+            kwa['model'] = 'gpt-4.1'
+            kwa['temperature'] = 0.1
+            kwa['messages'] = [{}]
+            kwa['messages'][0]['role'] = 'user'
+            kwa['messages'][0]['content'] = [{}, {}, {}]
+            kwa['messages'][0]['content'][0]['type'] = 'text'
+            kwa['messages'][0]['content'][0]['text'] = p.PROMPT_CHAPA_DOBRAS_FINAL
+            kwa['messages'][0]['content'][1]['type'] = 'text'
+            kwa['messages'][0]['content'][1]['text'] = final_text
+            kwa['messages'][0]['content'][2]['type'] = 'text'
+            kwa['messages'][0]['content'][2]['text'] = user_prompt
 
-        kwa['functions'] = process_function
+            kwa['functions'] = process_function
 
-        # Faz a requisição.
-        try:
-            chat_completion = cli.chat.completions.create(**kwa)
+            # Faz a requisição.
+            try:
+                chat_completion = cli.chat.completions.create(**kwa)
 
-        except openai.OpenAIError as e:
-            logger.error(f"Error occurred: {str(e)}", exc_info=True)
-            messages.error(request, 'Não foi possível processar o desenho devido a um erro na API da OpenAI, tente novamente mais tarde.')
-            return render(request, 'analise_chapa.html')
+            except openai.OpenAIError as e:
+                logger.error(f"Error occurred: {str(e)}", exc_info=True)
+                messages.error(request, 'Não foi possível processar o desenho devido a um erro na API da OpenAI, tente novamente mais tarde.')
+                return render(request, 'analise_chapa.html')
 
-        except Exception as e:
-            logger.error(f"Error occurred: {str(e)}", exc_info=True)
-            messages.error(request, 'Ocorreu um erro inesperado. Por favor, entre em contato com o suporte.')
-            return render(request, 'analise_chapa.html')
+            except Exception as e:
+                logger.error(f"Error occurred: {str(e)}", exc_info=True)
+                messages.error(request, 'Ocorreu um erro inesperado. Por favor, entre em contato com o suporte.')
+                return render(request, 'analise_chapa.html')
+
+        else:
+            kwa = {}
+
+            kwa['model'] = 'chatgpt-4o-latest'
+            kwa['temperature'] = 0.1
+            kwa['messages'] = [{}]
+            kwa['messages'][0]['role'] = 'user'
+            kwa['messages'][0]['content'] = [{}, {}]
+            kwa['messages'][0]['content'][0]['type'] = 'text'
+            kwa['messages'][0]['content'][0]['text'] = p.PROMPT_CHAPA_ANALISE
+            kwa['messages'][0]['content'][1]['type'] = 'image_url'
+            kwa['messages'][0]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
+
+            # Faz a requisição.
+            try:
+                chat_completion = cli.chat.completions.create(**kwa)
+
+            except openai.OpenAIError as e:
+                logger.error(f"Error occurred: {str(e)}", exc_info=True)
+                messages.error(request, 'Não foi possível processar o desenho devido a um erro na API da OpenAI, tente novamente mais tarde.')
+
+                return render(request, 'analise_chapa.html')
+
+            except Exception as e:
+                logger.error(f"Error occurred: {str(e)}", exc_info=True)
+                messages.error(request, 'Ocorreu um erro inesperado. Por favor, entre em contato com o suporte.')
+
+                return render(request, 'analise_chapa.html')
+
+            final_text = 'Essas são todas as informações necessárias para a sua análise: \n'
+            final_text += chat_completion.choices[0].message.content
+
+            # Monta a função para estruturar a SEGUNDA chamada de API.
+            process_function = [{}]
+
+            process_function[0]['type'] = 'funtion'
+            process_function[0]['name'] = 'get_info'
+            process_function[0]['description'] = 'Determina a materia prima e os processos de fabricação necessários para a fabricação de uma chapa'
+            process_function[0]['parameters'] = {}
+
+            process_function[0]['parameters']['type'] = 'object'
+            process_function[0]['parameters']['properties'] = {}
+
+            process_function[0]['parameters']['properties']['materia_prima'] = {}
+            process_function[0]['parameters']['properties']['materia_prima']['type'] = 'string'
+            process_function[0]['parameters']['properties']['materia_prima']['description'] = 'Baseado no catálogo, coloque aqui as medidas Comprimento X Largura X Espessura (A Espessura deve ser compatível com as presentes no catálogo)'
+
+            process_function[0]['parameters']['properties']['maquinas'] = {}
+            process_function[0]['parameters']['properties']['maquinas']['type'] = 'array'
+            process_function[0]['parameters']['properties']['maquinas']['description'] = 'Liste aqui todas as máquinas necessárias para a fabricação da chapa.'
+            process_function[0]['parameters']['properties']['maquinas']['items'] = {}
+            process_function[0]['parameters']['properties']['maquinas']['items']['type'] = 'string'
+            process_function[0]['parameters']['properties']['maquinas']['items']['description'] = 'Nome da máquina necessária para o processo.'
+
+            process_function[0]['parameters']['properties']['processos'] = {}
+            process_function[0]['parameters']['properties']['processos']['type'] = 'string'
+            process_function[0]['parameters']['properties']['processos']['description'] = 'Explique aqui o processo que cada máquina irá realizar. Coloque cada processo como um tópico, mas sem numeração.'
+
+            process_function[0]['parameters']['properties']['aproveitamento'] = {}
+            process_function[0]['parameters']['properties']['aproveitamento']['type'] = 'string'
+            process_function[0]['parameters']['properties']['aproveitamento']['description'] = 'Se solicitado mais de uma chapa, verifique a necessidade de um aproveitamento e o descreva aqui'
+
+            process_function[0]['parameters']['required'] = ['materia_prima', 'maquinas', 'processos']
+
+            # Monta a segunda chamada.
+            kwa = {}
+
+            kwa['model'] = 'gpt-4.1'
+            kwa['temperature'] = 0.1
+            kwa['messages'] = [{}]
+            kwa['messages'][0]['role'] = 'user'
+            kwa['messages'][0]['content'] = [{}, {}, {}]
+            kwa['messages'][0]['content'][0]['type'] = 'text'
+            kwa['messages'][0]['content'][0]['text'] = p.PROMPT_CHAPA_FINAL
+            kwa['messages'][0]['content'][1]['type'] = 'text'
+            kwa['messages'][0]['content'][1]['text'] = final_text
+            kwa['messages'][0]['content'][2]['type'] = 'text'
+            kwa['messages'][0]['content'][2]['text'] = user_prompt
+
+            kwa['functions'] = process_function
+
+            # Faz a requisição.
+            try:
+                chat_completion = cli.chat.completions.create(**kwa)
+
+            except openai.OpenAIError as e:
+                logger.error(f"Error occurred: {str(e)}", exc_info=True)
+                messages.error(request, 'Não foi possível processar o desenho devido a um erro na API da OpenAI, tente novamente mais tarde.')
+                return render(request, 'analise_chapa.html')
+
+            except Exception as e:
+                logger.error(f"Error occurred: {str(e)}", exc_info=True)
+                messages.error(request, 'Ocorreu um erro inesperado. Por favor, entre em contato com o suporte.')
+                return render(request, 'analise_chapa.html')
 
         # Coleta as informações necessárias.
         materia_prima = json.loads(chat_completion.choices[0].message.function_call.arguments).get('materia_prima', '')

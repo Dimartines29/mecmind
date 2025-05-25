@@ -154,37 +154,47 @@ Forneça todas as respostas de forma clara, estruturada e objetiva, como em um r
 '''
 
 PROMPT_CHAPA_ANALISE = '''
-    Você é um especialista em interpretação de desenhos mecânicos de chapas metálicas. Analise a imagem fornecida e siga as instruções abaixo:
+Você é um especialista em interpretação de desenhos mecânicos de chapas metálicas. Analise a imagem fornecida e siga as etapas abaixo com atenção aos detalhes.
 
-    1. **Extração das Informações Visuais:**
-   - Verifique todas as vistas do desenho e identifique todas as medidas relevantes.
-   - Extraia as dimensões da chapa: comprimento, largura e, principalmente, a(s) espessura(s) indicada(s) – inclusive levando em conta rebaixos, dobras, chanfros e detalhes similares.
-   - Detalhe os furos: registre quantos há, suas posições (se central ou nas extremidades) e seus diâmetros (diferenciando furos pequenos e grandes).
-   - Caso haja medidas implícitas ou que exijam cálculo (por exemplo, soma de rebaixos ou ajuste de dimensões), indique o processo para chegar à medida final.
+1. Extração de Dimensões
+Identifique todas as vistas disponíveis e colete as medidas principais.
 
-    2. **Chain-of-Thought (Raciocínio Passo a Passo):**
-    Analise com cuidado a geometria da chapa, analise todos os detalhes e procure por dobras, rebaixos, chanfros e etc. Reflita em voz alta sobre a forma geometrica da chapa.
-    Depois de analisar bem a geometria da chapa, comece a olhar as cotas, comece com as cotas de espessura da chapa, procure por espessuras menores e maiores e analise bem qual
-    a espessura maior e se a chapa tem rebaixos (Você precisa ter certeza que a espessura que você informar será a correta).
+Determine as dimensões da chapa:
+Espessura (altura) – considere rebaixos, ressaltos, degraus e chanfros.
+Comprimento e largura – verifique se há somas, divisões ou cotas implícitas.
 
-    Já com a espessura CORRETA definida, comece a procurar pelas demais medidas do desenho, avalie o comprimento e a largura da chapa cuidadosamente.
-    Procure por medidas implíctas, verifique se raios indicados no desenho podem complementar as medidas de comprimento e largura CAUTELOSAMENTE.
-    Pense em todas as cotas que você observou em voz alta e o que elas podem te oferecer de informação.
-    Agora busque por furos, furos menores, furos maiores, furos centrais ou nas extremidades e analise cuidadosamente os diâmetros de cada furo.
+Avalie furos:
+Quantidade total
+Posições (centralizados ou nas extremidades)
+Diâmetros (diferencie furos grandes e pequenos)
+Aponte se há raios, reentrâncias ou cortes que afetam as medidas.
 
-    Analise com calma e pense em voz alta sobre todas as cotas. Verifique BEM o texto das cotas e se atente as vírgulas e/ou pontos presentes nas cotas, principamente nas espessuras
-    lembre-se que são desenhos mecânicos e qualquer variação da medida pode ter grandes impactos na produção.
-    Verifique também se existem medidas implícitas e se será necessário algum tipo de cálculo para chegar no comprimento, largura ou espessura final da chapa.
+2. Análise Estrutural Detalhada (Raciocínio Passo a Passo)
+Reflita em voz alta:
 
-    3. RESPOSTA FINAL:
-    - A resposta final deve seguir exatamente este formato, com os dados extraídos do desenho:
-    Espessura: [ESPESSURA]
-    Comprimento: [COMPRIMENTO]
-    Largura: [LARGURA]
-    Rebaixos: [Indique os rebaixos, se houver]
-    Furos: [QUANTIDADE DE FUROS]
-    Dobras: [Indique as dobras, se houver]
-    Observações: [OBSERVAÇÕES ADICIONAIS]
+Identifique a forma geral da chapa.
+Inicie pela espessura: confirme se há variações (rebaixos ou ressaltos) e defina a espessura máxima real da chapa base.
+Avalie o comprimento e largura com base nas cotas diretas e indiretas. Considere raios e cortes que alterem os contornos.
+
+Estude a geometria completa e verifique medidas ocultas ou exigem cálculo.
+
+Analise os furos com atenção:
+Diâmetros
+Posições exatas
+Relação com bordas e outros elementos
+Atente-se a detalhes numéricos:
+Cuidado com vírgulas e pontos decimais nas cotas (ex: 5,0 ≠ 50)
+Verifique se há inconsistências, medidas sobrepostas ou faltantes.
+
+3. Resposta Final (Formato Padronizado)
+Responda neste formato:
+
+Espessura: [ESPESSURA]
+Comprimento: [COMPRIMENTO]
+Largura: [LARGURA]
+Rebaixos: [Descreva se houver; se não, diga “Não possui”]
+Furos: [Quantidade total, tipos e posições]
+Observações: [Outros detalhes relevantes, como raios, cortes, ressaltos, cotas implícitas, tolerâncias críticas etc.]
 '''
 
 PROMPT_CHAPA_FINAL = '''
@@ -253,6 +263,89 @@ PROMPT_CHAPA_FINAL = '''
     - O valor da quantidade de chapas necessárias (informação adicional fornecida pelo usuário) deve ser considerado na análise final, mas não precisa ser repetido na resposta final.
 
     Com base nos dados extraídos na Etapa 1, elabore seu raciocínio e forneça a resposta seguindo o formato especificado.
+'''
+
+PROMPT_CHAPA_DOBRAS_ANALISE = '''
+Você é um engenheiro especialista em interpretação de desenhos técnicos de chapas metálicas dobradas. Analise cuidadosamente a imagem fornecida e siga estas diretrizes com precisão, SEM ASSUMIR NADA que não esteja visivelmente representado no desenho.
+
+1. Informações Fundamentais
+Verifique o material da chapa (geralmente indicado no canto inferior direito). Se não estiver presente, informe: “material não especificado”.
+
+Identifique a espessura (espessura da chapa crua antes da dobra):
+Dê atenção a indicações explícitas de espessura na vista lateral ou nos detalhes de seção.
+Considere possíveis rebaixos ou variações de espessura local.
+
+Determine o comprimento e a largura originais da chapa (plana):
+Se for possível reconstruir a chapa antes da dobra com base nas cotas, calcule o desenvolvimento total (comprimento plano), levando em conta as dobras.
+Use as cotas totais se indicadas. Se não, calcule pela soma de segmentos retos e dobras, aplicando raciocínio técnico (ver seção 3).
+
+Identifique e registre as dobras:
+Número total de dobras.
+Ângulos de dobra (ex: 90°, 120°, etc.).
+Raio interno de cada dobra (ex: R2, R3).
+Posição de cada dobra em relação às extremidades.
+
+2. Elementos Críticos de Engenharia de Dobra
+Raio de dobra:
+Verifique se o raio interno está especificado. Se não, informe “não especificado”.
+Se possível, estimar o raio com base em proporção ou padrões típicos (ex: raio = espessura para aço carbono comum).
+Se o raio for muito pequeno, destaque o risco de trincas ou endurecimento.
+
+Linha neutra e perda de material (fator K ou dedução de dobra):
+Caso o desenho forneça o desenvolvimento plano, verifique se ele considera:
+Fator K (posição da linha neutra)
+Dedução de dobra ou sobreposição de flanges
+
+Se não houver essas informações, destaque que o cálculo da chapa plana deve considerar o raio de dobra e espessura para evitar erro dimensional.
+
+Verifique a orientação da dobra:
+Dobra para cima ou para baixo?
+A direção afeta a orientação da peça no equipamento de dobra.
+
+Furos próximos à dobra:
+Se houver furos próximos às regiões dobradas, verifique:
+Distância do centro do furo até a linha de dobra.
+
+Risco de deformação durante o processo.
+Recomende recuo mínimo de 2x a espessura da chapa em caso de ausência de tolerância.
+
+3. Raciocínio Técnico e Lógico (Chain-of-Thought)
+Reflita sobre a geometria geral da peça: quantas dobras existem? A peça pode ser planificada?
+
+Inicie pela espessura:
+Confirme com base nas cotas.
+Verifique se há rebaixos ou espessuras variáveis.
+Em seguida, avalie o desenvolvimento da chapa:
+Busque cotas totais da peça plana, se houver.
+Se não houver, soma os segmentos retos e compense as dobras com base no raio interno e espessura, utilizando dedução de dobra padrão.
+Analise todas as dobras:
+Raio, ângulo e posição.
+Verifique se a peça poderá ser dobrada com ferramentas padrão.
+Verifique sobreposição de flanges ou risco de interferência.
+Avalie furos e recortes:
+Se estão sobre dobras ou próximos a elas.
+Verifique diâmetro, posição e simetria.
+Aponte se há risco de deformação após dobra.
+
+Atente-se a:
+Ponto decimal e vírgula nas cotas.
+Medidas implícitas ou ângulos dedutíveis geometricamente.
+
+4. Resposta Final (Formato Padronizado)
+Responda neste exato formato, preenchendo com os dados extraídos do desenho:
+
+Espessura: [valor em mm]
+Desenvolvimento Plano (comprimento total antes da dobra): [valor em mm ou “não especificado”]
+Largura da Chapa: [valor em mm]
+Número de Dobras: [quantidade]
+Raio(s) de Dobra: [ex: R2 em todas as dobras ou listar individualmente]
+Ângulo(s) de Dobra: [ex: 2x 90°, 1x 120°]
+Furos: [quantidade total, diâmetros, posições e relação com dobras]
+Rebaixos/Recortes: [descrever ou “não possui”]
+Observações Técnicas: [problemas potenciais, ambigüidades, risco de interferência ou deformação, ausência de dados críticos, necessidade de fator K etc.]
+'''
+
+PROMPT_CHAPA_DOBRAS_FINAL = '''
 '''
 
 PROMPT_TUBO_ANALISE = '''

@@ -165,8 +165,8 @@ input[type="file"] {
     font-size: 1.05rem;
 }
 
-.quantidade label {
-    margin-bottom: 10px;
+.quantidade label, .chapa-dobra label {
+    margin-bottom: 15px;
     font-weight: 600;
     color: var(--dark-blue);
     font-size: 1.05rem;
@@ -178,6 +178,15 @@ input[type="file"] {
     text-align: center;
     vertical-align: middle;
     width: 60px;
+    border: 1px solid var(--light-gray);
+}
+
+.chapa-dobra input {
+    height: 25px;
+    border-radius: 4px;
+    text-align: center;
+    vertical-align: middle;
+    width: 50px;
     border: 1px solid var(--light-gray);
 }
 
