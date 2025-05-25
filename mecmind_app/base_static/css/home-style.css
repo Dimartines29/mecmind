@@ -29,16 +29,16 @@ body {
 
 /* Header e Nav Styles */
 .top-bar {
-    height: 82px;
+    height: 65px;
     display: flex;
     justify-content: space-between;
-    align-items: center;
+
     background-color: var(--dark-blue);
     padding: 0 5%;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     position: sticky;
-    top: 0;
-    z-index: 100;
+
+
     flex-wrap: wrap;
 }
 
@@ -48,7 +48,6 @@ body {
     color: var(--white);
     font-size: 1.5rem;
     font-weight: 700;
-    padding: 12px 0;
 }
 
 .logo i {
@@ -80,10 +79,10 @@ body {
     display: block;
     color: var(--white);
     text-decoration: none;
-    padding: 18px clamp(10px, 2vw, 25px);
+    padding: 20px clamp(10px, 2vw, 25px);
     font-weight: 500;
     transition: all 0.3s ease;
-    font-size: 0.95rem;
+    font-size: 1rem;
     white-space: nowrap;
 }
 
