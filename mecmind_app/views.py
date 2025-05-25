@@ -139,7 +139,7 @@ def analise_eixo(request):
         kwa = {}
 
         kwa['model'] = 'gpt-4o'
-        kwa['temperature'] = 0.1
+        kwa['temperature'] = 0.3
         kwa['messages'] = [{}]
         kwa['messages'][0]['role'] = 'user'
         kwa['messages'][0]['content'] = [{}, {}, {}]
