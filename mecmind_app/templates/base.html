@@ -31,7 +31,7 @@
                     <li><a href="/projetos_empresa" class="{% if '/projetos_empresa/' in request.path %}active{% endif %}"><i class="fas fa-building"></i> Empresa</a></li>
                 {% endif %}
 
-                <li><a href="{% url 'logout' %}">Sair</a></li>
+                <li><a href="{% url 'logout' %}" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Sair</a></li>
             </ul>
         </nav>
     </div>

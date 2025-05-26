@@ -253,32 +253,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }, duration);
     };
 
-    // Funcionalidade para botões de ação
-    if (exportBtn) {
-        exportBtn.addEventListener('click', function() {
-            showToast('Exportando PDF...', 'info');
-            // Lógica de exportação de PDF aqui
-            setTimeout(() => {
-                showToast('PDF exportado com sucesso!', 'success');
-            }, 1500);
-        });
-    }
-
-    if (shareBtn) {
-        shareBtn.addEventListener('click', function() {
-            showToast('Opções de compartilhamento abertas', 'info');
-            // Implementar lógica de compartilhamento
-        });
-    }
-
     if (newAnalysisBtn) {
         newAnalysisBtn.addEventListener('click', function() {
             console.log("Nova análise clicada");
             showToast('Preparando nova análise...', 'info');
 
-            // Redireciona para a página de análise limpa
             window.location.href = window.location.pathname;
         });
     }
 
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (confirm('Tem certeza que deseja sair?')) {
+                window.location.href = logoutBtn.href;
+            }
+        });
+    }
 });
