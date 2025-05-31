@@ -94,13 +94,13 @@ def analise_eixo(request):
             chat_completion = cli.chat.completions.create(**kwa)
 
         except openai.OpenAIError as e:
-            logger.error(f"Error occurred: {str(e)}", exc_info=True)
+            logger.error(f'Error occurred: {str(e)}', exc_info=True)
             messages.error(request, 'Não foi possível processar o desenho devido a um erro na API da OpenAI, tente novamente mais tarde.')
 
             return render(request, 'analise_eixo.html')
 
         except Exception as e:
-            logger.error(f"Error occurred: {str(e)}", exc_info=True)
+            logger.error(f'Error occurred: {str(e)}', exc_info=True)
             messages.error(request, 'Ocorreu um erro inesperado. Por favor, entre em contato com o suporte.')
 
             return render(request, 'analise_eixo.html')
@@ -169,12 +169,12 @@ def analise_eixo(request):
             chat_completion = cli.chat.completions.create(**kwa)
 
         except openai.OpenAIError as e:
-            logger.error(f"Error occurred: {str(e)}", exc_info=True)
+            logger.error(f'Error occurred: {str(e)}', exc_info=True)
             messages.error(request, 'Não foi possível processar o desenho devido a um erro na API da OpenAI, tente novamente mais tarde.')
             return render(request, 'analise_eixo.html')
 
         except Exception as e:
-            logger.error(f"Error occurred: {str(e)}", exc_info=True)
+            logger.error(f'Error occurred: {str(e)}', exc_info=True)
             messages.error(request, 'Ocorreu um erro inesperado. Por favor, entre em contato com o suporte.')
             return render(request, 'analise_eixo.html')
 
@@ -252,13 +252,13 @@ def analise_chapa(request):
                 chat_completion = cli.chat.completions.create(**kwa)
 
             except openai.OpenAIError as e:
-                logger.error(f"Error occurred: {str(e)}", exc_info=True)
+                logger.error(f'Error occurred: {str(e)}', exc_info=True)
                 messages.error(request, 'Não foi possível processar o desenho devido a um erro na API da OpenAI, tente novamente mais tarde.')
 
                 return render(request, 'analise_chapa.html')
 
             except Exception as e:
-                logger.error(f"Error occurred: {str(e)}", exc_info=True)
+                logger.error(f'Error occurred: {str(e)}', exc_info=True)
                 messages.error(request, 'Ocorreu um erro inesperado. Por favor, entre em contato com o suporte.')
 
                 return render(request, 'analise_chapa.html')
@@ -326,12 +326,12 @@ def analise_chapa(request):
                 chat_completion = cli.chat.completions.create(**kwa)
 
             except openai.OpenAIError as e:
-                logger.error(f"Error occurred: {str(e)}", exc_info=True)
+                logger.error(f'Error occurred: {str(e)}', exc_info=True)
                 messages.error(request, 'Não foi possível processar o desenho devido a um erro na API da OpenAI, tente novamente mais tarde.')
                 return render(request, 'analise_chapa.html')
 
             except Exception as e:
-                logger.error(f"Error occurred: {str(e)}", exc_info=True)
+                logger.error(f'Error occurred: {str(e)}', exc_info=True)
                 messages.error(request, 'Ocorreu um erro inesperado. Por favor, entre em contato com o suporte.')
                 return render(request, 'analise_chapa.html')
 
@@ -359,13 +359,13 @@ def analise_chapa(request):
                 chat_completion = cli.chat.completions.create(**kwa)
 
             except openai.OpenAIError as e:
-                logger.error(f"Error occurred: {str(e)}", exc_info=True)
+                logger.error(f'Error occurred: {str(e)}', exc_info=True)
                 messages.error(request, 'Não foi possível processar o desenho devido a um erro na API da OpenAI, tente novamente mais tarde.')
 
                 return render(request, 'analise_chapa.html')
 
             except Exception as e:
-                logger.error(f"Error occurred: {str(e)}", exc_info=True)
+                logger.error(f'Error occurred: {str(e)}', exc_info=True)
                 messages.error(request, 'Ocorreu um erro inesperado. Por favor, entre em contato com o suporte.')
 
                 return render(request, 'analise_chapa.html')
@@ -433,12 +433,12 @@ def analise_chapa(request):
                 chat_completion = cli.chat.completions.create(**kwa)
 
             except openai.OpenAIError as e:
-                logger.error(f"Error occurred: {str(e)}", exc_info=True)
+                logger.error(f'Error occurred: {str(e)}', exc_info=True)
                 messages.error(request, 'Não foi possível processar o desenho devido a um erro na API da OpenAI, tente novamente mais tarde.')
                 return render(request, 'analise_chapa.html')
 
             except Exception as e:
-                logger.error(f"Error occurred: {str(e)}", exc_info=True)
+                logger.error(f'Error occurred: {str(e)}', exc_info=True)
                 messages.error(request, 'Ocorreu um erro inesperado. Por favor, entre em contato com o suporte.')
                 return render(request, 'analise_chapa.html')
 
@@ -510,13 +510,13 @@ def analise_tubo(request):
             chat_completion = cli.chat.completions.create(**kwa)
 
         except openai.OpenAIError as e:
-            logger.error(f"Error occurred: {str(e)}", exc_info=True)
+            logger.error(f'Error occurred: {str(e)}', exc_info=True)
             messages.error(request, 'Não foi possível processar o desenho devido a um erro na API da OpenAI, tente novamente mais tarde.')
 
             return render(request, 'analise_tubo.html')
 
         except Exception as e:
-            logger.error(f"Error occurred: {str(e)}", exc_info=True)
+            logger.error(f'Error occurred: {str(e)}', exc_info=True)
             messages.error(request, 'Ocorreu um erro inesperado. Por favor, entre em contato com o suporte.')
 
             return render(request, 'analise_tubo.html')
@@ -579,12 +579,12 @@ def analise_tubo(request):
             chat_completion = cli.chat.completions.create(**kwa)
 
         except openai.OpenAIError as e:
-            logger.error(f"Error occurred: {str(e)}", exc_info=True)
+            logger.error(f'Error occurred: {str(e)}', exc_info=True)
             messages.error(request, 'Não foi possível processar o desenho devido a um erro na API da OpenAI, tente novamente mais tarde.')
             return render(request, 'analise_tubo.html')
 
         except Exception as e:
-            logger.error(f"Error occurred: {str(e)}", exc_info=True)
+            logger.error(f'Error occurred: {str(e)}', exc_info=True)
             messages.error(request, 'Ocorreu um erro inesperado. Por favor, entre em contato com o suporte.')
             return render(request, 'analise_tubo.html')
 
@@ -791,7 +791,7 @@ def projetos(request):
 
     # Paginação
     paginator = Paginator(projetos, 10)
-    page_number = request.GET.get("page")
+    page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
     # Prepara os dados para o contexto
@@ -861,7 +861,7 @@ def projetos_empresa(request):
 
     # Paginação
     paginator = Paginator(projetos, 10)
-    page_number = request.GET.get("page")
+    page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
     # Prepara os dados para o contexto
