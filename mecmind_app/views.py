@@ -9,7 +9,6 @@ from datetime import datetime, time
 from django.shortcuts import render, redirect
 from django.contrib import auth, messages
 from django.contrib.auth.decorators import login_required
-from django.conf import settings
 from django.core.paginator import Paginator
 from django.contrib.auth.forms import AuthenticationForm
 
@@ -76,13 +75,19 @@ def analise_eixo(request):
 
         kwa['model'] = 'chatgpt-4o-latest'
         kwa['temperature'] = 0.1
-        kwa['messages'] = [{}]
-        kwa['messages'][0]['role'] = 'user'
-        kwa['messages'][0]['content'] = [{}, {}]
+        kwa['messages'] = [{}, {}]
+
+        kwa['messages'][0]['role'] = 'system'
+        kwa['messages'][0]['content'] = [{}]
         kwa['messages'][0]['content'][0]['type'] = 'text'
-        kwa['messages'][0]['content'][0]['text'] = p.PROMPT_EIXO_ANALISE
-        kwa['messages'][0]['content'][1]['type'] = 'image_url'
-        kwa['messages'][0]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
+        kwa['messages'][0]['content'][0]['text'] = p.SYSTEM_EIXO_ANALISE
+
+        kwa['messages'][1]['role'] = 'user'
+        kwa['messages'][1]['content'] = [{}, {}]
+        kwa['messages'][1]['content'][0]['type'] = 'text'
+        kwa['messages'][1]['content'][0]['text'] = p.PROMPT_EIXO_ANALISE
+        kwa['messages'][1]['content'][1]['type'] = 'image_url'
+        kwa['messages'][1]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
 
         # Faz a requisição.
         try:
@@ -140,15 +145,21 @@ def analise_eixo(request):
 
         kwa['model'] = 'gpt-4.1'
         kwa['temperature'] = 0.3
-        kwa['messages'] = [{}]
-        kwa['messages'][0]['role'] = 'user'
-        kwa['messages'][0]['content'] = [{}, {}, {}]
+        kwa['messages'] = [{}, {}]
+
+        kwa['messages'][0]['role'] = 'system'
+        kwa['messages'][0]['content'] = [{}]
         kwa['messages'][0]['content'][0]['type'] = 'text'
-        kwa['messages'][0]['content'][0]['text'] = p.PROMPT_EIXO_FINAL
-        kwa['messages'][0]['content'][1]['type'] = 'text'
-        kwa['messages'][0]['content'][1]['text'] = final_text
-        kwa['messages'][0]['content'][2]['type'] = 'text'
-        kwa['messages'][0]['content'][2]['text'] = user_prompt
+        kwa['messages'][0]['content'][0]['text'] = p.SYSTEM_EIXO_FINAL
+
+        kwa['messages'][1]['role'] = 'user'
+        kwa['messages'][1]['content'] = [{}, {}, {}]
+        kwa['messages'][1]['content'][0]['type'] = 'text'
+        kwa['messages'][1]['content'][0]['text'] = p.PROMPT_EIXO_FINAL
+        kwa['messages'][1]['content'][1]['type'] = 'text'
+        kwa['messages'][1]['content'][1]['text'] = final_text
+        kwa['messages'][1]['content'][2]['type'] = 'text'
+        kwa['messages'][1]['content'][2]['text'] = user_prompt
 
         kwa['functions'] = process_function
         kwa['function_call'] = {'name': 'get_info'}
@@ -222,13 +233,19 @@ def analise_chapa(request):
 
             kwa['model'] = 'chatgpt-4o-latest'
             kwa['temperature'] = 0.1
-            kwa['messages'] = [{}]
-            kwa['messages'][0]['role'] = 'user'
-            kwa['messages'][0]['content'] = [{}, {}]
+            kwa['messages'] = [{}, {}]
+
+            kwa['messages'][0]['role'] = 'system'
+            kwa['messages'][0]['content'] = [{}]
             kwa['messages'][0]['content'][0]['type'] = 'text'
-            kwa['messages'][0]['content'][0]['text'] = p.PROMPT_CHAPA_DOBRAS_ANALISE
-            kwa['messages'][0]['content'][1]['type'] = 'image_url'
-            kwa['messages'][0]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
+            kwa['messages'][0]['content'][0]['text'] = p.SYSTEM_CHAPA_DOBRAS_ANALISE
+
+            kwa['messages'][1]['role'] = 'user'
+            kwa['messages'][1]['content'] = [{}, {}]
+            kwa['messages'][1]['content'][0]['type'] = 'text'
+            kwa['messages'][1]['content'][0]['text'] = p.PROMPT_CHAPA_DOBRAS_ANALISE
+            kwa['messages'][1]['content'][1]['type'] = 'image_url'
+            kwa['messages'][1]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
 
             # Faz a requisição.
             try:
@@ -262,7 +279,7 @@ def analise_chapa(request):
 
             process_function[0]['parameters']['properties']['materia_prima'] = {}
             process_function[0]['parameters']['properties']['materia_prima']['type'] = 'string'
-            process_function[0]['parameters']['properties']['materia_prima']['description'] = 'Baseado no catálogo, coloque aqui as medidas Comprimento X Largura X Espessura (A Espessura deve ser compatível com as presentes no catálogo)'
+            process_function[0]['parameters']['properties']['materia_prima']['description'] = 'Baseado no catálogo, coloque aqui as medidas Comprimento (milímetros) X Largura (milímetros) X Espessura (polegadas) (A Espessura deve ser compatível com as presentes no catálogo e deve ser fornecida em polegadas)'
 
             process_function[0]['parameters']['properties']['maquinas'] = {}
             process_function[0]['parameters']['properties']['maquinas']['type'] = 'array'
@@ -286,15 +303,21 @@ def analise_chapa(request):
 
             kwa['model'] = 'gpt-4.1'
             kwa['temperature'] = 0.1
-            kwa['messages'] = [{}]
-            kwa['messages'][0]['role'] = 'user'
-            kwa['messages'][0]['content'] = [{}, {}, {}]
+            kwa['messages'] = [{}, {}]
+
+            kwa['messages'][0]['role'] = 'system'
+            kwa['messages'][0]['content'] = [{}]
             kwa['messages'][0]['content'][0]['type'] = 'text'
-            kwa['messages'][0]['content'][0]['text'] = p.PROMPT_CHAPA_DOBRAS_FINAL
-            kwa['messages'][0]['content'][1]['type'] = 'text'
-            kwa['messages'][0]['content'][1]['text'] = final_text
-            kwa['messages'][0]['content'][2]['type'] = 'text'
-            kwa['messages'][0]['content'][2]['text'] = user_prompt
+            kwa['messages'][0]['content'][0]['text'] = p.SYSTEM_CHAPA_DOBRAS_FINAL
+
+            kwa['messages'][1]['role'] = 'user'
+            kwa['messages'][1]['content'] = [{}, {}, {}]
+            kwa['messages'][1]['content'][0]['type'] = 'text'
+            kwa['messages'][1]['content'][0]['text'] = p.PROMPT_CHAPA_DOBRAS_FINAL
+            kwa['messages'][1]['content'][1]['type'] = 'text'
+            kwa['messages'][1]['content'][1]['text'] = final_text
+            kwa['messages'][1]['content'][2]['type'] = 'text'
+            kwa['messages'][1]['content'][2]['text'] = user_prompt
 
             kwa['functions'] = process_function
 
@@ -317,13 +340,19 @@ def analise_chapa(request):
 
             kwa['model'] = 'chatgpt-4o-latest'
             kwa['temperature'] = 0.1
-            kwa['messages'] = [{}]
-            kwa['messages'][0]['role'] = 'user'
-            kwa['messages'][0]['content'] = [{}, {}]
+            kwa['messages'] = [{}, {}]
+
+            kwa['messages'][0]['role'] = 'system'
+            kwa['messages'][0]['content'] = [{}]
             kwa['messages'][0]['content'][0]['type'] = 'text'
-            kwa['messages'][0]['content'][0]['text'] = p.PROMPT_CHAPA_ANALISE
-            kwa['messages'][0]['content'][1]['type'] = 'image_url'
-            kwa['messages'][0]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
+            kwa['messages'][0]['content'][0]['text'] = p.SYSTEM_CHAPA_ANALISE
+
+            kwa['messages'][1]['role'] = 'user'
+            kwa['messages'][1]['content'] = [{}, {}]
+            kwa['messages'][1]['content'][0]['type'] = 'text'
+            kwa['messages'][1]['content'][0]['text'] = p.PROMPT_CHAPA_ANALISE
+            kwa['messages'][1]['content'][1]['type'] = 'image_url'
+            kwa['messages'][1]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
 
             # Faz a requisição.
             try:
@@ -381,15 +410,21 @@ def analise_chapa(request):
 
             kwa['model'] = 'gpt-4.1'
             kwa['temperature'] = 0.1
-            kwa['messages'] = [{}]
-            kwa['messages'][0]['role'] = 'user'
-            kwa['messages'][0]['content'] = [{}, {}, {}]
+            kwa['messages'] = [{}, {}]
+
+            kwa['messages'][0]['role'] = 'system'
+            kwa['messages'][0]['content'] = [{}]
             kwa['messages'][0]['content'][0]['type'] = 'text'
-            kwa['messages'][0]['content'][0]['text'] = p.PROMPT_CHAPA_FINAL
-            kwa['messages'][0]['content'][1]['type'] = 'text'
-            kwa['messages'][0]['content'][1]['text'] = final_text
-            kwa['messages'][0]['content'][2]['type'] = 'text'
-            kwa['messages'][0]['content'][2]['text'] = user_prompt
+            kwa['messages'][0]['content'][0]['text'] = p.SYSTEM_CHAPA_FINAL
+
+            kwa['messages'][1]['role'] = 'user'
+            kwa['messages'][1]['content'] = [{}, {}, {}]
+            kwa['messages'][1]['content'][0]['type'] = 'text'
+            kwa['messages'][1]['content'][0]['text'] = p.PROMPT_CHAPA_FINAL
+            kwa['messages'][1]['content'][1]['type'] = 'text'
+            kwa['messages'][1]['content'][1]['text'] = final_text
+            kwa['messages'][1]['content'][2]['type'] = 'text'
+            kwa['messages'][1]['content'][2]['text'] = user_prompt
 
             kwa['functions'] = process_function
 
