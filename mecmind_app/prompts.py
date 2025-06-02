@@ -110,15 +110,23 @@ SYSTEM_CHAPA_DOBRAS_FINAL = '''
     Este modelo está integrado em um sistema real de automação industrial. Responda com rigor técnico.
 '''
 
+SYSTEM_TUBO_ANALISE = '''
+'''
+
+SYSTEM_TUBO_FINAL = '''
+'''
+
 # Prompts
 PROMPT_EIXO_ANALISE = '''
     Você é um especialista em desenhos técnicos de eixos. Analise cuidadosamente a imagem fornecida e siga estas diretrizes com precisão, SEM ASSUMIR NADA que não esteja visivelmente representado no desenho.
     1. Informações Fundamentais
     * Verifique se o material está indicado (geralmente no canto inferior direito). Se não estiver, informe: “material não especificado”.
     * Identifique o comprimento total do eixo:
-        * Se houver uma cota única, use-a.
-        * NUNCA some seções se já existir uma cota total visível.
-        * Caso a cota total não esteja presente, some apenas as seções necessárias com atenção às setas de início/fim.
+        Verifique se existe uma cota com linha de chamada que vai da extremidade esquerda até a extremidade direita do eixo.
+        Se sim, essa é a cota total — use esse valor.
+        Se não houver tal cota, some apenas as cotas parciais que juntas cobrem todo o comprimento da peça.
+        Nunca use como critério o alinhamento vertical entre cotas, pois cotas parciais podem estar alinhadas e mesmo assim não representar o total.
+    Verifique bem a sobreposiçao de cotas para não somar quando não for necessário, pois isso pode impactar MUITO a fabricação.
     * Identifique o maior diâmetro do eixo com precisão, comparando todos os valores disponíveis.
 
     2. Características Dimensionais e Geométricas
@@ -463,6 +471,72 @@ PROMPT_CHAPA_DOBRAS_ANALISE = '''
 '''
 
 PROMPT_CHAPA_DOBRAS_FINAL = '''
+    Utilize os dados extraídos na etapa 1 (descrição da chapa dobrada) para montar a recomendação final de produção.
+
+    1. Matéria-prima:
+    - Determine a espessura com base nas medidas disponíveis e converta para polegadas.
+    - Utilize o catálogo fornecido no sistema para indicar a chapa ideal com suas dimensões exatas (Comprimento x Largura x Espessura).
+    - Indique a qualidade do material se especificada (ex: Aço Inox 304, SAE 1020 etc.).
+
+    2. Processos de Fabricação:
+    - Liste todos os processos técnicos necessários (ex: dobra CNC, usinagem de rebaixo, acabamento superficial).
+    - Para cada processo, associe a máquina necessária e a finalidade (ex: prensa dobradeira - realizar dobras com raio R2 e ângulo 90°).
+
+    3. Máquinas:
+    - Liste todas as máquinas envolvidas, mesmo que compartilhem processos.
+    - Seja específico quanto ao tipo de máquina (ex: prensa hidráulica, guilhotina, retífica plana).
+
+    4. Aproveitamento:
+    - Se a análise envolver mais de uma peça, calcule o aproveitamento do material.
+    - Recomende layout padrão (linear ou em matriz) para corte da chapa e estime perdas.
+
+    5. Observações Técnicas:
+    - Destaque riscos, ambiguidades ou exigências especiais para fabricação da peça dobrada.
+    - Comente sobre a necessidade de fator K, interferência entre dobras, ou limites de ferramenta.
+
+    6. **Catálogo Completo (para consulta):**
+    --- CHAPAS FINAS ---
+    Nº (Gauge/Ref); Espessura (mm); Peso (Kg/m²)
+    16; 1,50; 12,00
+    14; 1,90; 15,20
+    13; 2,25; 18,00
+    12; 2,65; 21,20
+    11; 3,00; 24,00
+    10; 3,35; 26,80
+    9; 3,75; 30,00
+    8; 4,25; 34,00
+    7; 4,50; 36,00
+    3/16; 4,75; 38,00
+
+    --- CHAPAS GROSSAS ---
+    Espessura (Polegadas); Espessura (mm); Peso (Kg/m²)
+    1/4"; 6,35; 49,79
+    5/16"; 7,94; 62,25
+    3/8"; 9,53; 74,69
+    1/2"; 12,70; 99,59
+    5/8"; 15,88; 124,49
+    3/4"; 19,05; 149,39
+    7/8"; 22,23; 174,29
+    1"; 25,40; 199,19
+    1 1/4"; 31,75; 248,98
+    1 1/2"; 38,10; 298,78
+    1 3/4"; 44,45; 348,57
+    2"; 50,80; 398,37
+    2 1/4"; 57,15; 448,17
+    2 1/2"; 63,50; 497,97
+    2 3/4"; 69,85; 547,76
+    3"; 76,20; 597,56
+    3 1/4"; 82,55; 647,39
+    3 1/2"; 88,90; 697,15
+    3 3/4"; 95,25; 746,95
+    4"; 101,6; 796,75
+    4 1/2"; 114,30; 896,34
+    5"; 127,00; 995,93
+    5 1/2"; 139,70; 1095,53
+    6"; 152,40; 1195,12
+    6 1/2"; 165,10; 1294,71
+
+    Evite qualquer conteúdo especulativo. Baseie sua análise estritamente nos dados fornecidos na etapa anterior.
 '''
 
 PROMPT_TUBO_ANALISE = '''

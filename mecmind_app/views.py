@@ -21,13 +21,13 @@ from mecmind_app import prompts as p
 from mecmind_app import models as m
 from mecmind_app import choices as c
 
-# Carrega as variáveis de ambiente
+# Carrega as variáveis de ambiente.
 load_dotenv()
 
-# LOG
+# LOG.
 logger = logging.getLogger('mecmind_app')
 
-# OpenAI API key
+# OpenAI API key.
 openai_api_key = os.getenv('OPENAI_API_KEY')
 
 # Garante que o diretório para salvar as imagens existe.
@@ -38,7 +38,7 @@ if not os.path.exists(IMAGE_UPLOAD_PATH):
 
 cli = openai.OpenAI(api_key=openai_api_key)
 
-# Decoda filtros
+# Decoda filtros.
 def decode_filters(encoded_str):
     try:
         padding = '=' * (-len(encoded_str) % 4)
@@ -48,7 +48,7 @@ def decode_filters(encoded_str):
     except Exception:
         return {}
 
-# Encoda a imagem
+# Encoda a imagem.
 def encode_image(image_file):
     image_content = image_file.read()
     return base64.b64encode(image_content).decode('utf-8')
@@ -204,7 +204,7 @@ def analise_eixo(request):
 
         project.save()
 
-        # Adiciona as informações ao contexto
+        # Adiciona as informações ao contexto.
         ctx['materia_prima'] = materia_prima
         ctx['maquinas'] = maquinas
         ctx['processos'] = processos
@@ -225,7 +225,7 @@ def analise_chapa(request):
         # Adiciona a quantidade ao prompt do usuário.
         user_prompt = 'Observações adicionais do usuário: ' + request.POST.get("prompt", "") + '\n' + quantity_text
 
-        # Encoda a imagem
+        # Encoda a imagem.
         base64_image = encode_image(request.FILES['image'])
 
         if 'chapa-dobra' in request.POST:
@@ -497,13 +497,19 @@ def analise_tubo(request):
 
         kwa['model'] = 'chatgpt-4o-latest'
         kwa['temperature'] = 0.1
-        kwa['messages'] = [{}]
-        kwa['messages'][0]['role'] = 'user'
-        kwa['messages'][0]['content'] = [{}, {}]
+        kwa['messages'] = [{}, {}]
+
+        kwa['messages'][0]['role'] = 'system'
+        kwa['messages'][0]['content'] = [{}]
         kwa['messages'][0]['content'][0]['type'] = 'text'
-        kwa['messages'][0]['content'][0]['text'] = p.PROMPT_TUBO_ANALISE
-        kwa['messages'][0]['content'][1]['type'] = 'image_url'
-        kwa['messages'][0]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
+        kwa['messages'][0]['content'][0]['text'] = p.SYSTEM_TUBO_ANALISE
+
+        kwa['messages'][1]['role'] = 'user'
+        kwa['messages'][1]['content'] = [{}, {}]
+        kwa['messages'][1]['content'][0]['type'] = 'text'
+        kwa['messages'][1]['content'][0]['text'] = p.PROMPT_TUBO_ANALISE
+        kwa['messages'][1]['content'][1]['type'] = 'image_url'
+        kwa['messages'][1]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
 
         # Faz a requisição.
         try:
@@ -561,15 +567,21 @@ def analise_tubo(request):
 
         kwa['model'] = 'gpt-4o'
         kwa['temperature'] = 0.1
-        kwa['messages'] = [{}]
-        kwa['messages'][0]['role'] = 'user'
-        kwa['messages'][0]['content'] = [{}, {}, {}]
+        kwa['messages'] = [{}, {}]
+
+        kwa['messages'][0]['role'] = 'system'
+        kwa['messages'][0]['content'] = [{}]
         kwa['messages'][0]['content'][0]['type'] = 'text'
-        kwa['messages'][0]['content'][0]['text'] = p.PROMPT_TUBO_FINAL
-        kwa['messages'][0]['content'][1]['type'] = 'text'
-        kwa['messages'][0]['content'][1]['text'] = final_text
-        kwa['messages'][0]['content'][2]['type'] = 'text'
-        kwa['messages'][0]['content'][2]['text'] = user_prompt
+        kwa['messages'][0]['content'][0]['text'] = p.SYSTEM_TUBO_FINAL
+
+        kwa['messages'][1]['role'] = 'user'
+        kwa['messages'][1]['content'] = [{}, {}, {}]
+        kwa['messages'][1]['content'][0]['type'] = 'text'
+        kwa['messages'][1]['content'][0]['text'] = p.PROMPT_TUBO_FINAL
+        kwa['messages'][1]['content'][1]['type'] = 'text'
+        kwa['messages'][1]['content'][1]['text'] = final_text
+        kwa['messages'][1]['content'][2]['type'] = 'text'
+        kwa['messages'][1]['content'][2]['text'] = user_prompt
 
         kwa['functions'] = process_function
         kwa['function_call'] = {'name': 'get_info'}
@@ -594,7 +606,7 @@ def analise_tubo(request):
         processos = json.loads(chat_completion.choices[0].message.function_call.arguments).get('processos', '')
         observacoes = json.loads(chat_completion.choices[0].message.function_call.arguments).get('observacoes', '')
 
-        # Salva o Projeto
+        # Salva o Projeto.
         project = m.Project()
 
         # Informações do usuário.
@@ -614,7 +626,7 @@ def analise_tubo(request):
 
         project.save()
 
-        # Adiciona as informações ao contexto
+        # Adiciona as informações ao contexto.
         ctx['materia_prima'] = materia_prima
         ctx['maquinas'] = maquinas
         ctx['processos'] = processos
@@ -631,7 +643,7 @@ def analise_montagem(request):
         user_prompt = request.POST.get('prompt', '')
         image = request.FILES['image']
 
-        # Salva a imagem no diretório
+        # Salva a imagem no diretório.
         image_path = os.path.join(IMAGE_UPLOAD_PATH, image.name)
         with open(image_path, 'wb+') as destination:
             for chunk in image.chunks():
@@ -654,7 +666,7 @@ def analise_montagem(request):
         kwa['messages'][0]['content'][1]['type'] = 'image_url'
         kwa['messages'][0]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
 
-        # Monta a requisição aqui
+        # Monta a requisição aqui.
         try:
             chat_completion = cli.chat.completions.create(**kwa)
             print('Processamento concluído')
@@ -674,13 +686,13 @@ def analise_solda(request):
         user_prompt = request.POST.get('prompt', '')
         image = request.FILES['image']
 
-        # Salva a imagem no diretório
+        # Salva a imagem no diretório.
         image_path = os.path.join(IMAGE_UPLOAD_PATH, image.name)
         with open(image_path, 'wb+') as destination:
             for chunk in image.chunks():
                 destination.write(chunk)
 
-        # Encoda a imagem
+        # Encoda a imagem.
         base64_image = encode_image(image_path)
 
         # Monta o dicionário para a chamada:
@@ -697,7 +709,7 @@ def analise_solda(request):
         kwa['messages'][0]['content'][1]['type'] = 'image_url'
         kwa['messages'][0]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
 
-        # Monta a requisição aqui
+        # Monta a requisição aqui.
         try:
             chat_completion = cli.chat.completions.create(**kwa)
             print('Processamento concluído')
@@ -717,7 +729,7 @@ def analise_geral(request):
         user_prompt = request.POST.get('prompt', '')
         image = request.FILES['image']
 
-        # Salva a imagem no diretório
+        # Salva a imagem no diretório.
         image_path = os.path.join(IMAGE_UPLOAD_PATH, image.name)
         with open(image_path, 'wb+') as destination:
             for chunk in image.chunks():
@@ -740,7 +752,7 @@ def analise_geral(request):
         kwa['messages'][0]['content'][1]['type'] = 'image_url'
         kwa['messages'][0]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
 
-        # Monta a requisição aqui
+        # Monta a requisição aqui.
         try:
             chat_completion = cli.chat.completions.create(**kwa)
             print('Processamento concluído')
@@ -771,10 +783,10 @@ def projetos(request):
         date_from = request.GET.get('date_from', '')
         date_to = request.GET.get('date_to', '')
 
-    # Inicia a query filtrada pelo usuário logado
+    # Inicia a query filtrada pelo usuário logado.
     query = m.Project.objects.filter(user=request.user)
 
-    # Aplica os filtros se fornecidos
+    # Aplica os filtros se fornecidos.
     if analysis_type:
         query = query.filter(analysis_name=analysis_type)
 
@@ -786,7 +798,7 @@ def projetos(request):
         date_to_obj = datetime.strptime(date_to, '%Y-%m-%d').date()
         query = query.filter(created_date__lte=datetime.combine(date_to_obj, time.max))
 
-    # Ordena os resultados por ID em ordem decrescente
+    # Ordena os resultados por ID em ordem decrescente.
     projetos = query.order_by('-id')
 
     # Paginação
@@ -794,7 +806,7 @@ def projetos(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    # Prepara os dados para o contexto
+    # Prepara os dados para o contexto.
     ctx['page_obj'] = page_obj
     ctx['analysis_choices'] = c.PROJETO['analise']
     ctx['selected_analysis'] = analysis_type
@@ -835,7 +847,7 @@ def projetos_empresa(request):
     for user in m.CustomUser.objects.filter(company=request.user.company):
         users.append(f'{user.first_name} {user.last_name}')
 
-    # Aplica os filtros se fornecidos
+    # Aplica os filtros se fornecidos.
     if user_filter:
         #Passa o filtro para o contexto antes de processar a string.
         ctx['user_filter'] = user_filter
@@ -856,7 +868,7 @@ def projetos_empresa(request):
         date_to_obj = datetime.strptime(date_to, '%Y-%m-%d').date()
         query = query.filter(created_date__lte=datetime.combine(date_to_obj, time.max))
 
-    # Ordena os resultados por ID em ordem decrescente
+    # Ordena os resultados por ID em ordem decrescente.
     projetos = query.order_by('-id')
 
     # Paginação
@@ -864,7 +876,7 @@ def projetos_empresa(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    # Prepara os dados para o contexto
+    # Prepara os dados para o contexto.
     ctx['page_obj'] = page_obj
     ctx['users'] = users
     ctx['analysis_choices'] = c.PROJETO['analise']
