@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}MecMind - Informações{% endblock %}
+
+{% block extra_css %}{% endblock %}
+
+{% block content %}
+    <div class="header-banner">
+        <div class="banner-content">
+            <h1>Informações - {{ request.user.company }}</h1>
+        </div>
+    </div>
+{% endblock %}

@@ -817,6 +817,13 @@ def projetos(request):
     return render(request, 'projetos.html', ctx)
 
 @login_required(login_url='/login')
+def empresa(request):
+    if not request.user.groups.filter(name='Gerente').exists():
+        return redirect('/acesso_negado')
+
+    return render(request, 'empresa.html')
+
+@login_required(login_url='/login')
 def projetos_empresa(request):
     if not request.user.groups.filter(name='Gerente').exists():
         return redirect('/acesso_negado')
@@ -886,6 +893,20 @@ def projetos_empresa(request):
     ctx['encoded_filters'] = encoded_filters
 
     return render(request, 'projetos_empresa.html', ctx)
+
+@login_required(login_url='/login')
+def informacoes_empresa(request):
+    if not request.user.groups.filter(name='Gerente').exists():
+        return redirect('/acesso_negado')
+
+    return render(request, 'informacoes_empresa.html')
+
+@login_required(login_url='/login')
+def estoque_empresa(request):
+    if not request.user.groups.filter(name='Gerente').exists():
+        return redirect('/acesso_negado')
+
+    return render(request, 'estoque_empresa.html')
 
 @login_required(login_url='/login')
 def projeto(request, projeto_id):

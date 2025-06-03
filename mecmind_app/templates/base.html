@@ -28,7 +28,7 @@
                 <li><a href="/projetos" class="{% if '/projetos/' in request.path %}active{% endif %}"><i class="fas fa-project-diagram"></i> Projetos</a></li>
 
                 {% if request.user|has_group:"Gerente" %}
-                    <li><a href="/projetos_empresa" class="{% if '/projetos_empresa/' in request.path %}active{% endif %}"><i class="fas fa-building"></i> Empresa</a></li>
+                    <li><a href="/empresa" class="{% if '/empresa/' in request.path %}active{% endif %}"><i class="fas fa-building"></i> Empresa</a></li>
                 {% endif %}
 
                 <li><a href="{% url 'logout' %}" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Sair</a></li>
