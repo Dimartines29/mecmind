@@ -12,3 +12,11 @@ PROJETO = {
         ('geral', 'Geral'),
     ),
 }
+
+EMPRESA = {
+    'turnos': (
+        ('1', '1 turno (8 horas)'),
+        ('2', '2 turnos (12 horas)'),
+        ('3', '3 turnos (24 horas)'),
+    ),
+}

@@ -11,4 +11,94 @@
             <h1>Informações - {{ request.user.company }}</h1>
         </div>
     </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="message {{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <section class="page-container">
+        <form action="{% url 'informacoes_empresa' %}" method="POST">
+            {% csrf_token %}
+
+            <div class="info-card" style="margin: 15px;">
+                <div class="info-card-header">
+                    <i class="fas fa-cogs"></i>
+                    <h1>Máquinas Disponíveis</h1>
+                </div>
+
+                <div class="form-group">
+                    <label for="machines_turning"><i class="fas fa-compact-disc"></i> Máquinas de Torneamento</label>
+                    <textarea id="machines_turning" name="machines_turning" placeholder="Ex: 2x Torno CNC Ø500mm, 1x Torno convencional Ø300mm..." rows="3">{{ company.machines_turning|default:"" }}</textarea>
+                    <small class="form-help">Liste os tornos disponíveis com suas capacidades</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="machines_milling"><i class="fas fa-th"></i> Máquinas de Fresamento</label>
+                    <textarea id="machines_milling" name="machines_milling" placeholder="Ex: 1x Centro de usinagem 3 eixos 800x600mm, 2x Fresa convencional..." rows="3">{{ company.machines_milling|default:"" }}</textarea>
+                    <small class="form-help">Liste as fresadoras e centros de usinagem disponíveis</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="machines_other"><i class="fas fa-tools"></i> Outras Máquinas</label>
+                    <textarea id="machines_other" name="machines_other" placeholder="Ex: Serra fita, Furadeira radial, Oxicorte, Guilhotina..."rows="3">{{ company.machines_other|default:"" }}</textarea>
+                    <small class="form-help">Liste outros equipamentos disponíveis</small>
+                </div>
+            </div>
+
+            <div class="info-card" style="margin: 15px;">
+                <div class="info-card-header">
+                    <i class="fas fa-industry"></i>
+                    <h1>Processos de Fabricação</h1>
+                </div>
+
+                <div class="form-group">
+                    <label for="internal_processes"><i class="fas fa-building"></i> Processos Internos</label>
+                    <textarea id="internal_processes" name="internal_processes" placeholder="Ex: Usinagem, Corte, Furação, Solda MIG/MAG, Montagem, Pintura básica..."rows="4">{{ company.internal_processes|default:"" }}</textarea>
+                    <small class="form-help">Processos realizados internamente na empresa</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="external_processes"><i class="fas fa-truck"></i> Processos Terceirizados</label>
+                    <textarea id="external_processes" name="external_processes" placeholder="Ex: Têmpera, Galvanização, Retífica, Eletroerosão, Cromagem..."rows="4">{{ company.external_processes|default:"" }}</textarea>
+                    <small class="form-help">Processos que precisam ser terceirizados</small>
+                </div>
+            </div>
+
+            <div class="info-card" style="margin: 15px;">
+                <div class="info-card-header">
+                    <i class="fas fa-chart-line"></i>
+                    <h1>Capacidade Produtiva</h1>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group half-width">
+                        <label for="work_shifts"><i class="fas fa-clock"></i> Turnos de Trabalho</label>
+
+                        <select id="work_shifts" name="work_shifts" class="form-select">
+                            {% for turno in turnos %}
+                                <option value="{{ turno.1 }}" {% if company.work_shifts == turno.1 %}selected{% endif %}>{{ turno.1 }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="form-help">Quantidade de turnos em operação</small>
+                    </div>
+
+                    <div class="form-group half-width">
+                        <label for="max_dimensions"><i class="fas fa-expand-arrows-alt"></i> Dimensões Máximas</label>
+                        <input type="text" id="max_dimensions" name="max_dimensions" placeholder="Ex: 2000x1000x500mm" value="{{ company.max_dimensions|default:'' }}" class="form-input">
+                        <small class="form-help">Tamanho máximo de peça (CxLxA)</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="/" class="btn-secondary"><i class="fas fa-times"></i> Cancelar</a>
+
+                <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Salvar Configurações</button>
+            </div>
+        </form>
+    </section>
 {% endblock %}

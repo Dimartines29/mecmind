@@ -13,6 +13,15 @@ class Company(models.Model):
     active = models.BooleanField(default=True)
     num_employees = models.PositiveIntegerField('Número de Funcionários', blank=True, null=True)
 
+    # Campos contextuais para IA.
+    machines_turning = models.TextField('Máquinas de Torneamento', blank=True)
+    machines_milling = models.TextField('Máquinas de Fresamento', blank=True)
+    machines_other = models.TextField('Outras Máquinas', blank=True)
+    internal_processes = models.TextField('Processos Internos', blank=True)
+    external_processes = models.TextField('Processos Externos', blank=True)
+    work_shifts = models.TextField('Turnos de Trabalho', blank=True)
+    max_dimensions = models.CharField('Dimensões Máximas', max_length=50, blank=True)  # Tamanho máximo de peças.
+
     def __str__(self):
         return self.name
 

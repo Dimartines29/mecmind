@@ -894,12 +894,46 @@ def projetos_empresa(request):
 
     return render(request, 'projetos_empresa.html', ctx)
 
+# TODO: Melhorar essa função.
 @login_required(login_url='/login')
 def informacoes_empresa(request):
     if not request.user.groups.filter(name='Gerente').exists():
         return redirect('/acesso_negado')
 
-    return render(request, 'informacoes_empresa.html')
+    def update_company_info(company, new_value, field_name):
+        setattr(company, field_name, new_value)
+        company.save()
+
+    company = m.Company.objects.get(pk=request.user.company.id)
+    ctx = {'company': company}
+
+    ctx['turnos'] = c.EMPRESA['turnos']
+
+    if request.method == 'POST':
+        if company.machines_turning != request.POST.get('machines_turning', ''):
+            update_company_info(company, request.POST.get('machines_turning', ''), 'machines_turning')
+
+        if company.machines_milling != request.POST.get('machines_milling', ''):
+            update_company_info(company, request.POST.get('machines_milling', ''), 'machines_milling')
+
+        if company.machines_other != request.POST.get('machines_other', ''):
+            update_company_info(company, request.POST.get('machines_other', ''), 'machines_other')
+
+        if company.internal_processes != request.POST.get('internal_processes', ''):
+            update_company_info(company, request.POST.get('internal_processes', ''), 'internal_processes')
+
+        if company.external_processes != request.POST.get('external_processes', ''):
+            update_company_info(company, request.POST.get('external_processes', ''), 'external_processes')
+
+        if company.work_shifts != request.POST.get('work_shifts', ''):
+            update_company_info(company, request.POST.get('work_shifts', ''), 'work_shifts')
+
+        if company.max_dimensions != request.POST.get('max_dimensions', ''):
+            update_company_info(company, request.POST.get('max_dimensions', ''), 'max_dimensions')
+
+        messages.success(request, 'Informações atualizadas com sucesso!')
+
+    return render(request, 'informacoes_empresa.html', ctx)
 
 @login_required(login_url='/login')
 def estoque_empresa(request):
