@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto p-8">
+    <h1 class="text-3xl font-bold text-blue-600 mb-8">Teste Componente Button</h1>
+    
+    <!-- Testando o componente Button -->
+    <div class="space-y-4">
+        <h2 class="text-xl font-semibold mb-4">Botões Shadcn/UI:</h2>
+        
+        {% include 'components/button.html' with text="Botão Simples" %}
+        
+        {% include 'components/button.html' with text="Com Ícone" icon_left="fas fa-search" %}
+        
+        {% include 'components/button.html' with text="Botão Submit" type="submit" %}
+    </div>
+</div>
+{% endblock %}

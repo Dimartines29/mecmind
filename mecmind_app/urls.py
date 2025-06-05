@@ -20,4 +20,5 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('acesso_negado/', views.acesso_negado, name='acesso_negado'),
+    path('test-tailwind/', views.test_tailwind, name='test_tailwind'),
 ]

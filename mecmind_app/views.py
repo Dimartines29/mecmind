@@ -984,3 +984,6 @@ def logout_view(request):
 
 def acesso_negado(request):
     return render(request, 'acesso_negado.html')
+
+def test_tailwind(request):
+    return render(request, 'test_tailwind.html')
