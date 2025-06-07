@@ -1,0 +1,32 @@
+<div class="space-y-2">
+    {% if label %}
+    <label for="{{ id|default:name }}" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-slate-900">
+        {% if required %}<span class="text-red-500">*</span>{% endif %}
+        {{ label }}
+    </label>
+    {% endif %}
+
+    <input
+        {% if type %}type="{{ type }}"{% else %}type="text"{% endif %}
+        {% if id %}id="{{ id }}"{% endif %}
+        {% if name %}name="{{ name }}"{% endif %}
+        {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+        {% if value %}value="{{ value }}"{% endif %}
+        {% if required %}required{% endif %}
+        {% if disabled %}disabled{% endif %}
+        {% if readonly %}readonly{% endif %}
+        {% if min %}min="{{ min }}"{% endif %}
+        {% if max %}max="{{ max }}"{% endif %}
+        {% if step %}step="{{ step }}"{% endif %}
+        {% if accept %}accept="{{ accept }}"{% endif %}
+        class="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 {{ extra_classes }}"
+    />
+
+    {% if help_text %}
+    <p class="text-xs text-slate-600">{{ help_text }}</p>
+    {% endif %}
+
+    {% if error %}
+    <p class="text-xs text-red-600">{{ error }}</p>
+    {% endif %}
+</div>
