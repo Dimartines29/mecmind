@@ -59,3 +59,26 @@ class Project(models.Model):
 
     def __str__(self):
         return f'{self.user.first_name} {self.user.last_name} - {self.analysis_name}'
+
+class Stock(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='stocks')
+    name = models.CharField('Nome', max_length=50)
+    code = models.CharField('Código', max_length=20, unique=True)
+    description = models.TextField('Descrição', blank=True)
+    category = models.CharField('Categoria', max_length=20, choices=c.ESTOQUE['categoria'])
+    material = models.CharField('Material', max_length=50, blank=True)
+    length = models.DecimalField('Comprimento', max_digits=10, decimal_places=2, blank=True, null=True)
+    diameter = models.DecimalField('Diâmetro', max_digits=10, decimal_places=2, blank=True, null=True)
+    thickness = models.DecimalField('Espessura', max_digits=10, decimal_places=2, blank=True, null=True)
+    width = models.DecimalField('Largura', max_digits=10, decimal_places=2, blank=True, null=True)
+    quantity = models.DecimalField('Quantidade', max_digits=10, decimal_places=2)
+    status = models.CharField('Status', max_length=20, choices=c.ESTOQUE['status'], default='disponivel')
+    created_date = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        verbose_name = 'Estoque'
+        verbose_name_plural = 'Estoques'
+        ordering = ['-created_date']
+
+    def __str__(self):
+        return self.name

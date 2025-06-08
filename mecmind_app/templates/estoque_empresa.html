@@ -13,38 +13,33 @@
     </div>
 
     <div class="filter-container">
-        <form method="get" action="{% url 'projetos_empresa' %}" id="filter-form">
+        <form method="get" action="{% url 'estoque_empresa' %}" id="filter-form">
             <div class="filter-row">
                 <div class="filter-group">
-                    <label for="analysis_type">Usuário:</label>
+                    <label for="analysis_type">Categoria:</label>
 
-                    <select name="user_filter" id="user_filter">
-                        <option value="">Todos</option>
-                        {% for value in users %}
-                            <option value="{{ value }}" {% if user_filter == value %}selected{% endif %}>{{ value }}</option>
+                    <select name="category" id="category">
+                        <option value="">Todas</option>
+                        {% for value in categories %}
+                            <option value="{{ value.1 }}" {% if category == value.1 %}selected{% endif %}>{{ value.1 }}</option>
                         {% endfor %}
                     </select>
                 </div>
 
                 <div class="filter-group">
-                    <label for="analysis_type">Tipo de Análise:</label>
+                    <label for="analysis_type">Status:</label>
 
-                    <select name="analysis_type" id="analysis_type">
+                    <select name="status" id="status">
                         <option value="">Todos</option>
-                        {% for value, text in analysis_choices %}
-                            <option value="{{ value }}" {% if selected_analysis == value %}selected{% endif %}>{{ text }}</option>
+                        {% for value in status_choices %}
+                            <option value="{{ value.1 }}" {% if status == value.1 %}selected{% endif %}>{{ value.1 }}</option>
                         {% endfor %}
                     </select>
                 </div>
 
                 <div class="filter-group">
-                    <label for="date_from">Data de Início:</label>
-                    <input type="date" id="date_from" name="date_from" value="{{ selected_date_from }}">
-                </div>
-
-                <div class="filter-group">
-                    <label for="date_to">Data de Fim:</label>
-                    <input type="date" id="date_to" name="date_to" value="{{ selected_date_to }}">
+                    <label for="material">Material:</label>
+                    <input name="material" id="material" value="{{ material }}"></input>
                 </div>
 
                 <div class="filter-actions">
@@ -52,7 +47,7 @@
                         <i class="fas fa-filter"></i> Filtrar
                     </button>
 
-                    <a href="{% url 'projetos_empresa' %}" class="filter-button clear">
+                    <a href="{% url 'estoque_empresa' %}" class="filter-button clear">
                         <i class="fas fa-times"></i> Limpar
                     </a>
                 </div>
@@ -61,30 +56,45 @@
     </div>
 
     <table class="list">
-        <col style="width: 50px;"> <!-- Análise -->
-        <col style="width: 50px;"> <!-- Usuário -->
-        <col style="width: 50px;"> <!-- Criação -->
-        <col style="width: 150px;"> <!-- M. Prima -->
-        <col style="width: 150px;"> <!-- Máquinas -->
+        <col style="width: 50px;"> <!-- Código -->
+        <col style="width: 50px;"> <!-- Nome -->
+        <col style="width: 50px;"> <!-- Categoria -->
+        <col style="width: 50px;"> <!-- Material -->
+        <col style="width: 50px;"> <!-- Quantidade -->
+        <col style="width: 50px;"> <!-- Unidade -->
+        <col style="width: 50px;"> <!-- Comprimento -->
+        <col style="width: 50px;"> <!-- Largura -->
+        <col style="width: 50px;"> <!-- Altura -->
+        <col style="width: 50px;"> <!-- Diâmetro -->
 
         <thead>
             <tr>
-                <th>Análise</th>
-                <th>Usuário</th>
-                <th>Criação</th>
-                <th>M. Prima</th>
-                <th>Máquinas</th>
+                <th>Código</th>
+                <th>Nome</th>
+                <th>Categoria</th>
+                <th>Material</th>
+                <th>Quantidade</th>
+                <th>Unidade</th>
+                <th>Comprimento</th>
+                <th>Largura</th>
+                <th>Altura</th>
+                <th>Diâmetro</th>
             </tr>
         </thead>
 
         <tbody>
             {% for i in page_obj %}
                 <tr>
-                    <td><a class="list-link" href="{% url 'projeto' i.id %}">Análise {{ i.analysis_name }}</a></td>
-                    <td>{{ i.user }}</td>
-                    <td>{{ i.created_date|date:"d/m/Y H:i" }}</td>
-                    <td><span title="{{ i.raw_material }}">{{ i.raw_material|truncatechars:40 }}</span></td>
-                    <td><span title="{{ i.machines }}">{{ i.machines|truncatechars:40 }}</span></td>
+                    <td>{{ i.code }}</td>
+                    <td>{{ i.name }}</td>
+                    <td>{{ i.category }}</td>
+                    <td>{{ i.material }}</td>
+                    <td>{{ i.quantity }}</td>
+                    <td>{{ i.unit }}</td>
+                    <td>{{ i.length }}</td>
+                    <td>{{ i.width }}</td>
+                    <td>{{ i.height }}</td>
+                    <td>{% if i.diameter %}{{ i.diameter }}{% else %} - {% endif %}</td>
                 </tr>
             {% endfor %}
         </tbody>

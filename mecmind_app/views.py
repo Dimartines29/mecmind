@@ -940,7 +940,49 @@ def estoque_empresa(request):
     if not request.user.groups.filter(name='Gerente').exists():
         return redirect('/acesso_negado')
 
-    return render(request, 'estoque_empresa.html')
+    ctx = {}
+
+    encoded_filters = request.GET.get('filters', '')
+
+    if encoded_filters:
+        filters = decode_filters(encoded_filters)
+        category = filters.get('category', '')
+        material = filters.get('material', '')
+        status = filters.get('status', '')
+
+    else:
+        category = request.GET.get('category', '')
+        material = request.GET.get('material', '')
+        status = request.GET.get('status', '')
+
+    # Inicia a query filtrada pela empresa do usuário logado.
+    query = m.Stock.objects.filter(company=request.user.company)
+
+    # Aplica os filtros se fornecidos.
+    if category:
+        query = query.filter(category=category.lower())
+
+    if material:
+        query = query.filter(material=material)
+
+    if status:
+        query = query.filter(status=status.lower())
+
+    # Paginação
+    paginator = Paginator(query, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # Prepara os dados para o contexto.
+    ctx['page_obj'] = page_obj
+    ctx['category'] = category
+    ctx['categories'] = c.ESTOQUE['categoria']
+    ctx['status'] = status
+    ctx['status_choices'] = c.ESTOQUE['status']
+    ctx['material'] = material
+    ctx['encoded_filters'] = encoded_filters
+
+    return render(request, 'estoque_empresa.html', ctx)
 
 @login_required(login_url='/login')
 def projeto(request, projeto_id):

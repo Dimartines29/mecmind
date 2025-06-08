@@ -20,3 +20,16 @@ EMPRESA = {
         ('3', '3 turnos (24 horas)'),
     ),
 }
+
+ESTOQUE = {
+    'categoria': (
+        ('eixo', 'Eixo'),
+        ('chapa', 'Chapa'),
+        ('tubo', 'Tubo'),
+    ),
+    'status': (
+        ('disponivel', 'Disponível'),
+        ('reservado', 'Reservado'),
+        ('inativo', 'Inativo'),
+    ),
+}
