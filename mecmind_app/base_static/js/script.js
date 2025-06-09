@@ -300,3 +300,79 @@ document.getElementById('category').addEventListener('change', function() {
 
 // Trigger inicial
 document.getElementById('category').dispatchEvent(new Event('change'));
+function updateFieldsVisibility() {
+    const category = document.getElementById('category').value;
+    const widthField = document.getElementById('width').closest('.form-group');
+    const thicknessField = document.getElementById('thickness').closest('.form-group');
+    const diameterField = document.getElementById('diameter').closest('.form-group');
+
+    // Reset visibility
+    widthField.style.display = 'block';
+    thicknessField.style.display = 'block';
+    diameterField.style.display = 'block';
+
+    if (category === 'eixo') {
+        // Para eixos, ocultar largura e espessura
+        widthField.style.display = 'none';
+        thicknessField.style.display = 'none';
+    } else if (category === 'chapa') {
+        // Para chapas, ocultar diâmetro
+        diameterField.style.display = 'none';
+    } else if (category === 'tubo') {
+        // Para tubos, ocultar largura
+        widthField.style.display = 'none';
+    }
+}
+
+document.getElementById('category').addEventListener('change', updateFieldsVisibility);
+
+// Trigger inicial
+document.addEventListener('DOMContentLoaded', function() {
+    updateFieldsVisibility();
+});
+
+// Controle dos menus dropdown
+function toggleActionMenu(itemId) {
+    // Fechar todos os outros menus
+    document.querySelectorAll('.actions-menu').forEach(menu => {
+        if (menu.id !== `menu-${itemId}`) {
+            menu.classList.remove('show');
+        }
+    });
+
+    // Toggle do menu atual
+    const menu = document.getElementById(`menu-${itemId}`);
+    menu.classList.toggle('show');
+}
+
+// Fechar menus ao clicar fora
+document.addEventListener('click', function(event) {
+    if (!event.target.closest('.actions-dropdown')) {
+        document.querySelectorAll('.actions-menu').forEach(menu => {
+            menu.classList.remove('show');
+        });
+    }
+});
+
+// Modal de confirmação de exclusão
+function confirmDelete(itemId, itemName) {
+    const modal = document.getElementById('deleteModal');
+    const message = document.getElementById('deleteMessage');
+    const form = document.getElementById('deleteForm');
+
+    message.textContent = `Tem certeza que deseja excluir o item "${itemName}"? Esta ação não pode ser desfeita.`;
+    form.action = `/excluir_estoque/${itemId}/`;
+
+    modal.style.display = 'flex';
+}
+
+function hideDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'none';
+}
+
+// Fechar modal com ESC
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        hideDeleteModal();
+    }
+});

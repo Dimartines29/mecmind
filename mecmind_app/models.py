@@ -71,7 +71,7 @@ class Stock(models.Model):
     diameter = models.DecimalField('Diâmetro', max_digits=10, decimal_places=2, blank=True, null=True)
     thickness = models.DecimalField('Espessura', max_digits=10, decimal_places=2, blank=True, null=True)
     width = models.DecimalField('Largura', max_digits=10, decimal_places=2, blank=True, null=True)
-    quantity = models.DecimalField('Quantidade', max_digits=10, decimal_places=2)
+    quantity = models.PositiveIntegerField('Quantidade', default=1)
     status = models.CharField('Status', max_length=20, choices=c.ESTOQUE['status'], default='disponivel')
     created_date = models.DateTimeField(default=timezone.now)
 

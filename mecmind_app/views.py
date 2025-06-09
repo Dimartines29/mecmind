@@ -1068,6 +1068,91 @@ def adicionar_estoque(request):
     return render(request, 'adicionar_estoque.html', ctx)
 
 @login_required(login_url='/login')
+def editar_estoque(request, item_id):
+    if not request.user.groups.filter(name='Gerente').exists():
+        return redirect('/acesso_negado')
+
+    try:
+        stock_item = m.Stock.objects.get(id=item_id, company=request.user.company)
+    except m.Stock.DoesNotExist:
+        messages.error(request, 'Item não encontrado.')
+
+        return redirect('estoque_empresa')
+
+    ctx = {}
+    ctx['categories'] = c.ESTOQUE['categoria']
+    ctx['status_choices'] = c.ESTOQUE['status']
+    ctx['item'] = stock_item
+
+    if request.method == 'POST':
+        try:
+            # Atualizar dados básicos
+            name = request.POST.get('name', '').strip()
+            code = request.POST.get('code', '').strip()
+            category = request.POST.get('category', '')
+            quantity = float(request.POST.get('quantity', '0'))
+
+            # Validações básicas
+            if not name:
+                messages.error(request, 'Nome do item é obrigatório.')
+                return render(request, 'editar_estoque.html', ctx)
+
+            if not code:
+                messages.error(request, 'Código do item é obrigatório.')
+                return render(request, 'editar_estoque.html', ctx)
+
+            if not category:
+                messages.error(request, 'Categoria é obrigatória.')
+                return render(request, 'editar_estoque.html', ctx)
+
+            if quantity <= 0:
+                messages.error(request, 'Quantidade deve ser maior que zero.')
+                return render(request, 'editar_estoque.html', ctx)
+
+            # Verificar se código já existe (exceto o item atual)
+            if m.Stock.objects.filter(code=code).exclude(id=item_id).exists():
+                messages.error(request, 'Já existe um item com este código.')
+                return render(request, 'editar_estoque.html', ctx)
+
+            # Atualizar campos
+            stock_item.name = name
+            stock_item.code = code
+            stock_item.category = category
+            stock_item.quantity = quantity
+            stock_item.description = request.POST.get('description', '').strip()
+            stock_item.material = request.POST.get('material', '').strip()
+            stock_item.status = request.POST.get('status', 'disponivel')
+
+            # Atualizar dimensões
+            length = request.POST.get('length', '').strip()
+            width = request.POST.get('width', '').strip()
+            thickness = request.POST.get('thickness', '').strip()
+            diameter = request.POST.get('diameter', '').strip()
+
+            # Resetar dimensões para None se vazias
+            stock_item.length = float(length) if length else None
+            stock_item.width = float(width) if width else None
+            stock_item.thickness = float(thickness) if thickness else None
+            stock_item.diameter = float(diameter) if diameter else None
+
+            # Salvar alterações
+            stock_item.save()
+
+            messages.success(request, f'Item "{stock_item.name}" atualizado com sucesso!')
+            return redirect('estoque_empresa')
+
+        except ValueError as e:
+            messages.error(request, 'Erro nos dados numéricos. Verifique os valores inseridos.')
+            return render(request, 'editar_estoque.html', ctx)
+
+        except Exception as e:
+            logger.error(f'Erro ao editar item do estoque: {str(e)}', exc_info=True)
+            messages.error(request, 'Erro interno. Tente novamente ou entre em contato com o suporte.')
+            return render(request, 'editar_estoque.html', ctx)
+
+    return render(request, 'editar_estoque.html', ctx)
+
+@login_required(login_url='/login')
 def projeto(request, projeto_id):
     ctx = {}
     projeto = m.Project.objects.get(pk=projeto_id)
