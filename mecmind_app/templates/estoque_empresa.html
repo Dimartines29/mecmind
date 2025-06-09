@@ -50,6 +50,10 @@
                     <a href="{% url 'estoque_empresa' %}" class="filter-button clear">
                         <i class="fas fa-times"></i> Limpar
                     </a>
+
+                    <a href="{% url 'adicionar_estoque' %}" class="filter-button" style="background-color: #28a745; border-color: #28a745;">
+                        <i class="fas fa-plus"></i> Adicionar Item
+                    </a>
                 </div>
             </div>
         </form>
@@ -58,26 +62,24 @@
     <table class="list">
         <col style="width: 50px;"> <!-- Código -->
         <col style="width: 50px;"> <!-- Nome -->
-        <col style="width: 50px;"> <!-- Categoria -->
+        <col style="width: 40px;"> <!-- Categoria -->
         <col style="width: 50px;"> <!-- Material -->
         <col style="width: 50px;"> <!-- Quantidade -->
-        <col style="width: 50px;"> <!-- Unidade -->
         <col style="width: 50px;"> <!-- Comprimento -->
         <col style="width: 50px;"> <!-- Largura -->
-        <col style="width: 50px;"> <!-- Altura -->
+        <col style="width: 50px;"> <!-- Espessura -->
         <col style="width: 50px;"> <!-- Diâmetro -->
 
         <thead>
             <tr>
                 <th>Código</th>
                 <th>Nome</th>
-                <th>Categoria</th>
+                <th>Categ.</th>
                 <th>Material</th>
                 <th>Quantidade</th>
-                <th>Unidade</th>
                 <th>Comprimento</th>
                 <th>Largura</th>
-                <th>Altura</th>
+                <th>Espessura</th>
                 <th>Diâmetro</th>
             </tr>
         </thead>
@@ -90,11 +92,21 @@
                     <td>{{ i.category }}</td>
                     <td>{{ i.material }}</td>
                     <td>{{ i.quantity }}</td>
-                    <td>{{ i.unit }}</td>
                     <td>{{ i.length }}</td>
-                    <td>{{ i.width }}</td>
-                    <td>{{ i.height }}</td>
+                    <td>{% if i.width %}{{ i.width }}{% else %} - {% endif %}</td>
+                    <td>{% if i.thickness %}{{ i.thickness }}{% else %} - {% endif %}</td>
                     <td>{% if i.diameter %}{{ i.diameter }}{% else %} - {% endif %}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="10" style="text-align: center; padding: 40px; font-style: italic; color: #666;">
+                        <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
+                        Nenhum item encontrado no estoque.
+                        <br><br>
+                        <a href="{% url 'adicionar_estoque' %}" class="btn-primary" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none;">
+                            <i class="fas fa-plus"></i> Adicionar Primeiro Item
+                        </a>
+                    </td>
                 </tr>
             {% endfor %}
         </tbody>

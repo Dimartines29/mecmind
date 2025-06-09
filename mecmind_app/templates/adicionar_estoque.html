@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}MecMind - Adicionar Estoque{% endblock %}
+
+{% block content %}
+    <div class="header-banner">
+        <div class="banner-content">
+            <h1>Adicionar Estoque - {{ request.user.company }}</h1>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="message {{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <section class="page-container">
+        <form action="{% url 'adicionar_estoque' %}" method="POST">
+            {% csrf_token %}
+
+            <div class="info-card" style="margin: 15px;">
+                <div class="info-card-header">
+                    <i class="fas fa-info-circle"></i>
+                    <h1>Informações Básicas</h1>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group half-width">
+                        <label for="name"><i class="fas fa-tag"></i> Nome do Item *</label>
+                        <input type="text" id="name" name="name" placeholder="Ex: Chapa Aço 1020" required class="form-input" maxlength="50">
+                        <small class="form-help">Nome identificador do item</small>
+                    </div>
+
+                    <div class="form-group half-width">
+                        <label for="code"><i class="fas fa-barcode"></i> Código do Item *</label>
+                        <input type="text" id="code" name="code" placeholder="Ex: CH-1020-001" required class="form-input" maxlength="20">
+                        <small class="form-help">Código único para identificação</small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="description"><i class="fas fa-align-left"></i> Descrição</label>
+                    <textarea id="description" name="description" placeholder="Descrição detalhada do item..." rows="3" class="form-input"></textarea>
+                    <small class="form-help">Informações adicionais sobre o item</small>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group half-width">
+                        <label for="category"><i class="fas fa-layer-group"></i> Categoria *</label>
+                        <select id="category" name="category" required class="form-select">
+                            <option value="">Selecione uma categoria</option>
+                            {% for value, display in categories %}
+                                <option value="{{ value }}">{{ display }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="form-help">Tipo de material</small>
+                    </div>
+
+                    <div class="form-group half-width">
+                        <label for="material"><i class="fas fa-hammer"></i> Material</label>
+                        <input type="text" id="material" name="material" placeholder="Ex: Aço SAE 1020" class="form-input" maxlength="50">
+                        <small class="form-help">Especificação do material</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-card" style="margin: 15px;">
+                <div class="info-card-header">
+                    <i class="fas fa-ruler"></i>
+                    <h1>Dimensões</h1>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group half-width">
+                        <label for="length"><i class="fas fa-arrows-alt-h"></i> Comprimento (mm)</label>
+                        <input type="number" id="length" name="length" placeholder="0.00" step="0.01" min="0" class="form-input">
+                        <small class="form-help">Comprimento em milímetros</small>
+                    </div>
+
+                    <div class="form-group half-width">
+                        <label for="width"><i class="fas fa-arrows-alt-v"></i> Largura (mm)</label>
+                        <input type="number" id="width" name="width" placeholder="0.00" step="0.01" min="0" class="form-input">
+                        <small class="form-help">Largura em milímetros (para chapas)</small>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group half-width">
+                        <label for="thickness"><i class="fas fa-compress"></i> Espessura (mm)</label>
+                        <input type="number" id="thickness" name="thickness" placeholder="0.00" step="0.01" min="0" class="form-input">
+                        <small class="form-help">Espessura em milímetros (para chapas)</small>
+                    </div>
+
+                    <div class="form-group half-width">
+                        <label for="diameter"><i class="fas fa-circle"></i> Diâmetro (mm)</label>
+                        <input type="number" id="diameter" name="diameter" placeholder="0.00" step="0.01" min="0" class="form-input">
+                        <small class="form-help">Diâmetro em milímetros (para eixos/tubos)</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-card" style="margin: 15px;">
+                <div class="info-card-header">
+                    <i class="fas fa-boxes"></i>
+                    <h1>Quantidade e Status</h1>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group half-width">
+                        <label for="quantity"><i class="fas fa-sort-numeric-up"></i> Quantidade *</label>
+                        <input type="number" id="quantity" name="quantity" placeholder="0.00" step="0.01" min="0" required class="form-input">
+                        <small class="form-help">Quantidade disponível</small>
+                    </div>
+
+                    <div class="form-group half-width">
+                        <label for="status"><i class="fas fa-flag"></i> Status</label>
+                        <select id="status" name="status" class="form-select">
+                            {% for value, display in status_choices %}
+                                <option value="{{ value }}" {% if value == 'disponivel' %}selected{% endif %}>{{ display }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="form-help">Status atual do item</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="{% url 'estoque_empresa' %}" class="btn-secondary"><i class="fas fa-times"></i> Cancelar</a>
+                <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Adicionar Item</button>
+            </div>
+        </form>
+    </section>
+{% endblock %}

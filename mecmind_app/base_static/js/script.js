@@ -272,3 +272,31 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Script para manipular a exibição dos campos de entrada de estoque com base na categoria selecionada
+document.getElementById('category').addEventListener('change', function() {
+    const category = this.value;
+    const widthField = document.getElementById('width').closest('.form-group');
+    const thicknessField = document.getElementById('thickness').closest('.form-group');
+    const diameterField = document.getElementById('diameter').closest('.form-group');
+
+    // Reset visibility
+    widthField.style.display = 'block';
+    thicknessField.style.display = 'block';
+    diameterField.style.display = 'block';
+
+    if (category === 'eixo') {
+        // Para eixos, ocultar largura e espessura
+        widthField.style.display = 'none';
+        thicknessField.style.display = 'none';
+    } else if (category === 'chapa') {
+        // Para chapas, ocultar diâmetro
+        diameterField.style.display = 'none';
+    } else if (category === 'tubo') {
+        // Para tubos, ocultar largura
+        widthField.style.display = 'none';
+    }
+});
+
+// Trigger inicial
+document.getElementById('category').dispatchEvent(new Event('change'));
