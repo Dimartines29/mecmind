@@ -5,6 +5,7 @@
 __pycache__
 db.sqlite3
 static/
+node_modules/
 media/
 mecmind/local_settings.py
 
