@@ -1153,6 +1153,23 @@ def editar_estoque(request, item_id):
     return render(request, 'editar_estoque.html', ctx)
 
 @login_required(login_url='/login')
+def excluir_estoque(request, item_id):
+    if not request.user.groups.filter(name='Gerente').exists():
+        return redirect('/acesso_negado')
+
+    try:
+        stock_item = m.Stock.objects.get(id=item_id, company=request.user.company)
+        stock_item.delete()
+
+        messages.success(request, f'Item "{stock_item.name}" removido do estoque!')
+        return redirect('estoque_empresa')
+
+    except m.Stock.DoesNotExist:
+        messages.error(request, 'Item não encontrado.')
+
+        return redirect('estoque_empresa')
+
+@login_required(login_url='/login')
 def projeto(request, projeto_id):
     ctx = {}
     projeto = m.Project.objects.get(pk=projeto_id)

@@ -10,6 +10,14 @@
         </div>
     </div>
 
+    {% if messages %}
+        {% for message in messages %}
+            <div class="message {{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
     <div class="filter-container">
         <form method="get" action="{% url 'estoque_empresa' %}" id="filter-form">
             <div class="filter-row">
