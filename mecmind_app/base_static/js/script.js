@@ -285,7 +285,7 @@ document.getElementById('category').addEventListener('change', function() {
     thicknessField.style.display = 'block';
     diameterField.style.display = 'block';
 
-    if (category === 'eixo') {
+    if (category === 'barra_redonda') {
         // Para eixos, ocultar largura e espessura
         widthField.style.display = 'none';
         thicknessField.style.display = 'none';
@@ -311,7 +311,7 @@ function updateFieldsVisibility() {
     thicknessField.style.display = 'block';
     diameterField.style.display = 'block';
 
-    if (category === 'eixo') {
+    if (category === 'barra_redonda') {
         // Para eixos, ocultar largura e espessura
         widthField.style.display = 'none';
         thicknessField.style.display = 'none';

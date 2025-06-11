@@ -23,7 +23,7 @@ EMPRESA = {
 
 ESTOQUE = {
     'categoria': (
-        ('eixo', 'Eixo'),
+        ('barra_redonda', 'Barra Redonda'),
         ('chapa', 'Chapa'),
         ('tubo', 'Tubo'),
     ),

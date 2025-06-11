@@ -20,7 +20,7 @@ class Company(models.Model):
     internal_processes = models.TextField('Processos Internos', blank=True)
     external_processes = models.TextField('Processos Externos', blank=True)
     work_shifts = models.TextField('Turnos de Trabalho', blank=True)
-    max_dimensions = models.CharField('Dimensões Máximas', max_length=50, blank=True)  # Tamanho máximo de peças.
+    max_dimensions = models.TextField('Dimensões Máximas', blank=True)  # Tamanho máximo de peças.
 
     def __str__(self):
         return self.name

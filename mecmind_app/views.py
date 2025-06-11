@@ -154,18 +154,46 @@ def analise_eixo(request):
 
             return render(request, 'analise_eixo.html')
 
-        #Monta o texto para a segunda chamada.
-        final_text = 'Essas são todas as informações necessárias para a sua análise: \n'
+        # Monta o texto de contextualização do projeto.
+        info_project = 'Essas são todas as informações necessárias para a sua análise: \n'
 
-        final_text += f'Diâmetro maior: {dic.get("diametro_maior", "")}\n'
-        final_text += f'Diâmetros: {dic.get("diametros", "")}\n'
-        final_text += f'Comprimento: {dic.get("comprimento", "")}\n'
-        final_text += f'Roscas: {dic.get("roscas", "")}\n'
-        final_text += f'Furos: {dic.get("furos", "")}\n'
-        final_text += f'Rasgos de chaveta: {dic.get("rasgos_de_chaveta", "")}\n'
-        final_text += f'Matéria-prima: {dic.get("materia_prima", "")}\n'
-        final_text += f'Observações: {dic.get("observacoes", "")}\n'
-        final_text += '\n'
+        info_project += f'Diâmetro maior: {dic.get("diametro_maior", "")}\n'
+        info_project += f'Diâmetros: {dic.get("diametros", "")}\n'
+        info_project += f'Comprimento: {dic.get("comprimento", "")}\n'
+        info_project += f'Roscas: {dic.get("roscas", "")}\n'
+        info_project += f'Furos: {dic.get("furos", "")}\n'
+        info_project += f'Rasgos de chaveta: {dic.get("rasgos_de_chaveta", "")}\n'
+        info_project += f'Matéria-prima: {dic.get("materia_prima", "")}\n'
+        info_project += f'Observações: {dic.get("observacoes", "")}\n'
+        info_project += '\n'
+
+        # Monta a lista de estoque de barras redondas disponíveis para análise da IA.
+        stock = m.Stock.objects.filter(company=request.user.company, status='disponivel', category='barra_redonda')
+        stock_list = []
+
+        for item in stock:
+            stock_list.append(f'Item: {item.name}, Diâmetro: {item.diameter}, Comprimento: {item.length}, Material: {item.material}, Quantidade: {item.quantity}')
+
+        msg_stock = 'Estes são os itens disponíveis no estoque:\n' + '\n'.join(stock_list)
+
+        # Monta o texto de contextualização da Empresa para a análise.
+        company = m.Company.objects.get(name=request.user.company.name)
+
+        company_text = f'Esta análise está sendo feita pela empresa *{company.name}*, uma empresa de usinagem mecânica.\n'
+        company_text += 'A empresa possui as seguintes máquinas de torneamento:\n'
+        company_text += company.machines_turning + '\n'
+        company_text += 'Possui estas máquinas de fresamento:\n'
+        company_text += company.machines_milling + '\n'
+        company_text += 'E possui também outras máquinas como:\n'
+        company_text += company.machines_other + '\n'
+        company_text += 'Estes são todos os processos que a empresa faz internamente:\n'
+        company_text += company.internal_processes + '\n'
+        company_text += 'E os processos que precisam ser feitos externamente são:\n'
+        company_text += company.external_processes + '\n'
+        company_text += 'Turnos de trabalho:\n'
+        company_text += company.work_shifts + '\n'
+        company_text += 'E as dimensões máximas trabalhadas são:\n'
+        company_text += company.max_dimensions + '\n'
 
         # Monta a função para estruturar a SEGUNDA chamada de API.
         process_function = [{}]
@@ -216,7 +244,7 @@ def analise_eixo(request):
         kwa['messages'][1]['content'][0]['type'] = 'text'
         kwa['messages'][1]['content'][0]['text'] = p.PROMPT_EIXO_FINAL
         kwa['messages'][1]['content'][1]['type'] = 'text'
-        kwa['messages'][1]['content'][1]['text'] = final_text
+        kwa['messages'][1]['content'][1]['text'] = info_project
         kwa['messages'][1]['content'][2]['type'] = 'text'
         kwa['messages'][1]['content'][2]['text'] = user_prompt
 
