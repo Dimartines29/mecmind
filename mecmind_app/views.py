@@ -70,11 +70,55 @@ def analise_eixo(request):
         # Encoda a imagem
         base64_image = encode_image(request.FILES['image'])
 
+        # Monta a função para estruturar a PRIMEIRA chamada de API.
+        analysis_function = [{}]
+
+        analysis_function[0]['type'] = 'function'
+        analysis_function[0]['name'] = 'get_info'
+        analysis_function[0]['description'] = 'Analisa com precisão um desenho mecânico de eixo e determina todos os pontos relevantes para fabricação.'
+        analysis_function[0]['parameters'] = {}
+
+        analysis_function[0]['parameters']['type'] = 'object'
+        analysis_function[0]['parameters']['properties'] = {}
+
+        analysis_function[0]['parameters']['properties']['diametro_maior'] = {}
+        analysis_function[0]['parameters']['properties']['diametro_maior']['type'] = 'string'
+        analysis_function[0]['parameters']['properties']['diametro_maior']['description'] = 'Informe o maior diâmetro do eixo com base na análise do desenho.'
+
+        analysis_function[0]['parameters']['properties']['diametros'] = {}
+        analysis_function[0]['parameters']['properties']['diametros']['type'] = 'string'
+        analysis_function[0]['parameters']['properties']['diametros']['description'] = 'Informe outros diâmetros relevantes para fabricação.'
+
+        analysis_function[0]['parameters']['properties']['comprimento'] = {}
+        analysis_function[0]['parameters']['properties']['comprimento']['type'] = 'string'
+        analysis_function[0]['parameters']['properties']['comprimento']['description'] = 'Informe o comprimento total do eixo com base na análise do desenho.'
+
+        analysis_function[0]['parameters']['properties']['roscas'] = {}
+        analysis_function[0]['parameters']['properties']['roscas']['type'] = 'string'
+        analysis_function[0]['parameters']['properties']['roscas']['description'] = 'Informe se identificou a presença de roscas internas ou externas. Informe suas posições e todas suas especificações.'
+
+        analysis_function[0]['parameters']['properties']['furos'] = {}
+        analysis_function[0]['parameters']['properties']['furos']['type'] = 'string'
+        analysis_function[0]['parameters']['properties']['furos']['description'] = 'Informe se identificou a presença de furos. Informe suas posições e todas suas especificações.'
+
+        analysis_function[0]['parameters']['properties']['rasgos_de_chaveta'] = {}
+        analysis_function[0]['parameters']['properties']['rasgos_de_chaveta']['type'] = 'string'
+        analysis_function[0]['parameters']['properties']['rasgos_de_chaveta']['description'] = 'Informe se identificou a presença de rasgos de chaveta. Informe suas posições e todas suas especificações.'
+
+        analysis_function[0]['parameters']['properties']['materia_prima'] = {}
+        analysis_function[0]['parameters']['properties']['materia_prima']['type'] = 'string'
+        analysis_function[0]['parameters']['properties']['materia_prima']['description'] = 'Informe a matéria-prima com base na análise do desenho. Especifique o diâmetro e o comprimento final.'
+
+        analysis_function[0]['parameters']['properties']['observacoes'] = {}
+        analysis_function[0]['parameters']['properties']['observacoes']['type'] = 'string'
+        analysis_function[0]['parameters']['properties']['observacoes']['description'] = 'Observações importantes encontradas na análise e que o próximo modelo deve levar em consideração'
+
+        analysis_function[0]['parameters']['required'] = ['diametro_maior', 'comprimento', 'materia_prima', 'observacoes']
+
         # Monta o dicionário para a primeira chamada.
         kwa = {}
 
-        kwa['model'] = 'chatgpt-4o-latest'
-        kwa['temperature'] = 0.1
+        kwa['model'] = 'o4-mini'
         kwa['messages'] = [{}, {}]
 
         kwa['messages'][0]['role'] = 'system'
@@ -89,9 +133,14 @@ def analise_eixo(request):
         kwa['messages'][1]['content'][1]['type'] = 'image_url'
         kwa['messages'][1]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
 
+        kwa['functions'] = analysis_function
+        kwa['function_call'] = {'name': 'get_info'}
+
         # Faz a requisição.
         try:
             chat_completion = cli.chat.completions.create(**kwa)
+
+            dic = json.loads(chat_completion.choices[0].message.function_call.arguments)
 
         except openai.OpenAIError as e:
             logger.error(f'Error occurred: {str(e)}', exc_info=True)
@@ -105,8 +154,18 @@ def analise_eixo(request):
 
             return render(request, 'analise_eixo.html')
 
+        #Monta o texto para a segunda chamada.
         final_text = 'Essas são todas as informações necessárias para a sua análise: \n'
-        final_text += chat_completion.choices[0].message.content
+
+        final_text += f'Diâmetro maior: {dic.get("diametro_maior", "")}\n'
+        final_text += f'Diâmetros: {dic.get("diametros", "")}\n'
+        final_text += f'Comprimento: {dic.get("comprimento", "")}\n'
+        final_text += f'Roscas: {dic.get("roscas", "")}\n'
+        final_text += f'Furos: {dic.get("furos", "")}\n'
+        final_text += f'Rasgos de chaveta: {dic.get("rasgos_de_chaveta", "")}\n'
+        final_text += f'Matéria-prima: {dic.get("materia_prima", "")}\n'
+        final_text += f'Observações: {dic.get("observacoes", "")}\n'
+        final_text += '\n'
 
         # Monta a função para estruturar a SEGUNDA chamada de API.
         process_function = [{}]
@@ -167,6 +226,7 @@ def analise_eixo(request):
         # Faz a requisição.
         try:
             chat_completion = cli.chat.completions.create(**kwa)
+            dic = json.loads(chat_completion.choices[0].message.function_call.arguments)
 
         except openai.OpenAIError as e:
             logger.error(f'Error occurred: {str(e)}', exc_info=True)
@@ -179,10 +239,10 @@ def analise_eixo(request):
             return render(request, 'analise_eixo.html')
 
         # Coleta as informações necessárias.
-        materia_prima = json.loads(chat_completion.choices[0].message.function_call.arguments).get('materia_prima', '')
-        maquinas = json.loads(chat_completion.choices[0].message.function_call.arguments).get('maquinas', [])
-        processos = json.loads(chat_completion.choices[0].message.function_call.arguments).get('processos', '')
-        observacoes = json.loads(chat_completion.choices[0].message.function_call.arguments).get('observacoes', '')
+        materia_prima = dic.get('materia_prima', '')
+        maquinas = dic.get('maquinas', [])
+        processos = dic.get('processos', '')
+        observacoes = dic.get('observacoes', '')
 
         # Salva o Projeto
         project = m.Project()

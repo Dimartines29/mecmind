@@ -1,6 +1,6 @@
 # System messages
 SYSTEM_EIXO_ANALISE = '''
-    Você está sendo utilizado em uma chamada de API como parte de um sistema de análise técnica de desenhos mecânicos de eixos. Seu objetivo é analisar com máxima precisão a imagem técnica de um eixo fornecida pelo usuário.
+    Você está sendo utilizado em uma chamada de API (Que usa function calling) como parte de um sistema de análise técnica de desenhos mecânicos de eixos. Seu objetivo é analisar com máxima precisão a imagem técnica de um eixo fornecida pelo usuário.
     Esta é a primeira etapa de um processo automatizado de planejamento de produção, e sua resposta será utilizada diretamente como base para uma segunda análise via API.
 
     Você deve:
@@ -10,7 +10,7 @@ SYSTEM_EIXO_ANALISE = '''
     - Extraia com precisão as dimensões mais importantes: comprimento total, maior diâmetro, presença de chavetas, furos, roscas, chanfros e tratamentos.
     - Ao final, calcule e indique a matéria-prima bruta estimada (diâmetro e comprimento em milímetros com sobremetal de 10 mm aplicado).
 
-    Sua resposta deve ser clara, técnica e estruturada, pois ela será consumida por uma segunda função que converterá essas informações em planejamento de produção e definição de processos industriais.
+    Sua resposta deve ser precisa, pois ela será consumida por uma segunda função que converterá essas informações em planejamento de produção e definição de processos industriais.
 
     Este modelo está sendo utilizado dentro de um sistema que automatiza o planejamento e controle de produção (PCP) a partir de desenhos técnicos reais.
 '''
@@ -163,12 +163,7 @@ PROMPT_EIXO_ANALISE = '''
     Comprimento bruto estimado = comprimento total + 10 mm (sobremetal)
 
     Esses valores representam as dimensões da barra redonda bruta a ser adquirida antes da usinagem.
-
-    Formato da resposta:
-
-    Matéria-prima bruta estimada:
-    Diâmetro: [valor em mm]
-    Comprimento: [valor em mm]
+    IMPORTANTE: Não responda no corpo da mensagem. Use exclusivamente a função get_info para retornar os resultados desta análise.
 '''
 
 PROMPT_EIXO_FINAL = '''
