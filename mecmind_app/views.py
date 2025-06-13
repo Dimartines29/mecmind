@@ -193,7 +193,6 @@ def analise_eixo(request):
         company_text += 'Turnos de trabalho:\n'
         company_text += company.work_shifts + '\n'
         company_text += 'E as dimensões máximas trabalhadas são:\n'
-        company_text += company.max_dimensions + '\n'
 
         # Monta a função para estruturar a SEGUNDA chamada de API.
         process_function = [{}]
@@ -1015,9 +1014,6 @@ def informacoes_empresa(request):
 
         if company.work_shifts != request.POST.get('work_shifts', ''):
             update_company_info(company, request.POST.get('work_shifts', ''), 'work_shifts')
-
-        if company.max_dimensions != request.POST.get('max_dimensions', ''):
-            update_company_info(company, request.POST.get('max_dimensions', ''), 'max_dimensions')
 
         messages.success(request, 'Informações atualizadas com sucesso!')
 
