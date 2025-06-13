@@ -192,7 +192,9 @@ def analise_eixo(request):
         company_text += company.external_processes + '\n'
         company_text += 'Turnos de trabalho:\n'
         company_text += company.work_shifts + '\n'
-        company_text += 'E as dimensões máximas trabalhadas são:\n'
+
+        # Agrupa todas as informações de contexto.
+        info_context = f'{company_text}\n{msg_stock}\n{info_project}'
 
         # Monta a função para estruturar a SEGUNDA chamada de API.
         process_function = [{}]
@@ -220,11 +222,15 @@ def analise_eixo(request):
         process_function[0]['parameters']['properties']['maquinas']['items']['type'] = 'string'
         process_function[0]['parameters']['properties']['maquinas']['items']['description'] = 'Nome da máquina necessária para o processo.'
 
+        process_function[0]['parameters']['properties']['estimativa_de_producao'] = {}
+        process_function[0]['parameters']['properties']['estimativa_de_producao']['type'] = 'string'
+        process_function[0]['parameters']['properties']['estimativa_de_producao']['description'] = 'Baseado nos processos que você descreveu, informe a estimativa de produção do eixo. Informe o tempo total de produção e o tempo por peça.'
+
         process_function[0]['parameters']['properties']['observacoes'] = {}
         process_function[0]['parameters']['properties']['observacoes']['type'] = 'string'
         process_function[0]['parameters']['properties']['observacoes']['description'] = 'Observações importantes encontradas na análise e que o usuário deve levar em consideração'
 
-        process_function[0]['parameters']['required'] = ['materia_prima', 'maquinas', 'processos']
+        process_function[0]['parameters']['required'] = ['materia_prima', 'processos', 'maquinas', 'estimativa_de_producao']
 
         # Monta a segunda chamada.
         kwa = {}
@@ -243,7 +249,7 @@ def analise_eixo(request):
         kwa['messages'][1]['content'][0]['type'] = 'text'
         kwa['messages'][1]['content'][0]['text'] = p.PROMPT_EIXO_FINAL
         kwa['messages'][1]['content'][1]['type'] = 'text'
-        kwa['messages'][1]['content'][1]['text'] = info_project
+        kwa['messages'][1]['content'][1]['text'] = info_context
         kwa['messages'][1]['content'][2]['type'] = 'text'
         kwa['messages'][1]['content'][2]['text'] = user_prompt
 

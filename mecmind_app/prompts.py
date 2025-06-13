@@ -23,6 +23,7 @@ SYSTEM_EIXO_FINAL = '''
 
     Você deve:
     - Converter o diâmetro bruto fornecido (em milímetros) para polegadas com duas casas decimais.
+    - Verificar se o estoque da empresa possui algum material que atenda à especificação. Se não houver, informe que será necessário adquirir a matéria-prima.
     - Selecionar a próxima bitola superior no catálogo (fornecido no prompt).
     - Montar a especificação final da matéria-prima no formato indicado.
     - Listar os processos de fabricação em ordem lógica, com operação, máquina necessária e finalidade.
@@ -182,6 +183,9 @@ PROMPT_EIXO_FINAL = '''
     Agora:
 
     Converta o diâmetro bruto de mm para polegadas com duas casas decimais.
+
+    Consulte o estoque de peças e verifique se existe alguma peça com o diâmetro próximo do solicitado, você pode sugerir peças com diâmetros um pouco maiores se houver, menores NUNCA.
+    Tente priorizar materiais do estoque, mas SOMENTE se esse material for atender o caso, se não, priorize a compra de material.
 
     Consulte o catálogo de bitolas comerciais e selecione a bitola imediatamente superior ao valor convertido.
     Se o valor convertido estiver entre duas bitolas, escolha sempre a maior.
