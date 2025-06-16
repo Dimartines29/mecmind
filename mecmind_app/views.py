@@ -82,8 +82,8 @@ def analise_eixo(request):
         analysis_function[0]['parameters']['properties'] = {}
 
         analysis_function[0]['parameters']['properties']['diametro_maior'] = {}
-        analysis_function[0]['parameters']['properties']['diametro_maior']['type'] = 'string'
-        analysis_function[0]['parameters']['properties']['diametro_maior']['description'] = 'Informe o maior diâmetro do eixo com base na análise do desenho.'
+        analysis_function[0]['parameters']['properties']['diametro_maior']['type'] = 'number'
+        analysis_function[0]['parameters']['properties']['diametro_maior']['description'] = 'Informe o maior diâmetro (em milímetros) do eixo com base na análise do desenho.'
 
         analysis_function[0]['parameters']['properties']['diametros'] = {}
         analysis_function[0]['parameters']['properties']['diametros']['type'] = 'string'
@@ -154,10 +154,13 @@ def analise_eixo(request):
 
             return render(request, 'analise_eixo.html')
 
+        # Busca o valor de diâmetro maior para análises.
+        diametro_maior = dic.get('diametro_maior', 0)
+
         # Monta o texto de contextualização do projeto.
         info_project = 'Essas são todas as informações necessárias para a sua análise: \n'
 
-        info_project += f'Diâmetro maior: {dic.get("diametro_maior", "")}\n'
+        info_project += f'Diâmetro maior: {diametro_maior}\n'
         info_project += f'Diâmetros: {dic.get("diametros", "")}\n'
         info_project += f'Comprimento: {dic.get("comprimento", "")}\n'
         info_project += f'Roscas: {dic.get("roscas", "")}\n'
@@ -168,11 +171,11 @@ def analise_eixo(request):
         info_project += '\n'
 
         # Monta a lista de estoque de barras redondas disponíveis para análise da IA.
-        stock = m.Stock.objects.filter(company=request.user.company, status='disponivel', category='barra_redonda')
+        stock = m.Stock.objects.filter(company=request.user.company, status='disponivel', category='barra_redonda', diameter__gte=(diametro_maior + 10))
         stock_list = []
 
         for item in stock:
-            stock_list.append(f'Item: {item.name}, Diâmetro: {item.diameter}, Comprimento: {item.length}, Material: {item.material}, Quantidade: {item.quantity}')
+            stock_list.append(f'Item: {item.name}, Código: {item.code}, Diâmetro: {item.diameter}, Comprimento: {item.length}, Material: {item.material}, Quantidade: {item.quantity}')
 
         msg_stock = 'Estes são os itens disponíveis no estoque:\n' + '\n'.join(stock_list)
 
@@ -222,15 +225,19 @@ def analise_eixo(request):
         process_function[0]['parameters']['properties']['maquinas']['items']['type'] = 'string'
         process_function[0]['parameters']['properties']['maquinas']['items']['description'] = 'Nome da máquina necessária para o processo.'
 
-        process_function[0]['parameters']['properties']['estimativa_de_producao'] = {}
-        process_function[0]['parameters']['properties']['estimativa_de_producao']['type'] = 'string'
-        process_function[0]['parameters']['properties']['estimativa_de_producao']['description'] = 'Baseado nos processos que você descreveu, informe a estimativa de produção do eixo. Informe o tempo total de produção e o tempo por peça.'
+        process_function[0]['parameters']['properties']['em_estoque'] = {}
+        process_function[0]['parameters']['properties']['em_estoque']['type'] = 'boolean'
+        process_function[0]['parameters']['properties']['em_estoque']['description'] = 'Indica se existe algum material em estoque que pode servir de matéria prima para fabricar o eixo.'
+
+        process_function[0]['parameters']['properties']['item_do_estoque'] = {}
+        process_function[0]['parameters']['properties']['item_do_estoque']['type'] = 'string'
+        process_function[0]['parameters']['properties']['item_do_estoque']['description'] = 'Indica qual item do estoque pode ser usado como matéria prima para fabricar o eixo.'
 
         process_function[0]['parameters']['properties']['observacoes'] = {}
         process_function[0]['parameters']['properties']['observacoes']['type'] = 'string'
         process_function[0]['parameters']['properties']['observacoes']['description'] = 'Observações importantes encontradas na análise e que o usuário deve levar em consideração'
 
-        process_function[0]['parameters']['required'] = ['materia_prima', 'processos', 'maquinas', 'estimativa_de_producao']
+        process_function[0]['parameters']['required'] = ['materia_prima', 'processos', 'maquinas', 'em_estoque']
 
         # Monta a segunda chamada.
         kwa = {}
@@ -275,6 +282,8 @@ def analise_eixo(request):
         materia_prima = dic.get('materia_prima', '')
         maquinas = dic.get('maquinas', [])
         processos = dic.get('processos', '')
+        em_estoque = dic.get('em_estoque', False)
+        item_do_estoque = dic.get('item_do_estoque', '')
         observacoes = dic.get('observacoes', '')
 
         # Salva o Projeto
@@ -293,6 +302,8 @@ def analise_eixo(request):
         project.raw_material = materia_prima
         project.machines = ', '.join(maquinas)
         project.processes = processos
+        project.in_stock = em_estoque
+        project.recommended_stock_item = item_do_estoque
         project.ia_observation = observacoes
 
         project.save()
@@ -301,6 +312,8 @@ def analise_eixo(request):
         ctx['materia_prima'] = materia_prima
         ctx['maquinas'] = maquinas
         ctx['processos'] = processos
+        ctx['em_estoque'] = em_estoque
+        ctx['item_do_estoque'] = item_do_estoque
         ctx['observacoes'] = observacoes
         ctx['image_url'] = project.drawing.url
 

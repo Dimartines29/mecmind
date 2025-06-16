@@ -24,6 +24,9 @@
         <div class="detail-section">
             <h5>Matéria-prima</h5>
             <p>{{ projeto.raw_material|default:"Não informado." }}</p>
+
+            <h5>Disponibilidade de estoque</h5>
+            <p>{{ projeto.recommended_stock_item|default:"Sem Disponibilidade." }}</p>
         </div>
 
         <div class="detail-section">

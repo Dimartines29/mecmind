@@ -23,7 +23,7 @@ SYSTEM_EIXO_FINAL = '''
 
     Você deve:
     - Converter o diâmetro bruto fornecido (em milímetros) para polegadas com duas casas decimais.
-    - Verificar se o estoque da empresa possui algum material que atenda à especificação. Se não houver, informe que será necessário adquirir a matéria-prima.
+    - Verificar se o estoque da empresa possui algum material que atenda à especificação. Se não houver, informe que será necessário adquirir a matéria-prima (Uma barra de comprimento maior pode ser serrada na empresa para atender a medida desejada do comprimento).
     - Selecionar a próxima bitola superior no catálogo (fornecido no prompt).
     - Montar a especificação final da matéria-prima no formato indicado.
     - Listar os processos de fabricação em ordem lógica, com operação, máquina necessária e finalidade.
