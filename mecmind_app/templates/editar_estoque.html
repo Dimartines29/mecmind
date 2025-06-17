@@ -53,8 +53,8 @@
                         <label for="category"><i class="fas fa-layer-group"></i> Categoria *</label>
                         <select id="category" name="category" required class="form-select">
                             <option value="">Selecione uma categoria</option>
-                            {% for value, display in categories %}
-                                <option value="{{ value }}" {% if item.category == value %}selected{% endif %}>{{ display }}</option>
+                            {% for value in categories %}
+                                <option value="{{ value }}" {% if item.category == value %}selected{% endif %}>{{ value }}</option>
                             {% endfor %}
                         </select>
                         <small class="form-help">Tipo de material</small>
@@ -119,8 +119,8 @@
                     <div class="form-group half-width">
                         <label for="status"><i class="fas fa-flag"></i> Status</label>
                         <select id="status" name="status" class="form-select">
-                            {% for value, display in status_choices %}
-                                <option value="{{ value }}" {% if item.status == value %}selected{% endif %}>{{ display }}</option>
+                            {% for value in status_choices %}
+                                <option value="{{ value }}" {% if item.status == value %}selected{% endif %}>{{ value }}</option>
                             {% endfor %}
                         </select>
                         <small class="form-help">Status atual do item</small>

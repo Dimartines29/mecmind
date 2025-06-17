@@ -27,7 +27,7 @@
                     <select name="category" id="category">
                         <option value="">Todas</option>
                         {% for value in categories %}
-                            <option value="{{ value.1 }}" {% if category == value.1 %}selected{% endif %}>{{ value.1 }}</option>
+                            <option value="{{ value }}" {% if category == value %}selected{% endif %}>{{ value }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -67,28 +67,26 @@
 
     <table class="list">
         <col style="width: 50px;"> <!-- Código -->
-        <col style="width: 50px;"> <!-- Nome -->
-        <col style="width: 40px;"> <!-- Categoria -->
+        <col style="width: 80px;"> <!-- Categoria -->
         <col style="width: 50px;"> <!-- Material -->
         <col style="width: 50px;"> <!-- Quantidade -->
         <col style="width: 50px;"> <!-- Comprimento -->
         <col style="width: 50px;"> <!-- Largura -->
         <col style="width: 50px;"> <!-- Espessura -->
         <col style="width: 50px;"> <!-- Diâmetro -->
-        <col style="width: 40px;"> <!-- Ações -->
+        <col style="width: 50px;"> <!-- Ações -->
 
         <thead>
             <tr>
                 <th>Código</th>
-                <th>Nome</th>
                 <th>Categ.</th>
                 <th>Material</th>
-                <th>Quantidade</th>
-                <th>Comprimento</th>
-                <th>Largura</th>
-                <th>Espessura</th>
+                <th>QTD.</th>
+                <th>Comp.</th>
+                <th>Larg.</th>
+                <th>Esp.</th>
                 <th>Diâmetro</th>
-                <th>Ações</th>
+                <th></th>
             </tr>
         </thead>
 
@@ -96,7 +94,6 @@
             {% for i in page_obj %}
                 <tr>
                     <td>{{ i.code }}</td>
-                    <td>{{ i.name }}</td>
                     <td>{{ i.category }}</td>
                     <td>{{ i.material }}</td>
                     <td>{{ i.quantity }}</td>

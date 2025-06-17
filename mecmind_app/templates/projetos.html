@@ -20,8 +20,8 @@
 
                     <select name="analysis_type" id="analysis_type">
                         <option value="">Todos</option>
-                        {% for value, text in analysis_choices %}
-                            <option value="{{ value }}" {% if selected_analysis == value %}selected{% endif %}>{{ text }}</option>
+                        {% for value in analysis_choices %}
+                            <option value="{{ value }}" {% if selected_analysis == value %}selected{% endif %}>{{ value }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -50,11 +50,10 @@
     </div>
 
     <table class="list">
-        <col style="width: 50px;"> <!-- Análise -->
-        <col style="width: 50px;"> <!-- Criação -->
-        <col style="width: 150px;"> <!-- M. Prima -->
-        <col style="width: 150px;"> <!-- Máquinas -->
-        <col style="width: 200px;"> <!-- Obs. Usuário -->
+        <col style="width: 20px;"> <!-- Análise -->
+        <col style="width: 20px;"> <!-- Criação -->
+        <col style="width: 250px;"> <!-- M. Prima -->
+        <col style="width: 250px;"> <!-- Máquinas -->
 
         <thead>
             <tr>
@@ -62,7 +61,6 @@
                 <th>Criação</th>
                 <th>M. Prima</th>
                 <th>Máquinas</th>
-                <th>Obs. Usuário</th>
             </tr>
         </thead>
 
@@ -71,9 +69,8 @@
                 <tr>
                     <td><a class="list-link" href="{% url 'projeto' i.id %}">Análise {{ i.analysis_name }}</a></td>
                     <td>{{ i.created_date|date:"d/m/Y H:i" }}</td>
-                    <td><span title="{{ i.raw_material }}">{{ i.raw_material|truncatechars:40 }}</span></td>
-                    <td><span title="{{ i.machines }}">{{ i.machines|truncatechars:40 }}</span></td>
-                    <td><span title="{{ i.user_observation }}">{{ i.user_observation|truncatechars:40 }}</span></td>
+                    <td><span title="{{ i.raw_material }}">{{ i.raw_material|truncatechars:45 }}</span></td>
+                    <td><span title="{{ i.machines }}">{{ i.machines|truncatechars:45 }}</span></td>
                 </tr>
             {% endfor %}
         </tbody>

@@ -42,7 +42,7 @@ class CustomUser(AbstractUser):
 class Project(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='projects')
     company = models.ForeignKey(Company, on_delete=models.SET_NULL, blank=True, null=True)
-    analysis_name = models.CharField(max_length=20, choices=c.PROJETO['analise'])
+    analysis_name = models.CharField(max_length=20)
     drawing = models.ImageField(upload_to='projects/%Y/%m/%d', blank=True)
     created_date = models.DateTimeField(default=timezone.now)
     raw_material = models.TextField('Matéria Prima', blank=True)
@@ -66,14 +66,14 @@ class Stock(models.Model):
     name = models.CharField('Nome', max_length=50)
     code = models.CharField('Código', max_length=20, unique=True)
     description = models.TextField('Descrição', blank=True)
-    category = models.CharField('Categoria', max_length=20, choices=c.ESTOQUE['categoria'])
+    category = models.CharField('Categoria', max_length=20)
     material = models.CharField('Material', max_length=50, blank=True)
     length = models.DecimalField('Comprimento', max_digits=10, decimal_places=2, blank=True, null=True)
     diameter = models.DecimalField('Diâmetro', max_digits=10, decimal_places=2, blank=True, null=True)
     thickness = models.DecimalField('Espessura', max_digits=10, decimal_places=2, blank=True, null=True)
     width = models.DecimalField('Largura', max_digits=10, decimal_places=2, blank=True, null=True)
     quantity = models.PositiveIntegerField('Quantidade', default=1)
-    status = models.CharField('Status', max_length=20, choices=c.ESTOQUE['status'], default='disponivel')
+    status = models.CharField('Status', max_length=20, default='Disponível')
     created_date = models.DateTimeField(default=timezone.now)
 
     class Meta:

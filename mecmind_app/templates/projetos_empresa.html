@@ -31,8 +31,8 @@
 
                     <select name="analysis_type" id="analysis_type">
                         <option value="">Todos</option>
-                        {% for value, text in analysis_choices %}
-                            <option value="{{ value }}" {% if selected_analysis == value %}selected{% endif %}>{{ text }}</option>
+                        {% for value in analysis_choices %}
+                            <option value="{{ value }}" {% if selected_analysis == value %}selected{% endif %}>{{ value }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -61,11 +61,11 @@
     </div>
 
     <table class="list">
-        <col style="width: 50px;"> <!-- Análise -->
+        <col style="width: 20px;"> <!-- Análise -->
         <col style="width: 50px;"> <!-- Usuário -->
         <col style="width: 50px;"> <!-- Criação -->
-        <col style="width: 150px;"> <!-- M. Prima -->
-        <col style="width: 150px;"> <!-- Máquinas -->
+        <col style="width: 230px;"> <!-- M. Prima -->
+        <col style="width: 230px;"> <!-- Máquinas -->
 
         <thead>
             <tr>

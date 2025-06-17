@@ -39,7 +39,7 @@ if not os.path.exists(IMAGE_UPLOAD_PATH):
 cli = openai.OpenAI(api_key=openai_api_key)
 
 # Decoda filtros.
-def decode_filters(encoded_str):
+def _decode_filters(encoded_str):
     try:
         padding = '=' * (-len(encoded_str) % 4)
         decoded_bytes = base64.urlsafe_b64decode(encoded_str + padding)
@@ -49,7 +49,7 @@ def decode_filters(encoded_str):
         return {}
 
 # Encoda a imagem.
-def encode_image(image_file):
+def _encode_image(image_file):
     image_content = image_file.read()
     return base64.b64encode(image_content).decode('utf-8')
 
@@ -68,7 +68,7 @@ def analise_eixo(request):
         user_prompt = 'Observações adicionais do usuário: ' + request.POST.get("prompt", "") + '\n' + quantity_text
 
         # Encoda a imagem
-        base64_image = encode_image(request.FILES['image'])
+        base64_image = _encode_image(request.FILES['image'])
 
         # Monta a função para estruturar a PRIMEIRA chamada de API.
         analysis_function = [{}]
@@ -296,7 +296,7 @@ def analise_eixo(request):
             project.company = request.user.company
 
         # Informações do projeto.
-        project.analysis_name = 'eixo'
+        project.analysis_name = 'Eixo'
         project.drawing = request.FILES['image']
         project.user_observation = request.POST.get('prompt', '')
         project.raw_material = materia_prima
@@ -332,7 +332,7 @@ def analise_chapa(request):
         user_prompt = 'Observações adicionais do usuário: ' + request.POST.get("prompt", "") + '\n' + quantity_text
 
         # Encoda a imagem.
-        base64_image = encode_image(request.FILES['image'])
+        base64_image = _encode_image(request.FILES['image'])
 
         if 'chapa-dobra' in request.POST:
             kwa = {}
@@ -564,7 +564,7 @@ def analise_chapa(request):
             project.company = request.user.company
 
         # Informações do projeto.
-        project.analysis_name = 'chapa'
+        project.analysis_name = 'Chapa'
         project.drawing = request.FILES['image']
         project.user_observation = request.POST.get('prompt', '')
         project.raw_material = materia_prima
@@ -596,7 +596,7 @@ def analise_tubo(request):
         user_prompt = 'Observações adicionais do usuário: ' + request.POST.get("prompt", "") + '\n' + quantity_text
 
         # Encoda a imagem
-        base64_image = encode_image(request.FILES['image'])
+        base64_image = _encode_image(request.FILES['image'])
 
         # Monta o dicionário para a primeira chamada.
         kwa = {}
@@ -722,7 +722,7 @@ def analise_tubo(request):
             project.company = request.user.company
 
         # Informações do projeto.
-        project.analysis_name = 'tubo'
+        project.analysis_name = 'Tubo'
         project.drawing = request.FILES['image']
         project.user_observation = request.POST.get('prompt', '')
         project.raw_material = materia_prima
@@ -756,7 +756,7 @@ def analise_montagem(request):
                 destination.write(chunk)
 
         # Encoda a imagem
-        base64_image = encode_image(image_path)
+        base64_image = _encode_image(image_path)
 
         # Monta o dicionário para a chamada:
         kwa = {}
@@ -799,7 +799,7 @@ def analise_solda(request):
                 destination.write(chunk)
 
         # Encoda a imagem.
-        base64_image = encode_image(image_path)
+        base64_image = _encode_image(image_path)
 
         # Monta o dicionário para a chamada:
         kwa = {}
@@ -842,7 +842,7 @@ def analise_geral(request):
                 destination.write(chunk)
 
         # Encoda a imagem
-        base64_image = encode_image(image_path)
+        base64_image = _encode_image(image_path)
 
         # Monta o dicionário para a chamada:
         kwa = {}
@@ -879,7 +879,7 @@ def projetos(request):
     encoded_filters = request.GET.get('filters', '')
 
     if encoded_filters:
-        filters = decode_filters(encoded_filters)
+        filters = _decode_filters(encoded_filters)
         analysis_type = filters.get('analysis_type', '')
         date_from = filters.get('date_from', '')
         date_to = filters.get('date_to', '')
@@ -939,7 +939,7 @@ def projetos_empresa(request):
     encoded_filters = request.GET.get('filters', '')
 
     if encoded_filters:
-        filters = decode_filters(encoded_filters)
+        filters = _decode_filters(encoded_filters)
         user_filter = filters.get('user_filter', '')
         analysis_type = filters.get('analysis_type', '')
         date_from = filters.get('date_from', '')
@@ -1048,7 +1048,7 @@ def estoque_empresa(request):
     encoded_filters = request.GET.get('filters', '')
 
     if encoded_filters:
-        filters = decode_filters(encoded_filters)
+        filters = _decode_filters(encoded_filters)
         category = filters.get('category', '')
         material = filters.get('material', '')
         status = filters.get('status', '')
