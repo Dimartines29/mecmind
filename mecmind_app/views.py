@@ -924,8 +924,6 @@ def projetos(request):
 
 @login_required(login_url='/login')
 def empresa(request):
-    if not request.user.groups.filter(name='Gerente').exists():
-        return redirect('/acesso_negado')
 
     return render(request, 'empresa.html')
 
@@ -1040,9 +1038,6 @@ def informacoes_empresa(request):
 
 @login_required(login_url='/login')
 def estoque_empresa(request):
-    if not request.user.groups.filter(name='Gerente').exists():
-        return redirect('/acesso_negado')
-
     ctx = {}
 
     encoded_filters = request.GET.get('filters', '')
@@ -1089,9 +1084,6 @@ def estoque_empresa(request):
 
 @login_required(login_url='/login')
 def adicionar_estoque(request):
-    if not request.user.groups.filter(name='Gerente').exists():
-        return redirect('/acesso_negado')
-
     ctx = {}
     ctx['categories'] = c.ESTOQUE['categoria']
     ctx['status_choices'] = c.ESTOQUE['status']
@@ -1172,11 +1164,9 @@ def adicionar_estoque(request):
 
 @login_required(login_url='/login')
 def editar_estoque(request, item_id):
-    if not request.user.groups.filter(name='Gerente').exists():
-        return redirect('/acesso_negado')
-
     try:
         stock_item = m.Stock.objects.get(id=item_id, company=request.user.company)
+
     except m.Stock.DoesNotExist:
         messages.error(request, 'Item não encontrado.')
 

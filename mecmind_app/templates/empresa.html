@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load filters %}
 
 {% block title %}MecMind - Empresa{% endblock %}
 
@@ -13,27 +14,31 @@
     </div>
 
     <div class="tools-grid">
-        <div class="tool-card" data-category="Projetos">
-            <div class="tool-image">
-                <a href="/projetos_empresa"><img src="{% static 'images/montagem.png' %}" style="width: 200px;" alt="Projetos" class="placeholder"></a>
+        {% if request.user|has_group:"Gerente" %}
+            <div class="tool-card" data-category="Projetos">
+                <div class="tool-image">
+                    <a href="/projetos_empresa"><img src="{% static 'images/montagem.png' %}" style="width: 200px;" alt="Projetos" class="placeholder"></a>
+                </div>
+                <div class="tool-info">
+                    <h3>Projetos</h3>
+                    <p>Lista de todos os projetos da empresa</p>
+                    <a href="/projetos_empresa" class="tool-link">Acessar <i class="fas fa-chevron-right"></i></a>
+                </div>
             </div>
-            <div class="tool-info">
-                <h3>Projetos</h3>
-                <p>Lista de todos os projetos da empresa</p>
-                <a href="/projetos_empresa" class="tool-link">Acessar <i class="fas fa-chevron-right"></i></a>
-            </div>
-        </div>
+        {% endif %}
 
-        <div class="tool-card" data-category="Informações">
-            <div class="tool-image">
-                <a href="/informacoes_empresa"><img src="{% static 'images/infos.png' %}" alt="Informações" style="width: 150px;" class="placeholder"></a>
+        {% if request.user|has_group:"Gerente" %}
+            <div class="tool-card" data-category="Informações">
+                <div class="tool-image">
+                    <a href="/informacoes_empresa"><img src="{% static 'images/infos.png' %}" alt="Informações" style="width: 150px;" class="placeholder"></a>
+                </div>
+                <div class="tool-info">
+                    <h3>Informações</h3>
+                    <p>Verifique e atualize informações da empresa</p>
+                    <a href="/informacoes_empresa" class="tool-link">Acessar <i class="fas fa-chevron-right"></i></a>
+                </div>
             </div>
-            <div class="tool-info">
-                <h3>Informações</h3>
-                <p>Verifique e atualize informações da empresa</p>
-                <a href="/informacoes_empresa" class="tool-link">Acessar <i class="fas fa-chevron-right"></i></a>
-            </div>
-        </div>
+        {% endif %}
 
         <div class="tool-card" data-category="Estoque">
             <div class="tool-image">
