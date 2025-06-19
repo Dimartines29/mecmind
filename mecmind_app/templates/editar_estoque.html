@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load l10n %}
 
 {% block title %}MecMind - Modificar Estoque{% endblock %}
 
@@ -51,6 +52,7 @@
                 <div class="form-row">
                     <div class="form-group half-width">
                         <label for="category"><i class="fas fa-layer-group"></i> Categoria *</label>
+
                         <select id="category" name="category" required class="form-select">
                             <option value="">Selecione uma categoria</option>
                             {% for value in categories %}
@@ -77,13 +79,14 @@
                 <div class="form-row">
                     <div class="form-group half-width">
                         <label for="length"><i class="fas fa-arrows-alt-h"></i> Comprimento (mm)</label>
-                        <input type="number" id="length" name="length" value="{{ item.length }}" placeholder="0.00" step="0.01" min="0" class="form-input">
+
+                        <input type="number" id="length" name="length" value="{{ item.length|unlocalize }}" placeholder="0.00" step="1" min="0" class="form-input">
                         <small class="form-help">Comprimento em milímetros</small>
                     </div>
 
                     <div class="form-group half-width">
                         <label for="width"><i class="fas fa-arrows-alt-v"></i> Largura (mm)</label>
-                        <input type="number" id="width" name="width" value="{{ item.width }}" placeholder="0.00" step="0.01" min="0" class="form-input">
+                        <input type="number" id="width" name="width" value="{{ item.width|unlocalize }}" placeholder="0.00" step="1" min="0" class="form-input">
                         <small class="form-help">Largura em milímetros (para chapas)</small>
                     </div>
                 </div>
@@ -91,13 +94,13 @@
                 <div class="form-row">
                     <div class="form-group half-width">
                         <label for="thickness"><i class="fas fa-compress"></i> Espessura (mm)</label>
-                        <input type="number" id="thickness" name="thickness" value="{{ item.thickness }}" placeholder="0.00" step="0.01" min="0" class="form-input">
+                        <input type="number" id="thickness" name="thickness" value="{{ item.thickness|unlocalize }}" placeholder="0.00" step="1" min="0" class="form-input">
                         <small class="form-help">Espessura em milímetros (para chapas)</small>
                     </div>
 
                     <div class="form-group half-width">
                         <label for="diameter"><i class="fas fa-circle"></i> Diâmetro (mm)</label>
-                        <input type="number" id="diameter" name="diameter" value="{{ item.diameter }}" placeholder="0.00" step="0.01" min="0" class="form-input">
+                        <input type="number" id="diameter" name="diameter" value="{{ item.diameter|unlocalize }}" placeholder="0.00" step="1" min="0" class="form-input">
                         <small class="form-help">Diâmetro em milímetros (para eixos/tubos)</small>
                     </div>
                 </div>

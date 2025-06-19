@@ -1337,6 +1337,7 @@ def editar_estoque(request, item_id):
         return redirect('estoque_empresa')
 
     ctx = {}
+
     ctx['categories'] = c.ESTOQUE['categoria']
     ctx['status_choices'] = c.ESTOQUE['status']
     ctx['item'] = stock_item
