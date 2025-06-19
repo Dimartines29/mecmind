@@ -53,6 +53,25 @@ def _encode_image(image_file):
     image_content = image_file.read()
     return base64.b64encode(image_content).decode('utf-8')
 
+# Busca informações da empresa que está fazendo a requisição.
+def _get_company_info(company):
+
+    company_text = f'Esta análise está sendo feita pela empresa *{company.name}*, uma empresa de usinagem mecânica.\n'
+    company_text += 'A empresa possui as seguintes máquinas de torneamento:\n'
+    company_text += company.machines_turning + '\n'
+    company_text += 'Possui estas máquinas de fresamento:\n'
+    company_text += company.machines_milling + '\n'
+    company_text += 'E possui também outras máquinas como:\n'
+    company_text += company.machines_other + '\n'
+    company_text += 'Estes são todos os processos que a empresa faz internamente:\n'
+    company_text += company.internal_processes + '\n'
+    company_text += 'E os processos que precisam ser feitos externamente são:\n'
+    company_text += company.external_processes + '\n'
+    company_text += 'Turnos de trabalho:\n'
+    company_text += company.work_shifts + '\n'
+
+    return company_text
+
 @login_required(login_url='/login')
 def index(request):
     return render(request, 'index.html')
@@ -139,7 +158,6 @@ def analise_eixo(request):
         # Faz a requisição.
         try:
             chat_completion = cli.chat.completions.create(**kwa)
-
             dic = json.loads(chat_completion.choices[0].message.function_call.arguments)
 
         except openai.OpenAIError as e:
@@ -180,24 +198,10 @@ def analise_eixo(request):
         msg_stock = 'Estes são os itens disponíveis no estoque:\n' + '\n'.join(stock_list)
 
         # Monta o texto de contextualização da Empresa para a análise.
-        company = m.Company.objects.get(name=request.user.company.name)
-
-        company_text = f'Esta análise está sendo feita pela empresa *{company.name}*, uma empresa de usinagem mecânica.\n'
-        company_text += 'A empresa possui as seguintes máquinas de torneamento:\n'
-        company_text += company.machines_turning + '\n'
-        company_text += 'Possui estas máquinas de fresamento:\n'
-        company_text += company.machines_milling + '\n'
-        company_text += 'E possui também outras máquinas como:\n'
-        company_text += company.machines_other + '\n'
-        company_text += 'Estes são todos os processos que a empresa faz internamente:\n'
-        company_text += company.internal_processes + '\n'
-        company_text += 'E os processos que precisam ser feitos externamente são:\n'
-        company_text += company.external_processes + '\n'
-        company_text += 'Turnos de trabalho:\n'
-        company_text += company.work_shifts + '\n'
+        company_info = _get_company_info(m.Company.objects.get(name=request.user.company.name))
 
         # Agrupa todas as informações de contexto.
-        info_context = f'{company_text}\n{msg_stock}\n{info_project}'
+        info_context = f'{company_info}\n{msg_stock}\n{info_project}'
 
         # Monta a função para estruturar a SEGUNDA chamada de API.
         process_function = [{}]
@@ -335,10 +339,50 @@ def analise_chapa(request):
         base64_image = _encode_image(request.FILES['image'])
 
         if 'chapa-dobra' in request.POST:
+            # Monta a função para estruturar a PRIMEIRA chamada de API.
+            analysis_function = [{}]
+
+            analysis_function[0]['type'] = 'function'
+            analysis_function[0]['name'] = 'get_info'
+            analysis_function[0]['description'] = 'Analisa com precisão um desenho mecânico de uma chapa dobrada e determina todos os pontos relevantes para fabricação.'
+            analysis_function[0]['parameters'] = {}
+
+            analysis_function[0]['parameters']['type'] = 'object'
+            analysis_function[0]['parameters']['properties'] = {}
+
+            analysis_function[0]['parameters']['properties']['espessura'] = {}
+            analysis_function[0]['parameters']['properties']['espessura']['type'] = 'string'
+            analysis_function[0]['parameters']['properties']['espessura']['description'] = 'Informe a maior espessura encontrada na chapa.'
+
+            analysis_function[0]['parameters']['properties']['comprimento'] = {}
+            analysis_function[0]['parameters']['properties']['comprimento']['type'] = 'string'
+            analysis_function[0]['parameters']['properties']['comprimento']['description'] = 'Informe o comprimento total da chapa.'
+
+            analysis_function[0]['parameters']['properties']['largura'] = {}
+            analysis_function[0]['parameters']['properties']['largura']['type'] = 'string'
+            analysis_function[0]['parameters']['properties']['largura']['description'] = 'Informe a largura total da chapa.'
+
+            analysis_function[0]['parameters']['properties']['rebaixos'] = {}
+            analysis_function[0]['parameters']['properties']['rebaixos']['type'] = 'string'
+            analysis_function[0]['parameters']['properties']['rebaixos']['description'] = 'Informe se identificou a presença de rebaixos na chapa e analise se impacta na espessura total.'
+
+            analysis_function[0]['parameters']['properties']['furos'] = {}
+            analysis_function[0]['parameters']['properties']['furos']['type'] = 'string'
+            analysis_function[0]['parameters']['properties']['furos']['description'] = 'Informe se identificou a presença de furos. Informe suas posições e todas suas especificações.'
+
+            analysis_function[0]['parameters']['properties']['materia_prima'] = {}
+            analysis_function[0]['parameters']['properties']['materia_prima']['type'] = 'string'
+            analysis_function[0]['parameters']['properties']['materia_prima']['description'] = 'Informe a matéria-prima com base na análise do desenho. Especifique o diâmetro e o comprimento final.'
+
+            analysis_function[0]['parameters']['properties']['observacoes'] = {}
+            analysis_function[0]['parameters']['properties']['observacoes']['type'] = 'string'
+            analysis_function[0]['parameters']['properties']['observacoes']['description'] = 'Observações importantes encontradas na análise e que o próximo modelo deve levar em consideração'
+
+            analysis_function[0]['parameters']['required'] = ['espessura', 'comprimento', 'largura', 'materia_prima']
+
             kwa = {}
 
-            kwa['model'] = 'chatgpt-4o-latest'
-            kwa['temperature'] = 0.1
+            kwa['model'] = 'o4-mini'
             kwa['messages'] = [{}, {}]
 
             kwa['messages'][0]['role'] = 'system'
@@ -353,9 +397,13 @@ def analise_chapa(request):
             kwa['messages'][1]['content'][1]['type'] = 'image_url'
             kwa['messages'][1]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
 
+            kwa['functions'] = analysis_function
+            kwa['function_call'] = {'name': 'get_info'}
+
             # Faz a requisição.
             try:
                 chat_completion = cli.chat.completions.create(**kwa)
+                dic = json.loads(chat_completion.choices[0].message.function_call.arguments)
 
             except openai.OpenAIError as e:
                 logger.error(f'Error occurred: {str(e)}', exc_info=True)
@@ -369,8 +417,32 @@ def analise_chapa(request):
 
                 return render(request, 'analise_chapa.html')
 
-            final_text = 'Essas são todas as informações necessárias para a sua análise: \n'
-            final_text += chat_completion.choices[0].message.content
+            # Monta o texto de contextualização do projeto.
+            info_project = 'Essas são todas as informações necessárias para a sua análise: \n'
+
+            info_project += f'Espessura: {dic.get("espessura", "")}\n'
+            info_project += f'Comprimento: {dic.get("comprimento", "")}\n'
+            info_project += f'Largura: {dic.get("largura", "")}\n'
+            info_project += f'Rebaixos: {dic.get("rebaixos", "")}\n'
+            info_project += f'Furos: {dic.get("furos", "")}\n'
+            info_project += f'Matéria-prima: {dic.get("materia_prima", "")}\n'
+            info_project += f'Observações: {dic.get("observacoes", "")}\n'
+            info_project += '\n'
+
+            # Monta a lista de estoque de chapas disponíveis para análise da IA.
+            stock = m.Stock.objects.filter(company=request.user.company, status='disponivel', category='chapa')
+            stock_list = []
+
+            for item in stock:
+                stock_list.append(f'Item: {item.name}, Código: {item.code}, Espessura: {item.thickness}, Comprimento: {item.length}, Largura: {item.width},  Material: {item.material}, Quantidade: {item.quantity}')
+
+            msg_stock = 'Estes são os itens disponíveis no estoque:\n' + '\n'.join(stock_list)
+
+            # Monta o texto de contextualização da Empresa para a análise.
+            company_info = _get_company_info(m.Company.objects.get(name=request.user.company.name))
+
+            # Agrupa todas as informações de contexto.
+            info_context = f'{company_info}\n{msg_stock}\n{info_project}'
 
             # Monta a função para estruturar a SEGUNDA chamada de API.
             process_function = [{}]
@@ -387,6 +459,10 @@ def analise_chapa(request):
             process_function[0]['parameters']['properties']['materia_prima']['type'] = 'string'
             process_function[0]['parameters']['properties']['materia_prima']['description'] = 'Baseado no catálogo, coloque aqui as medidas Comprimento (milímetros) X Largura (milímetros) X Espessura (polegadas) (A Espessura deve ser compatível com as presentes no catálogo e deve ser fornecida em polegadas)'
 
+            process_function[0]['parameters']['properties']['processos'] = {}
+            process_function[0]['parameters']['properties']['processos']['type'] = 'string'
+            process_function[0]['parameters']['properties']['processos']['description'] = 'Explique aqui o processo que cada máquina irá realizar. Coloque cada processo como um tópico, mas sem numeração.'
+
             process_function[0]['parameters']['properties']['maquinas'] = {}
             process_function[0]['parameters']['properties']['maquinas']['type'] = 'array'
             process_function[0]['parameters']['properties']['maquinas']['description'] = 'Liste aqui todas as máquinas necessárias para a fabricação da chapa.'
@@ -394,21 +470,25 @@ def analise_chapa(request):
             process_function[0]['parameters']['properties']['maquinas']['items']['type'] = 'string'
             process_function[0]['parameters']['properties']['maquinas']['items']['description'] = 'Nome da máquina necessária para o processo.'
 
-            process_function[0]['parameters']['properties']['processos'] = {}
-            process_function[0]['parameters']['properties']['processos']['type'] = 'string'
-            process_function[0]['parameters']['properties']['processos']['description'] = 'Explique aqui o processo que cada máquina irá realizar. Coloque cada processo como um tópico, mas sem numeração.'
+            process_function[0]['parameters']['properties']['em_estoque'] = {}
+            process_function[0]['parameters']['properties']['em_estoque']['type'] = 'boolean'
+            process_function[0]['parameters']['properties']['em_estoque']['description'] = 'Indica se existe algum material em estoque que pode servir de matéria prima para fabricar o eixo.'
+
+            process_function[0]['parameters']['properties']['item_do_estoque'] = {}
+            process_function[0]['parameters']['properties']['item_do_estoque']['type'] = 'string'
+            process_function[0]['parameters']['properties']['item_do_estoque']['description'] = 'Indica qual item do estoque pode ser usado como matéria prima para fabricar o eixo.'
 
             process_function[0]['parameters']['properties']['aproveitamento'] = {}
             process_function[0]['parameters']['properties']['aproveitamento']['type'] = 'string'
             process_function[0]['parameters']['properties']['aproveitamento']['description'] = 'Se solicitado mais de uma chapa, verifique a necessidade de um aproveitamento e o descreva aqui'
 
-            process_function[0]['parameters']['required'] = ['materia_prima', 'maquinas', 'processos']
+            process_function[0]['parameters']['required'] = ['materia_prima', 'processos', 'maquinas', 'em_estoque']
 
             # Monta a segunda chamada.
             kwa = {}
 
             kwa['model'] = 'gpt-4.1'
-            kwa['temperature'] = 0.1
+            kwa['temperature'] = 0.3
             kwa['messages'] = [{}, {}]
 
             kwa['messages'][0]['role'] = 'system'
@@ -421,7 +501,7 @@ def analise_chapa(request):
             kwa['messages'][1]['content'][0]['type'] = 'text'
             kwa['messages'][1]['content'][0]['text'] = p.PROMPT_CHAPA_DOBRAS_FINAL
             kwa['messages'][1]['content'][1]['type'] = 'text'
-            kwa['messages'][1]['content'][1]['text'] = final_text
+            kwa['messages'][1]['content'][1]['text'] = info_context
             kwa['messages'][1]['content'][2]['type'] = 'text'
             kwa['messages'][1]['content'][2]['text'] = user_prompt
 
@@ -430,6 +510,7 @@ def analise_chapa(request):
             # Faz a requisição.
             try:
                 chat_completion = cli.chat.completions.create(**kwa)
+                dic = json.loads(chat_completion.choices[0].message.function_call.arguments)
 
             except openai.OpenAIError as e:
                 logger.error(f'Error occurred: {str(e)}', exc_info=True)
@@ -442,10 +523,50 @@ def analise_chapa(request):
                 return render(request, 'analise_chapa.html')
 
         else:
+            # Monta a função para estruturar a PRIMEIRA chamada de API.
+            analysis_function = [{}]
+
+            analysis_function[0]['type'] = 'function'
+            analysis_function[0]['name'] = 'get_info'
+            analysis_function[0]['description'] = 'Analisa com precisão um desenho mecânico de uma chapa dobrada e determina todos os pontos relevantes para fabricação.'
+            analysis_function[0]['parameters'] = {}
+
+            analysis_function[0]['parameters']['type'] = 'object'
+            analysis_function[0]['parameters']['properties'] = {}
+
+            analysis_function[0]['parameters']['properties']['espessura'] = {}
+            analysis_function[0]['parameters']['properties']['espessura']['type'] = 'string'
+            analysis_function[0]['parameters']['properties']['espessura']['description'] = 'Informe a maior espessura encontrada na chapa.'
+
+            analysis_function[0]['parameters']['properties']['comprimento'] = {}
+            analysis_function[0]['parameters']['properties']['comprimento']['type'] = 'string'
+            analysis_function[0]['parameters']['properties']['comprimento']['description'] = 'Informe o comprimento total da chapa.'
+
+            analysis_function[0]['parameters']['properties']['largura'] = {}
+            analysis_function[0]['parameters']['properties']['largura']['type'] = 'string'
+            analysis_function[0]['parameters']['properties']['largura']['description'] = 'Informe a largura total da chapa.'
+
+            analysis_function[0]['parameters']['properties']['rebaixos'] = {}
+            analysis_function[0]['parameters']['properties']['rebaixos']['type'] = 'string'
+            analysis_function[0]['parameters']['properties']['rebaixos']['description'] = 'Informe se identificou a presença de rebaixos na chapa e analise se impacta na espessura total.'
+
+            analysis_function[0]['parameters']['properties']['furos'] = {}
+            analysis_function[0]['parameters']['properties']['furos']['type'] = 'string'
+            analysis_function[0]['parameters']['properties']['furos']['description'] = 'Informe se identificou a presença de furos. Informe suas posições e todas suas especificações.'
+
+            analysis_function[0]['parameters']['properties']['materia_prima'] = {}
+            analysis_function[0]['parameters']['properties']['materia_prima']['type'] = 'string'
+            analysis_function[0]['parameters']['properties']['materia_prima']['description'] = 'Informe a matéria-prima com base na análise do desenho. Especifique o diâmetro e o comprimento final.'
+
+            analysis_function[0]['parameters']['properties']['observacoes'] = {}
+            analysis_function[0]['parameters']['properties']['observacoes']['type'] = 'string'
+            analysis_function[0]['parameters']['properties']['observacoes']['description'] = 'Observações importantes encontradas na análise e que o próximo modelo deve levar em consideração'
+
+            analysis_function[0]['parameters']['required'] = ['espessura', 'comprimento', 'largura', 'materia_prima']
+
             kwa = {}
 
-            kwa['model'] = 'chatgpt-4o-latest'
-            kwa['temperature'] = 0.1
+            kwa['model'] = 'o4-mini'
             kwa['messages'] = [{}, {}]
 
             kwa['messages'][0]['role'] = 'system'
@@ -460,9 +581,13 @@ def analise_chapa(request):
             kwa['messages'][1]['content'][1]['type'] = 'image_url'
             kwa['messages'][1]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
 
+            kwa['functions'] = analysis_function
+            kwa['function_call'] = {'name': 'get_info'}
+
             # Faz a requisição.
             try:
                 chat_completion = cli.chat.completions.create(**kwa)
+                dic = json.loads(chat_completion.choices[0].message.function_call.arguments)
 
             except openai.OpenAIError as e:
                 logger.error(f'Error occurred: {str(e)}', exc_info=True)
@@ -476,8 +601,32 @@ def analise_chapa(request):
 
                 return render(request, 'analise_chapa.html')
 
-            final_text = 'Essas são todas as informações necessárias para a sua análise: \n'
-            final_text += chat_completion.choices[0].message.content
+            # Monta o texto de contextualização do projeto.
+            info_project = 'Essas são todas as informações necessárias para a sua análise: \n'
+
+            info_project += f'Espessura: {dic.get("espessura", "")}\n'
+            info_project += f'Comprimento: {dic.get("comprimento", "")}\n'
+            info_project += f'Largura: {dic.get("largura", "")}\n'
+            info_project += f'Rebaixos: {dic.get("rebaixos", "")}\n'
+            info_project += f'Furos: {dic.get("furos", "")}\n'
+            info_project += f'Matéria-prima: {dic.get("materia_prima", "")}\n'
+            info_project += f'Observações: {dic.get("observacoes", "")}\n'
+            info_project += '\n'
+
+            # Monta a lista de estoque de chapas disponíveis para análise da IA.
+            stock = m.Stock.objects.filter(company=request.user.company, status='disponivel', category='chapa')
+            stock_list = []
+
+            for item in stock:
+                stock_list.append(f'Item: {item.name}, Código: {item.code}, Espessura: {item.thickness}, Comprimento: {item.length}, Largura: {item.width},  Material: {item.material}, Quantidade: {item.quantity}')
+
+            msg_stock = 'Estes são os itens disponíveis no estoque:\n' + '\n'.join(stock_list)
+
+            # Monta o texto de contextualização da Empresa para a análise.
+            company_info = _get_company_info(m.Company.objects.get(name=request.user.company.name))
+
+            # Agrupa todas as informações de contexto.
+            info_context = f'{company_info}\n{msg_stock}\n{info_project}'
 
             # Monta a função para estruturar a SEGUNDA chamada de API.
             process_function = [{}]
@@ -492,7 +641,11 @@ def analise_chapa(request):
 
             process_function[0]['parameters']['properties']['materia_prima'] = {}
             process_function[0]['parameters']['properties']['materia_prima']['type'] = 'string'
-            process_function[0]['parameters']['properties']['materia_prima']['description'] = 'Baseado no catálogo, coloque aqui as medidas Comprimento X Largura X Espessura (A Espessura deve ser compatível com as presentes no catálogo)'
+            process_function[0]['parameters']['properties']['materia_prima']['description'] = 'Baseado no catálogo, coloque aqui as medidas Comprimento (milímetros) X Largura (milímetros) X Espessura (polegadas) (A Espessura deve ser compatível com as presentes no catálogo e deve ser fornecida em polegadas)'
+
+            process_function[0]['parameters']['properties']['processos'] = {}
+            process_function[0]['parameters']['properties']['processos']['type'] = 'string'
+            process_function[0]['parameters']['properties']['processos']['description'] = 'Explique aqui o processo que cada máquina irá realizar. Coloque cada processo como um tópico, mas sem numeração.'
 
             process_function[0]['parameters']['properties']['maquinas'] = {}
             process_function[0]['parameters']['properties']['maquinas']['type'] = 'array'
@@ -501,21 +654,25 @@ def analise_chapa(request):
             process_function[0]['parameters']['properties']['maquinas']['items']['type'] = 'string'
             process_function[0]['parameters']['properties']['maquinas']['items']['description'] = 'Nome da máquina necessária para o processo.'
 
-            process_function[0]['parameters']['properties']['processos'] = {}
-            process_function[0]['parameters']['properties']['processos']['type'] = 'string'
-            process_function[0]['parameters']['properties']['processos']['description'] = 'Explique aqui o processo que cada máquina irá realizar. Coloque cada processo como um tópico, mas sem numeração.'
+            process_function[0]['parameters']['properties']['em_estoque'] = {}
+            process_function[0]['parameters']['properties']['em_estoque']['type'] = 'boolean'
+            process_function[0]['parameters']['properties']['em_estoque']['description'] = 'Indica se existe algum material em estoque que pode servir de matéria prima para fabricar o eixo.'
+
+            process_function[0]['parameters']['properties']['item_do_estoque'] = {}
+            process_function[0]['parameters']['properties']['item_do_estoque']['type'] = 'string'
+            process_function[0]['parameters']['properties']['item_do_estoque']['description'] = 'Indica qual item do estoque pode ser usado como matéria prima para fabricar o eixo.'
 
             process_function[0]['parameters']['properties']['aproveitamento'] = {}
             process_function[0]['parameters']['properties']['aproveitamento']['type'] = 'string'
             process_function[0]['parameters']['properties']['aproveitamento']['description'] = 'Se solicitado mais de uma chapa, verifique a necessidade de um aproveitamento e o descreva aqui'
 
-            process_function[0]['parameters']['required'] = ['materia_prima', 'maquinas', 'processos']
+            process_function[0]['parameters']['required'] = ['materia_prima', 'processos', 'maquinas', 'em_estoque']
 
             # Monta a segunda chamada.
             kwa = {}
 
             kwa['model'] = 'gpt-4.1'
-            kwa['temperature'] = 0.1
+            kwa['temperature'] = 0.3
             kwa['messages'] = [{}, {}]
 
             kwa['messages'][0]['role'] = 'system'
@@ -528,7 +685,7 @@ def analise_chapa(request):
             kwa['messages'][1]['content'][0]['type'] = 'text'
             kwa['messages'][1]['content'][0]['text'] = p.PROMPT_CHAPA_FINAL
             kwa['messages'][1]['content'][1]['type'] = 'text'
-            kwa['messages'][1]['content'][1]['text'] = final_text
+            kwa['messages'][1]['content'][1]['text'] = info_context
             kwa['messages'][1]['content'][2]['type'] = 'text'
             kwa['messages'][1]['content'][2]['text'] = user_prompt
 
@@ -537,6 +694,7 @@ def analise_chapa(request):
             # Faz a requisição.
             try:
                 chat_completion = cli.chat.completions.create(**kwa)
+                dic = json.loads(chat_completion.choices[0].message.function_call.arguments)
 
             except openai.OpenAIError as e:
                 logger.error(f'Error occurred: {str(e)}', exc_info=True)
@@ -549,9 +707,11 @@ def analise_chapa(request):
                 return render(request, 'analise_chapa.html')
 
         # Coleta as informações necessárias.
-        materia_prima = json.loads(chat_completion.choices[0].message.function_call.arguments).get('materia_prima', '')
-        maquinas = json.loads(chat_completion.choices[0].message.function_call.arguments).get('maquinas', [])
-        processos = json.loads(chat_completion.choices[0].message.function_call.arguments).get('processos', '')
+        materia_prima = dic.get('materia_prima', '')
+        maquinas = dic.get('maquinas', [])
+        processos = dic.get('processos', '')
+        em_estoque = dic.get('em_estoque', False)
+        item_do_estoque = dic.get('item_do_estoque', '')
         aproveitamento = json.loads(chat_completion.choices[0].message.function_call.arguments).get('aproveitamento', '')
 
         # Salva o Projeto
@@ -570,6 +730,8 @@ def analise_chapa(request):
         project.raw_material = materia_prima
         project.machines = ', '.join(maquinas)
         project.processes = processos
+        project.in_stock = em_estoque
+        project.recommended_stock_item = item_do_estoque
         project.ia_observation = aproveitamento
 
         project.save()
@@ -578,6 +740,8 @@ def analise_chapa(request):
         ctx['materia_prima'] = materia_prima
         ctx['maquinas'] = maquinas
         ctx['processos'] = processos
+        ctx['em_estoque'] = em_estoque
+        ctx['item_do_estoque'] = item_do_estoque
         ctx['aproveitamento'] = aproveitamento
         ctx['image_url'] = project.drawing.url
 

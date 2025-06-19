@@ -306,42 +306,36 @@ PROMPT_CHAPA_ANALISE = '''
     Cuidado com vírgulas e pontos decimais nas cotas (ex: 5,0 ≠ 50)
     Verifique se há inconsistências, medidas sobrepostas ou faltantes.
 
-    3. Resposta Final (Formato Padronizado)
-    Responda neste formato:
+    3. Cálculo da Matéria-Prima Bruta (em milímetros)
+    - Utilize a espessura máxima extraída (incluindo rebaixos) como referência.
+    - Considere que, se o grau de acabamento for alto, pode ser necessária uma chapa com espessura um pouco maior para garantir qualidade.
 
-    Espessura: [ESPESSURA]
-    Comprimento: [COMPRIMENTO]
-    Largura: [LARGURA]
-    Rebaixos: [Descreva se houver; se não, diga “Não possui”]
-    Furos: [Quantidade total, tipos e posições]
-    Observações: [Outros detalhes relevantes, como raios, cortes, ressaltos, cotas implícitas, tolerâncias críticas etc.]
+    Calcule e informe:
+    Espessura bruta estimada = maior espessura + 10 mm (sobremetal) - Esse cálculo deverá ser feito somente em chapas grosseiras, pois chapas finas não necessitam de sobremetal.
+    IMPORTANTE: As chapas geralmente são requisitadas para compra com as medidas exatas de comprimento e largura, portanto não é necessário considerar sobremetal para essas dimensões.
 '''
 
 PROMPT_CHAPA_FINAL = '''
     Você é um especialista em fabricação de chapas metálicas e Planejamento e Controle de Produção (PCP). Utilize os dados extraídos do desenho (resultados da Etapa 1) para determinar a solução de produção, seguindo as etapas abaixo:
 
-    1. **Determinação da Espessura:**
-    - Utilize a espessura máxima extraída (incluindo rebaixos) como referência.
-    - Consulte o catálogo abaixo para selecionar a chapa com a espessura mais próxima à medida do desenho.
-    - Considere que, se o grau de acabamento for alto, pode ser necessária uma chapa com espessura um pouco maior para garantir qualidade.
-
-    2. **Seleção da Matéria-Prima:**
-    - Com a espessura definida, informe a matéria-prima a ser utilizada, comprimento (milímetro), largura (milímetro) e espessura (polegada).
+    1. **Seleção da Matéria-Prima:**
+    - Consulte o catálogo abaixo para selecionar a chapa com a espessura mais próxima à matéria prima fornecida.
+    - Informe a matéria-prima a ser utilizada, comprimento (milímetro), largura (milímetro) e espessura (polegada).
     - O usuário deve receber a sua análise de forma clara e objetiva, com as medidas exatas da chapa a ser adquirida.
 
-    3. **Processos de Fabricação:**
+    2. **Processos de Fabricação:**
     - IMPORTANTE: As requisições das chapas, na maioria das vezes já são nas medidas desejadas, ou seja, não é necessário um adicionar um processo de corte a laser, a chapa já é recebida cortada.
     - Liste APENAS os processos de fabricação necessários (dobra, usinagem etc.).
     - Atenha-se exclusivamente aos processos que podem ser confirmados pela análise das medidas e detalhes do desenho.
     - Para chapas com espessura superior a 8 mm, inclua a verificação de usinagem.
     - Enumere os processos de forma clara e objetiva, sem redundâncias.
 
-    4. **Otimização do Layout:**
+    3. **Otimização do Layout:**
     - Calcule o layout para minimizar o desperdício da chapa.
     - Utilize os padrões "linear" ou "hexagonal", conforme a melhor adequação, e considere uma margem de segurança de 2 mm quando necessário.
     - Priorize sempre o uso de chapas comerciais disponíveis no catálogo.
 
-    5. **Catálogo Completo (para consulta):**
+    4. **Catálogo Completo (para consulta):**
     --- CHAPAS FINAS ---
     Nº (Gauge/Ref); Espessura (mm); Peso (Kg/m²)
     16; 1,50; 12,00
@@ -383,7 +377,7 @@ PROMPT_CHAPA_FINAL = '''
     6"; 152,40; 1195,12
     6 1/2"; 165,10; 1294,71
 
-    6. **Observações Adicionais:**
+    5. **Observações Adicionais:**
     - O valor da quantidade de chapas necessárias (informação adicional fornecida pelo usuário) deve ser considerado na análise final, mas não precisa ser repetido na resposta final.
 
     Com base nos dados extraídos na Etapa 1, elabore seu raciocínio e forneça a resposta seguindo o formato especificado.

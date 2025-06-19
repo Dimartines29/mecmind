@@ -92,6 +92,15 @@
                         <div class="result-section">
                             <h3><i class="fas fa-hammer"></i> Matéria Prima</h3>
                             <p>{{ materia_prima }}</p>
+
+                            <h3><i class="fas fa-hammer"></i> Disponibilidade no estoque</h3>
+
+                            {% if em_estoque %}
+                                <p>{{ item_do_estoque }}</p>
+
+                            {% else %}
+                                <p class="not-available">Sem Disponibilidade</p>
+                            {% endif %}
                         </div>
 
                         <div class="result-section">
