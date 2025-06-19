@@ -93,7 +93,7 @@
         <tbody>
             {% for i in page_obj %}
                 <tr>
-                    <td>{{ i.code }}</td>
+                    <td><a class="list-link" href="{% url 'editar_estoque' i.id %}">{{ i.code }}</a></td>
                     <td>{{ i.category }}</td>
                     <td>{{ i.material }}</td>
                     <td>{{ i.quantity }}</td>
@@ -102,19 +102,9 @@
                     <td>{% if i.thickness %}{{ i.thickness }}{% else %} - {% endif %}</td>
                     <td>{% if i.diameter %}{{ i.diameter }}{% else %} - {% endif %}</td>
                     <td>
-                        <div class="actions-dropdown">
-                            <button class="actions-button" onclick="toggleActionMenu({{ i.id }})">
-                                <i class="fas fa-ellipsis-v"></i>
-                            </button>
-                            <div class="actions-menu" id="menu-{{ i.id }}">
-                                <a href="{% url 'editar_estoque' i.id %}">
-                                    <i class="fas fa-edit"></i> Editar
-                                </a>
-                                <a href="#" class="delete-action" onclick="confirmDelete({{ i.id }}, '{{ i.name }}')">
-                                    <i class="fas fa-trash"></i> Excluir
-                                </a>
-                            </div>
-                        </div>
+                        <a href="#" class="delete-action" onclick="confirmDelete({{ i.id }}, '{{ i.name }}')">
+                            <i class="fas fa-trash" style="color: #dc3545;"></i>
+                        </a>
                     </td>
                 </tr>
             {% empty %}

@@ -331,29 +331,6 @@ document.addEventListener('DOMContentLoaded', function() {
     updateFieldsVisibility();
 });
 
-// Controle dos menus dropdown
-function toggleActionMenu(itemId) {
-    // Fechar todos os outros menus
-    document.querySelectorAll('.actions-menu').forEach(menu => {
-        if (menu.id !== `menu-${itemId}`) {
-            menu.classList.remove('show');
-        }
-    });
-
-    // Toggle do menu atual
-    const menu = document.getElementById(`menu-${itemId}`);
-    menu.classList.toggle('show');
-}
-
-// Fechar menus ao clicar fora
-document.addEventListener('click', function(event) {
-    if (!event.target.closest('.actions-dropdown')) {
-        document.querySelectorAll('.actions-menu').forEach(menu => {
-            menu.classList.remove('show');
-        });
-    }
-});
-
 // Modal de confirmação de exclusão
 function confirmDelete(itemId, itemName) {
     const modal = document.getElementById('deleteModal');
