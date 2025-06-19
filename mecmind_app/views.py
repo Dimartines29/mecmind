@@ -1470,5 +1470,13 @@ def logout_view(request):
 def acesso_negado(request):
     return render(request, 'acesso_negado.html')
 
+def server_error(request):
+    '''
+    View personalizada para erro 500 (erro interno do servidor)
+    Esta view é chamada automaticamente pelo Django quando ocorre um erro interno
+    '''
+
+    return render(request, 'server_error.html', status=500)
+
 def test_tailwind(request):
     return render(request, 'test_tailwind.html')
