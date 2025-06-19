@@ -84,7 +84,7 @@ def analise_eixo(request):
         quantity_text = f' A quantidade de peças necessárias para este projeto é de {request.POST.get("quantidade", "1")}.'
 
         # Adiciona a quantidade ao prompt do usuário.
-        user_prompt = 'Observações adicionais do usuário: ' + request.POST.get("prompt", "") + '\n' + quantity_text
+        user_prompt = 'Observações adicionais do usuário: ' + request.POST.get('prompt', '') + '\n' + quantity_text
 
         # Encoda a imagem
         base64_image = _encode_image(request.FILES['image'])
@@ -333,7 +333,7 @@ def analise_chapa(request):
         quantity_text = f' A quantidade de peças necessárias para este projeto é de {request.POST.get("quantidade", "1")}.'
 
         # Adiciona a quantidade ao prompt do usuário.
-        user_prompt = 'Observações adicionais do usuário: ' + request.POST.get("prompt", "") + '\n' + quantity_text
+        user_prompt = 'Observações adicionais do usuário: ' + request.POST.get('prompt', '') + '\n' + quantity_text
 
         # Encoda a imagem.
         base64_image = _encode_image(request.FILES['image'])
@@ -757,16 +757,56 @@ def analise_tubo(request):
         quantity_text = f' A quantidade de peças necessárias para este projeto é de {request.POST.get("quantidade", "1")}.'
 
         # Adiciona a quantidade ao prompt do usuário.
-        user_prompt = 'Observações adicionais do usuário: ' + request.POST.get("prompt", "") + '\n' + quantity_text
+        user_prompt = 'Observações adicionais do usuário: ' + request.POST.get('prompt', '') + '\n' + quantity_text
 
         # Encoda a imagem
         base64_image = _encode_image(request.FILES['image'])
 
+        # Monta a função para estruturar a PRIMEIRA chamada de API.
+        analysis_function = [{}]
+
+        analysis_function[0]['type'] = 'function'
+        analysis_function[0]['name'] = 'get_info'
+        analysis_function[0]['description'] = 'Analisa com precisão um desenho mecânico de um tubo mecânico e determina todos os pontos relevantes para fabricação.'
+        analysis_function[0]['parameters'] = {}
+
+        analysis_function[0]['parameters']['type'] = 'object'
+        analysis_function[0]['parameters']['properties'] = {}
+
+        analysis_function[0]['parameters']['properties']['diametro_maior'] = {}
+        analysis_function[0]['parameters']['properties']['diametro_maior']['type'] = 'number'
+        analysis_function[0]['parameters']['properties']['diametro_maior']['description'] = 'Informe o maior diâmetro (em milímetros) do tubo com base na análise do desenho.'
+
+        analysis_function[0]['parameters']['properties']['diametros'] = {}
+        analysis_function[0]['parameters']['properties']['diametros']['type'] = 'string'
+        analysis_function[0]['parameters']['properties']['diametros']['description'] = 'Informe outros diâmetros relevantes para fabricação.'
+
+        analysis_function[0]['parameters']['properties']['comprimento'] = {}
+        analysis_function[0]['parameters']['properties']['comprimento']['type'] = 'string'
+        analysis_function[0]['parameters']['properties']['comprimento']['description'] = 'Informe o comprimento total do tubo com base na análise do desenho.'
+
+        analysis_function[0]['parameters']['properties']['roscas'] = {}
+        analysis_function[0]['parameters']['properties']['roscas']['type'] = 'string'
+        analysis_function[0]['parameters']['properties']['roscas']['description'] = 'Informe se identificou a presença de roscas internas ou externas. Informe suas posições e todas suas especificações.'
+
+        analysis_function[0]['parameters']['properties']['furos'] = {}
+        analysis_function[0]['parameters']['properties']['furos']['type'] = 'string'
+        analysis_function[0]['parameters']['properties']['furos']['description'] = 'Informe se identificou a presença de furos. Informe suas posições e todas suas especificações.'
+
+        analysis_function[0]['parameters']['properties']['materia_prima'] = {}
+        analysis_function[0]['parameters']['properties']['materia_prima']['type'] = 'string'
+        analysis_function[0]['parameters']['properties']['materia_prima']['description'] = 'Informe a matéria-prima com base na análise do desenho. Especifique o diâmetro e o comprimento final.'
+
+        analysis_function[0]['parameters']['properties']['observacoes'] = {}
+        analysis_function[0]['parameters']['properties']['observacoes']['type'] = 'string'
+        analysis_function[0]['parameters']['properties']['observacoes']['description'] = 'Observações importantes encontradas na análise e que o próximo modelo deve levar em consideração'
+
+        analysis_function[0]['parameters']['required'] = ['diametro_maior', 'comprimento', 'materia_prima', 'observacoes']
+
         # Monta o dicionário para a primeira chamada.
         kwa = {}
 
-        kwa['model'] = 'chatgpt-4o-latest'
-        kwa['temperature'] = 0.1
+        kwa['model'] = 'o4-mini'
         kwa['messages'] = [{}, {}]
 
         kwa['messages'][0]['role'] = 'system'
@@ -781,9 +821,13 @@ def analise_tubo(request):
         kwa['messages'][1]['content'][1]['type'] = 'image_url'
         kwa['messages'][1]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
 
+        kwa['functions'] = analysis_function
+        kwa['function_call'] = {'name': 'get_info'}
+
         # Faz a requisição.
         try:
             chat_completion = cli.chat.completions.create(**kwa)
+            dic = json.loads(chat_completion.choices[0].message.function_call.arguments)
 
         except openai.OpenAIError as e:
             logger.error(f'Error occurred: {str(e)}', exc_info=True)
@@ -797,8 +841,33 @@ def analise_tubo(request):
 
             return render(request, 'analise_tubo.html')
 
-        final_text = 'Essas são todas as informações necessárias para a sua análise: \n'
-        final_text += chat_completion.choices[0].message.content
+        # Monta o texto de contextualização do projeto.
+        info_project = 'Essas são todas as informações necessárias para a sua análise: \n'
+
+        info_project += f'Diâmetro maior: {dic.get("diametro_maior", "")}\n'
+        info_project += f'Diâmetros: {dic.get("diametros", "")}\n'
+        info_project += f'Comprimento: {dic.get("comprimento", "")}\n'
+        info_project += f'Roscas: {dic.get("roscas", "")}\n'
+        info_project += f'Furos: {dic.get("furos", "")}\n'
+        info_project += f'Rasgos de chaveta: {dic.get("rasgos_de_chaveta", "")}\n'
+        info_project += f'Matéria-prima: {dic.get("materia_prima", "")}\n'
+        info_project += f'Observações: {dic.get("observacoes", "")}\n'
+        info_project += '\n'
+
+        # Monta a lista de estoque de barras redondas disponíveis para análise da IA.
+        stock = m.Stock.objects.filter(company=request.user.company, status='disponivel', category='tubo')
+        stock_list = []
+
+        for item in stock:
+            stock_list.append(f'Item: {item.name}, Código: {item.code}, Diâmetro: {item.diameter}, Comprimento: {item.length}, Material: {item.material}, Quantidade: {item.quantity}')
+
+        msg_stock = 'Estes são os itens disponíveis no estoque:\n' + '\n'.join(stock_list)
+
+        # Monta o texto de contextualização da Empresa para a análise.
+        company_info = _get_company_info(m.Company.objects.get(name=request.user.company.name))
+
+        # Agrupa todas as informações de contexto.
+        info_context = f'{company_info}\n{msg_stock}\n{info_project}'
 
         # Monta a função para estruturar a SEGUNDA chamada de API.
         process_function = [{}]
@@ -815,6 +884,10 @@ def analise_tubo(request):
         process_function[0]['parameters']['properties']['materia_prima']['type'] = 'string'
         process_function[0]['parameters']['properties']['materia_prima']['description'] = 'Informe a matéria-prima baseando-se no catálogo.'
 
+        process_function[0]['parameters']['properties']['processos'] = {}
+        process_function[0]['parameters']['properties']['processos']['type'] = 'string'
+        process_function[0]['parameters']['properties']['processos']['description'] = 'Explique aqui o processo que cada máquina irá realizar. Coloque cada processo como um tópico, mas sem numeração.'
+
         process_function[0]['parameters']['properties']['maquinas'] = {}
         process_function[0]['parameters']['properties']['maquinas']['type'] = 'array'
         process_function[0]['parameters']['properties']['maquinas']['description'] = 'Liste aqui todas as máquinas necessárias para a fabricação do tubo.'
@@ -822,21 +895,25 @@ def analise_tubo(request):
         process_function[0]['parameters']['properties']['maquinas']['items']['type'] = 'string'
         process_function[0]['parameters']['properties']['maquinas']['items']['description'] = 'Nome da máquina necessária para o processo.'
 
-        process_function[0]['parameters']['properties']['processos'] = {}
-        process_function[0]['parameters']['properties']['processos']['type'] = 'string'
-        process_function[0]['parameters']['properties']['processos']['description'] = 'Explique aqui o processo que cada máquina irá realizar. Coloque cada processo como um tópico, mas sem numeração.'
+        process_function[0]['parameters']['properties']['em_estoque'] = {}
+        process_function[0]['parameters']['properties']['em_estoque']['type'] = 'boolean'
+        process_function[0]['parameters']['properties']['em_estoque']['description'] = 'Indica se existe algum material em estoque que pode servir de matéria prima para fabricar o eixo.'
+
+        process_function[0]['parameters']['properties']['item_do_estoque'] = {}
+        process_function[0]['parameters']['properties']['item_do_estoque']['type'] = 'string'
+        process_function[0]['parameters']['properties']['item_do_estoque']['description'] = 'Indica qual item do estoque pode ser usado como matéria prima para fabricar o eixo.'
 
         process_function[0]['parameters']['properties']['observacoes'] = {}
         process_function[0]['parameters']['properties']['observacoes']['type'] = 'string'
         process_function[0]['parameters']['properties']['observacoes']['description'] = 'Observações importantes encontradas na análise e que o usuário deve levar em consideração'
 
-        process_function[0]['parameters']['required'] = ['materia_prima', 'maquinas', 'processos']
+        process_function[0]['parameters']['required'] = ['materia_prima', 'processos', 'maquinas', 'em_estoque']
 
         # Monta a segunda chamada.
         kwa = {}
 
         kwa['model'] = 'gpt-4o'
-        kwa['temperature'] = 0.1
+        kwa['temperature'] = 0.3
         kwa['messages'] = [{}, {}]
 
         kwa['messages'][0]['role'] = 'system'
@@ -849,7 +926,7 @@ def analise_tubo(request):
         kwa['messages'][1]['content'][0]['type'] = 'text'
         kwa['messages'][1]['content'][0]['text'] = p.PROMPT_TUBO_FINAL
         kwa['messages'][1]['content'][1]['type'] = 'text'
-        kwa['messages'][1]['content'][1]['text'] = final_text
+        kwa['messages'][1]['content'][1]['text'] = info_context
         kwa['messages'][1]['content'][2]['type'] = 'text'
         kwa['messages'][1]['content'][2]['text'] = user_prompt
 
@@ -859,6 +936,7 @@ def analise_tubo(request):
         # Faz a requisição.
         try:
             chat_completion = cli.chat.completions.create(**kwa)
+            dic = json.loads(chat_completion.choices[0].message.function_call.arguments)
 
         except openai.OpenAIError as e:
             logger.error(f'Error occurred: {str(e)}', exc_info=True)
@@ -871,10 +949,12 @@ def analise_tubo(request):
             return render(request, 'analise_tubo.html')
 
         # Coleta as informações necessárias.
-        materia_prima = json.loads(chat_completion.choices[0].message.function_call.arguments).get('materia_prima', '')
-        maquinas = json.loads(chat_completion.choices[0].message.function_call.arguments).get('maquinas', [])
-        processos = json.loads(chat_completion.choices[0].message.function_call.arguments).get('processos', '')
-        observacoes = json.loads(chat_completion.choices[0].message.function_call.arguments).get('observacoes', '')
+        materia_prima = dic.get('materia_prima', '')
+        maquinas = dic.get('maquinas', [])
+        processos = dic.get('processos', '')
+        em_estoque = dic.get('em_estoque', False)
+        item_do_estoque = dic.get('item_do_estoque', '')
+        observacoes = dic.get('observacoes', '')
 
         # Salva o Projeto.
         project = m.Project()
@@ -892,6 +972,8 @@ def analise_tubo(request):
         project.raw_material = materia_prima
         project.machines = ', '.join(maquinas)
         project.processes = processos
+        project.in_stock = em_estoque
+        project.recommended_stock_item = item_do_estoque
         project.ia_observation = observacoes
 
         project.save()
@@ -900,6 +982,8 @@ def analise_tubo(request):
         ctx['materia_prima'] = materia_prima
         ctx['maquinas'] = maquinas
         ctx['processos'] = processos
+        ctx['em_estoque'] = em_estoque
+        ctx['item_do_estoque'] = item_do_estoque
         ctx['observacoes'] = observacoes
         ctx['image_url'] = project.drawing.url
 

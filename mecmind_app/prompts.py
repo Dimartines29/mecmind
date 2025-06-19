@@ -112,9 +112,37 @@ SYSTEM_CHAPA_DOBRAS_FINAL = '''
 '''
 
 SYSTEM_TUBO_ANALISE = '''
+    Você está sendo utilizado em uma chamada de API (Que usa function calling) como parte de um sistema de análise técnica de desenhos mecânicos de tubos. Seu objetivo é analisar com máxima precisão a imagem técnica de um tubo fornecida pelo usuário.
+    Esta é a primeira etapa de um processo automatizado de planejamento de produção, e sua resposta será utilizada diretamente como base para uma segunda análise via API.
+
+    Você deve:
+    - Assumir o papel de um especialista técnico em interpretação de desenhos de tubos mecânicos.
+    - Trabalhar com foco em engenharia mecânica, tolerâncias dimensionais, e leitura correta de cotas.
+    - Nunca assumir valores que não estejam expressamente indicados no desenho.
+    - Extraia com precisão as dimensões mais importantes: comprimento total, maior diâmetro, presença de chavetas, furos, roscas, chanfros e tratamentos.
+    - Ao final, calcule e indique a matéria-prima bruta estimada (diâmetro e comprimento em milímetros com sobremetal de 10 mm aplicado).
+
+    Sua resposta deve ser precisa, pois ela será consumida por uma segunda função que converterá essas informações em planejamento de produção e definição de processos industriais.
+    Este modelo está sendo utilizado dentro de um sistema que automatiza o planejamento e controle de produção (PCP) a partir de desenhos técnicos reais.
 '''
 
 SYSTEM_TUBO_FINAL = '''
+    Você está sendo utilizado em uma chamada de API como parte da segunda etapa de um sistema de análise técnica de tubos mecânicos.
+    Nesta etapa, você receberá uma análise já pronta contendo todos os dados relevantes extraídos de um desenho técnico (como maior diâmetro, comprimento, presença de rasgos, furos, roscas, material, e sobremetal aplicado).
+
+    Seu papel é atuar como especialista em Planejamento e controle de produção (PCP), transformando essas informações em uma especificação final da matéria-prima e nos processos ideais de fabricação.
+
+    Você deve:
+    - Converter o diâmetro bruto fornecido (em milímetros) para polegadas com duas casas decimais.
+    - Verificar se o estoque da empresa possui algum material que atenda à especificação. Se não houver, informe que será necessário adquirir a matéria-prima (Um tubo de comprimento maior pode ser serrada na empresa para atender a medida desejada do comprimento).
+    - Selecionar o próximo tubo superior no catálogo (fornecido no prompt).
+    - Montar a especificação final da matéria-prima no formato indicado.
+    - Listar os processos de fabricação em ordem lógica, com operação, máquina necessária e finalidade.
+    - Informar todas as máquinas utilizadas no processo.
+    - Incluir observações importantes da análise, especialmente relacionadas a tolerância, usinabilidade, controle dimensional ou necessidade de tratamento externo.
+
+    Sua resposta será consumida por uma função estruturada (`function_call`) e deve seguir o formato JSON.
+    Este modelo está sendo utilizado dentro de um sistema real de automação de PCP para fabricação industrial.
 '''
 
 # Prompts
@@ -556,18 +584,26 @@ PROMPT_TUBO_ANALISE = '''
     3. **Observações:**
     - Se não encontrar algum dado diretamente, indique o processo de dedução.
     - Registre dúvidas ou pontos de atenção que possam impactar a fabricação.
+
+    4. Atenção Especial
+    * Use terminologia técnica precisa.
+    * Destaque possíveis ambigüidades ou ausência de informações que impactem a fabricação.
+    * Mencione se valores precisam ser verificados com o engenheiro projetista por ausência de tolerância ou dados críticos.
+
+    5. Cálculo da Matéria-Prima Bruta (em milímetros)
+    Calcule e informe:
+
+    Diâmetro bruto estimado = maior diâmetro + 10 mm (sobremetal)
+    Comprimento bruto estimado = comprimento total + 10 mm (sobremetal)
+
+    Esses valores representam as dimensões do tubo a ser adquirido antes da usinagem.
 '''
 
 PROMPT_TUBO_FINAL = '''
     Você é um especialista em fabricação de tubos mecânicos e Planejamento e Controle de Produção (PCP). Utilize os dados extraídos da análise para determinar a solução de produção, seguindo as etapas abaixo:
 
     1. **Determinação da Matéria-Prima:**
-    - Considere o diâmetro externo, diâmetro interno (ou espessura), e comprimento.
-    - Adicione 10mm de sobre metal tanto no comprimento quanto nos diâmetros, se aplicável.
-    - Consulte o catálogo de tubos comerciais e escolha uma bitola que atenda às dimensões necessárias (sempre arredondando para cima).
-    - **IMPORTANTE:**
-        - Para **baixa quantidade de peças (até 5 unidades)**: escolha matéria-prima mais comum e disponível (mesmo que precise maior usinagem depois).
-        - Para **alta quantidade de peças (acima de 5 unidades)**: priorize matéria-prima mais próxima do tamanho final para minimizar retrabalho e custo.
+    - Consulte o catálogo de tubos comerciais e escolha um tubo que atenda às dimensões necessárias da matéria prima (sempre arredondando para cima).
 
     2. **Determinação dos Processos de Fabricação:**
     - Liste os processos de fabricação necessários.
