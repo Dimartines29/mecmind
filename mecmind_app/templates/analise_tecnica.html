@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}MecMind - Análise montagem{% endblock %}
+{% block title %}MecMind - Análise Técnica{% endblock %}
 
 {% block extra_css %}{% endblock %}
 
 {% block content %}
     <div class="container">
         <header>
-            <h1>Análise de Desenho Técnico para Montagens</h1>
-            <p>Envie seu desenho técnico e receba todos os dados necessários para compra e fabricação.</p>
+            <h1>Análise de Desenho Técnico</h1>
+            <p>Envie seu desenho técnico e tire dúvidas para fabricação e compra.</p>
         </header>
 
         <div class="status-indicator">
@@ -28,7 +28,7 @@
         </div>
 
         <div class="upload-container">
-            <form id="uploadForm" action="{% url 'analise_montagem' %}" method="POST" enctype="multipart/form-data">
+            <form id="uploadForm" action="{% url 'analise_tecnica' %}" method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="image-preview-container">
                     <div id="preview">
@@ -48,7 +48,7 @@
                     <label for="prompt">
                         <i class="fas fa-comment-dots"></i> Observações adicionais (Opcional):
                     </label>
-                    <textarea id="prompt" name="prompt" placeholder="Escreva aqui informações relevantes para a análise do projeto, como especificações de materiais, restrições de fabricação ou outras considerações importantes..."></textarea>
+                    <textarea id="prompt" name="prompt" placeholder="Escreva aqui todas as suas dúvidas e ideias para o projeto que está trabalhando..."></textarea>
                 </div>
 
                 <button type="submit" id="analyzeBtn" class="analyze-btn">

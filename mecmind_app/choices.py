@@ -7,9 +7,7 @@ PROJETO = {
         'Chapa',
         'Eixo',
         'Tubo',
-        'Solda',
-        'Montagem',
-        'Geral',
+        'Técnica',
     ),
 }
 

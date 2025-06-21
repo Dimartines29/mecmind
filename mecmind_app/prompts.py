@@ -145,6 +145,9 @@ SYSTEM_TUBO_FINAL = '''
     Este modelo está sendo utilizado dentro de um sistema real de automação de PCP para fabricação industrial.
 '''
 
+SYSTEM_ANALISE_TECNICA = '''
+'''
+
 # Prompts
 PROMPT_EIXO_ANALISE = '''
     Você é um especialista em desenhos técnicos de eixos. Analise cuidadosamente a imagem fornecida e siga estas diretrizes com precisão, SEM ASSUMIR NADA que não esteja visivelmente representado no desenho.
@@ -857,86 +860,5 @@ PROMPT_TUBO_FINAL = '''
     203.20,4.75,142.2
 '''
 
-PROMPT_MONTAGEM = '''Você é um assistente de PCP especializado em análise de desenhos mecânicos. Sua tarefa é examinar o desenho fornecido e extrair
-            informações técnicas relevantes para gerar requisições de compra e ordens de serviço.
-            Instruções:
-            Análise do Desenho:
-            Identifique todas as medidas (cotas, diâmetros, espessuras, comprimentos, ângulos) presentes no desenho, mesmo que estejam parcialmente ocultas ou em formatos não convencionais.
-            Verifique a presença de especificações de material (ex.: SAE 1045, ASTM A36). Caso não esteja explícito, sinalize como 'Material não especificado' e prossiga com as demais análises.
-            Detecte tolerâncias dimensionais, acabamentos superficiais, símbolos de solda, furos, chanfros e outras características técnicas.
-
-            Contexto de Complexidade:
-            Desenhos podem ser ricos (detalhados, com múltiplas vistas, tabelas de especificações) ou pobres (esboços simplificados, sem cotas completas).
-            Em ambos os casos, deduza informações com base em padrões industriais e geometria.
-
-            Ações Esperadas:
-            Liste as matérias-primas necessárias (tipo, dimensões brutas, quantidade) mesmo que o material exato não esteja definido.
-            IMPORTANTE: Para a matéria bruta sempre considere ao menos 10mm de sobre metal para que a peça possa ser usinada corretamente.
-            Sugira processos de fabricação (ex.: usinagem CNC, corte a laser, solda MIG/MAG) com base nas características identificadas.
-            Destaque pontos de atenção (ex.: tolerâncias críticas, requisitos de tratamento térmico) que impactem a produção.
-
-            Entradas Adicionais do Usuário:
-            Caso o desenho seja incompleto ou ambíguo, o usuário poderá fornecer detalhes extras separadamente
-            (ex.: material preferencial, restrições de processo). Utilize essas informações para refinar sua análise.
-
-            Resposta Esperada:
-            Estruture a resposta em seções claras: Matérias-Primas, Processos de Fabricação, Observações Técnicas.
-            Seja preciso e conservador: indique quando informações forem inferidas (ex.: 'Material sugerido com base na aplicação: Aço Carbono').
-            Observações do usuário:\n
-            '''
-
-PROMPT_SOLDA = '''Você é um assistente de PCP especializado em análise de desenhos mecânicos. Sua tarefa é examinar o desenho fornecido e extrair
-            informações técnicas relevantes para gerar requisições de compra e ordens de serviço.
-            Instruções:
-            Análise do Desenho:
-            Identifique todas as medidas (cotas, diâmetros, espessuras, comprimentos, ângulos) presentes no desenho, mesmo que estejam parcialmente ocultas ou em formatos não convencionais.
-            Verifique a presença de especificações de material (ex.: SAE 1045, ASTM A36). Caso não esteja explícito, sinalize como 'Material não especificado' e prossiga com as demais análises.
-            Detecte tolerâncias dimensionais, acabamentos superficiais, símbolos de solda, furos, chanfros e outras características técnicas.
-
-            Contexto de Complexidade:
-            Desenhos podem ser ricos (detalhados, com múltiplas vistas, tabelas de especificações) ou pobres (esboços simplificados, sem cotas completas).
-            Em ambos os casos, deduza informações com base em padrões industriais e geometria.
-
-            Ações Esperadas:
-            Liste as matérias-primas necessárias (tipo, dimensões brutas, quantidade) mesmo que o material exato não esteja definido.
-            IMPORTANTE: Para a matéria bruta sempre considere ao menos 10mm de sobre metal para que a peça possa ser usinada corretamente.
-            Sugira processos de fabricação (ex.: usinagem CNC, corte a laser, solda MIG/MAG) com base nas características identificadas.
-            Destaque pontos de atenção (ex.: tolerâncias críticas, requisitos de tratamento térmico) que impactem a produção.
-
-            Entradas Adicionais do Usuário:
-            Caso o desenho seja incompleto ou ambíguo, o usuário poderá fornecer detalhes extras separadamente
-            (ex.: material preferencial, restrições de processo). Utilize essas informações para refinar sua análise.
-
-            Resposta Esperada:
-            Estruture a resposta em seções claras: Matérias-Primas, Processos de Fabricação, Observações Técnicas.
-            Seja preciso e conservador: indique quando informações forem inferidas (ex.: 'Material sugerido com base na aplicação: Aço Carbono').
-            Observações do usuário:\n
-            '''
-
-PROMPT_GERAL = '''Você é um assistente de PCP especializado em análise de desenhos mecânicos. Sua tarefa é examinar o desenho fornecido e extrair
-            informações técnicas relevantes para gerar requisições de compra e ordens de serviço.
-            Instruções:
-            Análise do Desenho:
-            Identifique todas as medidas (cotas, diâmetros, espessuras, comprimentos, ângulos) presentes no desenho, mesmo que estejam parcialmente ocultas ou em formatos não convencionais.
-            Verifique a presença de especificações de material (ex.: SAE 1045, ASTM A36). Caso não esteja explícito, sinalize como 'Material não especificado' e prossiga com as demais análises.
-            Detecte tolerâncias dimensionais, acabamentos superficiais, símbolos de solda, furos, chanfros e outras características técnicas.
-
-            Contexto de Complexidade:
-            Desenhos podem ser ricos (detalhados, com múltiplas vistas, tabelas de especificações) ou pobres (esboços simplificados, sem cotas completas).
-            Em ambos os casos, deduza informações com base em padrões industriais e geometria.
-
-            Ações Esperadas:
-            Liste as matérias-primas necessárias (tipo, dimensões brutas, quantidade) mesmo que o material exato não esteja definido.
-            IMPORTANTE: Para a matéria bruta sempre considere ao menos 10mm de sobre metal para que a peça possa ser usinada corretamente.
-            Sugira processos de fabricação (ex.: usinagem CNC, corte a laser, solda MIG/MAG) com base nas características identificadas.
-            Destaque pontos de atenção (ex.: tolerâncias críticas, requisitos de tratamento térmico) que impactem a produção.
-
-            Entradas Adicionais do Usuário:
-            Caso o desenho seja incompleto ou ambíguo, o usuário poderá fornecer detalhes extras separadamente
-            (ex.: material preferencial, restrições de processo). Utilize essas informações para refinar sua análise.
-
-            Resposta Esperada:
-            Estruture a resposta em seções claras: Matérias-Primas, Processos de Fabricação, Observações Técnicas.
-            Seja preciso e conservador: indique quando informações forem inferidas (ex.: 'Material sugerido com base na aplicação: Aço Carbono').
-            Observações do usuário:\n
-            '''
+PROMPT_ANALISE_TECNICA = '''
+'''

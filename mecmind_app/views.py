@@ -992,7 +992,7 @@ def analise_tubo(request):
     return render(request, 'analise_tubo.html')
 
 @login_required(login_url='/login')
-def analise_montagem(request):
+def analise_tecnica(request):
     if request.method == 'POST':
         user_prompt = request.POST.get('prompt', '')
         image = request.FILES['image']
@@ -1015,7 +1015,7 @@ def analise_montagem(request):
         kwa['messages'][0]['content'] = [{}, {}]
 
         kwa['messages'][0]['content'][0]['type'] = 'text'
-        kwa['messages'][0]['content'][0]['text'] = p.PROMPT_MONTAGEM + user_prompt
+        kwa['messages'][0]['content'][0]['text'] = p.PROMPT_ANALISE_TECNICA + user_prompt
 
         kwa['messages'][0]['content'][1]['type'] = 'image_url'
         kwa['messages'][0]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
@@ -1030,95 +1030,9 @@ def analise_montagem(request):
 
         response_text = chat_completion.choices[0].message.content
 
-        return render(request, 'analise_montagem.html', {'response_text': response_text})
+        return render(request, 'analise_tecnica.html', {'response_text': response_text})
 
-    return render(request, 'analise_montagem.html')
-
-@login_required(login_url='/login')
-def analise_solda(request):
-    if request.method == 'POST':
-        user_prompt = request.POST.get('prompt', '')
-        image = request.FILES['image']
-
-        # Salva a imagem no diretório.
-        image_path = os.path.join(IMAGE_UPLOAD_PATH, image.name)
-        with open(image_path, 'wb+') as destination:
-            for chunk in image.chunks():
-                destination.write(chunk)
-
-        # Encoda a imagem.
-        base64_image = _encode_image(image_path)
-
-        # Monta o dicionário para a chamada:
-        kwa = {}
-
-        kwa['model'] = 'gpt-4o'
-        kwa['messages'] = [{}]
-        kwa['messages'][0]['role'] = 'user'
-        kwa['messages'][0]['content'] = [{}, {}]
-
-        kwa['messages'][0]['content'][0]['type'] = 'text'
-        kwa['messages'][0]['content'][0]['text'] = p.PROMPT_SOLDA + user_prompt
-
-        kwa['messages'][0]['content'][1]['type'] = 'image_url'
-        kwa['messages'][0]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
-
-        # Monta a requisição aqui.
-        try:
-            chat_completion = cli.chat.completions.create(**kwa)
-            print('Processamento concluído')
-
-        except Exception as e:
-            print(f'Ocorreu um erro durante o processamento: {e}')
-
-        response_text = chat_completion.choices[0].message.content
-
-        return render(request, 'analise_solda.html', {'response_text': response_text})
-
-    return render(request, 'analise_solda.html')
-
-@login_required(login_url='/login')
-def analise_geral(request):
-    if request.method == 'POST':
-        user_prompt = request.POST.get('prompt', '')
-        image = request.FILES['image']
-
-        # Salva a imagem no diretório.
-        image_path = os.path.join(IMAGE_UPLOAD_PATH, image.name)
-        with open(image_path, 'wb+') as destination:
-            for chunk in image.chunks():
-                destination.write(chunk)
-
-        # Encoda a imagem
-        base64_image = _encode_image(image_path)
-
-        # Monta o dicionário para a chamada:
-        kwa = {}
-
-        kwa['model'] = 'gpt-4o'
-        kwa['messages'] = [{}]
-        kwa['messages'][0]['role'] = 'user'
-        kwa['messages'][0]['content'] = [{}, {}]
-
-        kwa['messages'][0]['content'][0]['type'] = 'text'
-        kwa['messages'][0]['content'][0]['text'] = p.PROMPT_GERAL + user_prompt
-
-        kwa['messages'][0]['content'][1]['type'] = 'image_url'
-        kwa['messages'][0]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
-
-        # Monta a requisição aqui.
-        try:
-            chat_completion = cli.chat.completions.create(**kwa)
-            print('Processamento concluído')
-
-        except Exception as e:
-            print(f'Ocorreu um erro durante o processamento: {e}')
-
-        response_text = chat_completion.choices[0].message.content
-
-        return render(request, 'analise_geral.html', {'response_text': response_text})
-
-    return render(request, 'analise_geral.html')
+    return render(request, 'analise_tecnica.html')
 
 @login_required(login_url='/login')
 def projetos(request):
