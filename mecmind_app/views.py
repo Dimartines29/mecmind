@@ -993,44 +993,87 @@ def analise_tubo(request):
 
 @login_required(login_url='/login')
 def analise_tecnica(request):
-    if request.method == 'POST':
-        user_prompt = request.POST.get('prompt', '')
-        image = request.FILES['image']
+    ctx = {}
 
-        # Salva a imagem no diretório.
-        image_path = os.path.join(IMAGE_UPLOAD_PATH, image.name)
-        with open(image_path, 'wb+') as destination:
-            for chunk in image.chunks():
-                destination.write(chunk)
+    if request.method == 'POST':
+        quantity_text = f' A quantidade de peças necessárias para este projeto é de {request.POST.get("quantidade", "1")}.'
+
+        # Adiciona a quantidade ao prompt do usuário.
+        user_prompt = 'Observações adicionais do usuário: ' + request.POST.get('prompt', '') + '\n' + quantity_text
 
         # Encoda a imagem
-        base64_image = _encode_image(image_path)
+        base64_image = _encode_image(request.FILES['image'])
 
-        # Monta o dicionário para a chamada:
+        # Monta a função para estruturar a chamada de API.
+        analysis_function = [{}]
+
+        analysis_function[0]['type'] = 'function'
+        analysis_function[0]['name'] = 'get_info'
+        analysis_function[0]['description'] = 'Analisa com precisão um desenho mecânico.'
+        analysis_function[0]['parameters'] = {}
+
+        analysis_function[0]['parameters']['type'] = 'object'
+        analysis_function[0]['parameters']['properties'] = {}
+
+        analysis_function[0]['parameters']['properties']['analise'] = {}
+        analysis_function[0]['parameters']['properties']['analise']['type'] = 'string'
+        analysis_function[0]['parameters']['properties']['analise']['description'] = 'Informe aqui todos os detalhes da sua análise.'
+
+        analysis_function[0]['parameters']['properties']['observacoes'] = {}
+        analysis_function[0]['parameters']['properties']['observacoes']['type'] = 'string'
+        analysis_function[0]['parameters']['properties']['observacoes']['description'] = 'Observações importantes encontradas na análise e que o usário deve levar em consideração'
+
+        analysis_function[0]['parameters']['required'] = ['analise', 'observacoes']
+
+        # Monta o texto de contextualização da Empresa para a análise.
+        company_info = _get_company_info(m.Company.objects.get(name=request.user.company.name))
+
+        # Monta o dicionário para a chamada.
         kwa = {}
 
-        kwa['model'] = 'gpt-4o'
-        kwa['messages'] = [{}]
-        kwa['messages'][0]['role'] = 'user'
-        kwa['messages'][0]['content'] = [{}, {}]
+        kwa['model'] = 'o4-mini'
+        kwa['messages'] = [{}, {}]
 
+        kwa['messages'][0]['role'] = 'system'
+        kwa['messages'][0]['content'] = [{}]
         kwa['messages'][0]['content'][0]['type'] = 'text'
-        kwa['messages'][0]['content'][0]['text'] = p.PROMPT_ANALISE_TECNICA + user_prompt
+        kwa['messages'][0]['content'][0]['text'] = p.SYSTEM_ANALISE_TECNICA
 
-        kwa['messages'][0]['content'][1]['type'] = 'image_url'
-        kwa['messages'][0]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
+        kwa['messages'][1]['role'] = 'user'
+        kwa['messages'][1]['content'] = [{}, {}, {}]
+        kwa['messages'][1]['content'][0]['type'] = 'text'
+        kwa['messages'][1]['content'][0]['text'] = p.PROMPT_ANALISE_TECNICA
+        kwa['messages'][1]['content'][1]['type'] = 'image_url'
+        kwa['messages'][1]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
+        kwa['messages'][1]['content'][2]['type'] = 'text'
+        kwa['messages'][1]['content'][2]['text'] = company_info + '\n' + user_prompt
 
-        # Monta a requisição aqui.
+        kwa['functions'] = analysis_function
+        kwa['function_call'] = {'name': 'get_info'}
+
+        # Faz a requisição.
         try:
             chat_completion = cli.chat.completions.create(**kwa)
-            print('Processamento concluído')
+            dic = json.loads(chat_completion.choices[0].message.function_call.arguments)
+
+        except openai.OpenAIError as e:
+            logger.error(f'Error occurred: {str(e)}', exc_info=True)
+            messages.error(request, 'Não foi possível processar o desenho devido a um erro na API da OpenAI, tente novamente mais tarde.')
+
+            return render(request, 'analise_tecnica.html')
 
         except Exception as e:
-            print(f'Ocorreu um erro durante o processamento: {e}')
+            logger.error(f'Error occurred: {str(e)}', exc_info=True)
+            messages.error(request, 'Ocorreu um erro inesperado. Por favor, entre em contato com o suporte.')
 
-        response_text = chat_completion.choices[0].message.content
+            return render(request, 'analise_tecnica.html')
 
-        return render(request, 'analise_tecnica.html', {'response_text': response_text})
+        # Adiciona as informações ao contexto.
+        ctx['analise_tecnica'] = dic.get('analise', '')
+        ctx['observacoes'] = dic.get('observacoes', '')
+        # ctx['image_url'] = project.drawing.url
+
+        return render(request, 'analise_tecnica.html', ctx)
 
     return render(request, 'analise_tecnica.html')
 
