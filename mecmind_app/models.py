@@ -46,10 +46,10 @@ class Project(models.Model):
     drawing = models.ImageField(upload_to='projects/%Y/%m/%d', blank=True)
     created_date = models.DateTimeField(default=timezone.now)
     raw_material = models.TextField('Matéria Prima', blank=True)
-    machines = models.TextField('Máquinas', blank=True)
-    processes = models.TextField('Processos', blank=True)
+    machines = models.JSONField('Máquinas', default=list, blank=True)
+    processes = models.JSONField('Processos', default=list, blank=True)
     in_stock = models.BooleanField('Em Estoque', default=False)
-    recommended_stock_item = models.TextField('Máquinas', blank=True)
+    recommended_stock_item = models.TextField('Item recomendado do estoque', blank=True)
     user_observation = models.TextField('Observações do Usuário', blank=True)
     ia_observation = models.TextField('Observações da IA', blank=True)
 

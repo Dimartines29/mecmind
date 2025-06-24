@@ -91,7 +91,7 @@
                     <div class="result-info">
                         <div class="result-section">
                             <h3><i class="fas fa-hammer"></i> Matéria Prima</h3>
-                            <p>{{ materia_prima }}</p>
+                            <p>{{ materia_prima }}</p><br>
 
                             <h3><i class="fas fa-hammer"></i> Disponibilidade no estoque</h3>
 
@@ -107,20 +107,24 @@
                             <h3><i class="fas fa-cogs"></i> Máquinas utilizadas</h3>
 
                             {% for maq in maquinas %}
-                                <p>{{ maq }}</p>
+                                <p>• {{ maq }}</p>
                             {% endfor %}
                         </div>
 
                         <div class="result-section">
                             <h3><i class="fas fa-cogs"></i> Processos</h3>
-                            <p>{{ processos }}</p>
+
+                            {% for processo in processos %}
+                                <h4>• {{ processo.nome }}</h4>
+                                <p>{{ processo.descricao }}</p> <br>
+                            {% endfor %}
                         </div>
 
                         {% if aproveitamento %}
-                        <div class="result-section">
-                            <h3><i class="fas fa-exclamation-circle"></i> Aproveitamento de chapa</h3>
-                            <p>{{ aproveitamento }}</p>
-                        </div>
+                            <div class="result-section">
+                                <h3><i class="fas fa-exclamation-circle"></i> Aproveitamento de chapa</h3>
+                                <p>{{ aproveitamento }}</p>
+                            </div>
                         {% endif %}
                     </div>
                 </div>

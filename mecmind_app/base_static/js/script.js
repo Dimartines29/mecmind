@@ -6,8 +6,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const analyzeBtn = document.getElementById('analyzeBtn');
     const stepAnalyzing = document.getElementById('step-analyzing');
     const stepResult = document.getElementById('step-result');
-    const exportBtn = document.getElementById('exportBtn');
-    const shareBtn = document.getElementById('shareBtn');
     const newAnalysisBtn = document.getElementById('newAnalysisBtn');
     const filterForm = document.getElementById('filter-form');
 

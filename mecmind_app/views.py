@@ -4,6 +4,7 @@ import json
 import base64
 import logging
 from datetime import datetime, time
+from copy import deepcopy
 
 #Django
 from django.shortcuts import render, redirect
@@ -208,39 +209,57 @@ def analise_eixo(request):
 
         process_function[0]['type'] = 'function'
         process_function[0]['name'] = 'get_info'
-        process_function[0]['description'] = 'Determina a materia prima e os processos de fabricação necessários para a fabricação de um eixo.'
+        process_function[0]['description'] = 'Determina a matéria-prima e os processos de fabricação necessários para a fabricação de um eixo.'
         process_function[0]['parameters'] = {}
 
         process_function[0]['parameters']['type'] = 'object'
         process_function[0]['parameters']['properties'] = {}
 
+        # 1. Matéria-prima
         process_function[0]['parameters']['properties']['materia_prima'] = {}
         process_function[0]['parameters']['properties']['materia_prima']['type'] = 'string'
-        process_function[0]['parameters']['properties']['materia_prima']['description'] = 'Informe a matéria-prima no formato: Barra redonda - Diâmetro (Em polegada e de acordo com o catálogo fornecido) x Comprimento (Em milimetros).'
+        process_function[0]['parameters']['properties']['materia_prima']['description'] = 'Informe a matéria-prima no formato: Barra redonda - Diâmetro (em polegadas, conforme catálogo) x Comprimento (em mm).'
 
+        # 2. Processos (lista de objetos)
         process_function[0]['parameters']['properties']['processos'] = {}
-        process_function[0]['parameters']['properties']['processos']['type'] = 'string'
-        process_function[0]['parameters']['properties']['processos']['description'] = 'Explique aqui o processo que cada máquina irá realizar. Coloque cada processo como um tópico, mas sem numeração.'
+        process_function[0]['parameters']['properties']['processos']['type'] = 'array'
+        process_function[0]['parameters']['properties']['processos']['description'] = 'Lista de processos de fabricação. Cada item deve ter nome e descrição detalhada.'
+        process_function[0]['parameters']['properties']['processos']['items'] = {}
+        process_function[0]['parameters']['properties']['processos']['items']['type'] = 'object'
+        process_function[0]['parameters']['properties']['processos']['items']['properties'] = {}
+        process_function[0]['parameters']['properties']['processos']['items']['properties']['nome'] = {}
+        process_function[0]['parameters']['properties']['processos']['items']['properties']['nome']['type'] = 'string'
+        process_function[0]['parameters']['properties']['processos']['items']['properties']['nome']['description'] = 'Nome do processo (ex: Torneamento, Fresamento).'
+        process_function[0]['parameters']['properties']['processos']['items']['properties']['descricao'] = {}
+        process_function[0]['parameters']['properties']['processos']['items']['properties']['descricao']['type'] = 'string'
+        process_function[0]['parameters']['properties']['processos']['items']['properties']['descricao']['description'] = 'Descrição detalhada do que esse processo realiza.'
 
+        process_function[0]['parameters']['properties']['processos']['items']['required'] = ['nome', 'descricao']
+
+        # 3. Máquinas (lista)
         process_function[0]['parameters']['properties']['maquinas'] = {}
         process_function[0]['parameters']['properties']['maquinas']['type'] = 'array'
-        process_function[0]['parameters']['properties']['maquinas']['description'] = 'Baseado nos processos que você descreveu, liste aqui todas as máquinas necessárias para a fabricação do eixo.'
+        process_function[0]['parameters']['properties']['maquinas']['description'] = 'Baseado nos processos que você descreveu, liste todas as máquinas necessárias para a fabricação do eixo.'
         process_function[0]['parameters']['properties']['maquinas']['items'] = {}
         process_function[0]['parameters']['properties']['maquinas']['items']['type'] = 'string'
-        process_function[0]['parameters']['properties']['maquinas']['items']['description'] = 'Nome da máquina necessária para o processo.'
+        process_function[0]['parameters']['properties']['maquinas']['items']['description'] = 'Nome da máquina necessária para o processo (ex: Torno CNC, Furadeira de bancada).'
 
+        # 4. Em estoque?
         process_function[0]['parameters']['properties']['em_estoque'] = {}
         process_function[0]['parameters']['properties']['em_estoque']['type'] = 'boolean'
-        process_function[0]['parameters']['properties']['em_estoque']['description'] = 'Indica se existe algum material em estoque que pode servir de matéria prima para fabricar o eixo.'
+        process_function[0]['parameters']['properties']['em_estoque']['description'] = 'Indica se existe algum material em estoque que pode servir de matéria-prima para fabricar o eixo.'
 
+        # 5. Item do estoque
         process_function[0]['parameters']['properties']['item_do_estoque'] = {}
         process_function[0]['parameters']['properties']['item_do_estoque']['type'] = 'string'
-        process_function[0]['parameters']['properties']['item_do_estoque']['description'] = 'Indica qual item do estoque pode ser usado como matéria prima para fabricar o eixo.'
+        process_function[0]['parameters']['properties']['item_do_estoque']['description'] = 'Qual item do estoque pode ser usado como matéria-prima, se aplicável.'
 
+        # 6. Observações
         process_function[0]['parameters']['properties']['observacoes'] = {}
         process_function[0]['parameters']['properties']['observacoes']['type'] = 'string'
-        process_function[0]['parameters']['properties']['observacoes']['description'] = 'Observações importantes encontradas na análise e que o usuário deve levar em consideração'
+        process_function[0]['parameters']['properties']['observacoes']['description'] = 'Observações importantes encontradas na análise e que o usuário deve levar em consideração.'
 
+        # Campos obrigatórios
         process_function[0]['parameters']['required'] = ['materia_prima', 'processos', 'maquinas', 'em_estoque']
 
         # Monta a segunda chamada.
@@ -455,33 +474,51 @@ def analise_chapa(request):
             process_function[0]['parameters']['type'] = 'object'
             process_function[0]['parameters']['properties'] = {}
 
+            # 1. Matéria-prima
             process_function[0]['parameters']['properties']['materia_prima'] = {}
             process_function[0]['parameters']['properties']['materia_prima']['type'] = 'string'
             process_function[0]['parameters']['properties']['materia_prima']['description'] = 'Baseado no catálogo, coloque aqui as medidas Comprimento (milímetros) X Largura (milímetros) X Espessura (polegadas) (A Espessura deve ser compatível com as presentes no catálogo e deve ser fornecida em polegadas)'
 
+            # 2. Processos (lista de objetos)
             process_function[0]['parameters']['properties']['processos'] = {}
-            process_function[0]['parameters']['properties']['processos']['type'] = 'string'
-            process_function[0]['parameters']['properties']['processos']['description'] = 'Explique aqui o processo que cada máquina irá realizar. Coloque cada processo como um tópico, mas sem numeração.'
+            process_function[0]['parameters']['properties']['processos']['type'] = 'array'
+            process_function[0]['parameters']['properties']['processos']['description'] = 'Lista de processos de fabricação. Cada item deve ter nome e descrição detalhada.'
+            process_function[0]['parameters']['properties']['processos']['items'] = {}
+            process_function[0]['parameters']['properties']['processos']['items']['type'] = 'object'
+            process_function[0]['parameters']['properties']['processos']['items']['properties'] = {}
+            process_function[0]['parameters']['properties']['processos']['items']['properties']['nome'] = {}
+            process_function[0]['parameters']['properties']['processos']['items']['properties']['nome']['type'] = 'string'
+            process_function[0]['parameters']['properties']['processos']['items']['properties']['nome']['description'] = 'Nome do processo.'
+            process_function[0]['parameters']['properties']['processos']['items']['properties']['descricao'] = {}
+            process_function[0]['parameters']['properties']['processos']['items']['properties']['descricao']['type'] = 'string'
+            process_function[0]['parameters']['properties']['processos']['items']['properties']['descricao']['description'] = 'Descrição detalhada do que esse processo realiza.'
 
+            process_function[0]['parameters']['properties']['processos']['items']['required'] = ['nome', 'descricao']
+
+            # 3. Máquinas (lista)
             process_function[0]['parameters']['properties']['maquinas'] = {}
             process_function[0]['parameters']['properties']['maquinas']['type'] = 'array'
-            process_function[0]['parameters']['properties']['maquinas']['description'] = 'Liste aqui todas as máquinas necessárias para a fabricação da chapa.'
+            process_function[0]['parameters']['properties']['maquinas']['description'] = 'Baseado nos processos que você descreveu, liste todas as máquinas necessárias para a fabricação da chapa.'
             process_function[0]['parameters']['properties']['maquinas']['items'] = {}
             process_function[0]['parameters']['properties']['maquinas']['items']['type'] = 'string'
             process_function[0]['parameters']['properties']['maquinas']['items']['description'] = 'Nome da máquina necessária para o processo.'
 
+            # 4. Em estoque?
             process_function[0]['parameters']['properties']['em_estoque'] = {}
             process_function[0]['parameters']['properties']['em_estoque']['type'] = 'boolean'
-            process_function[0]['parameters']['properties']['em_estoque']['description'] = 'Indica se existe algum material em estoque que pode servir de matéria prima para fabricar o eixo.'
+            process_function[0]['parameters']['properties']['em_estoque']['description'] = 'Indica se existe algum material em estoque que pode servir de matéria-prima para fabricar a chapa.'
 
+            # 5. Item do estoque
             process_function[0]['parameters']['properties']['item_do_estoque'] = {}
             process_function[0]['parameters']['properties']['item_do_estoque']['type'] = 'string'
-            process_function[0]['parameters']['properties']['item_do_estoque']['description'] = 'Indica qual item do estoque pode ser usado como matéria prima para fabricar o eixo.'
+            process_function[0]['parameters']['properties']['item_do_estoque']['description'] = 'Qual item do estoque pode ser usado como matéria-prima, se aplicável.'
 
-            process_function[0]['parameters']['properties']['aproveitamento'] = {}
-            process_function[0]['parameters']['properties']['aproveitamento']['type'] = 'string'
-            process_function[0]['parameters']['properties']['aproveitamento']['description'] = 'Se solicitado mais de uma chapa, verifique a necessidade de um aproveitamento e o descreva aqui'
+            # 6. Observações
+            process_function[0]['parameters']['properties']['observacoes'] = {}
+            process_function[0]['parameters']['properties']['observacoes']['type'] = 'string'
+            process_function[0]['parameters']['properties']['observacoes']['description'] = 'Observações importantes encontradas na análise e que o usuário deve levar em consideração.'
 
+            # Campos obrigatórios
             process_function[0]['parameters']['required'] = ['materia_prima', 'processos', 'maquinas', 'em_estoque']
 
             # Monta a segunda chamada.
@@ -639,33 +676,51 @@ def analise_chapa(request):
             process_function[0]['parameters']['type'] = 'object'
             process_function[0]['parameters']['properties'] = {}
 
+            # 1. Matéria-prima
             process_function[0]['parameters']['properties']['materia_prima'] = {}
             process_function[0]['parameters']['properties']['materia_prima']['type'] = 'string'
             process_function[0]['parameters']['properties']['materia_prima']['description'] = 'Baseado no catálogo, coloque aqui as medidas Comprimento (milímetros) X Largura (milímetros) X Espessura (polegadas) (A Espessura deve ser compatível com as presentes no catálogo e deve ser fornecida em polegadas)'
 
+            # 2. Processos (lista de objetos)
             process_function[0]['parameters']['properties']['processos'] = {}
-            process_function[0]['parameters']['properties']['processos']['type'] = 'string'
-            process_function[0]['parameters']['properties']['processos']['description'] = 'Explique aqui o processo que cada máquina irá realizar. Coloque cada processo como um tópico, mas sem numeração.'
+            process_function[0]['parameters']['properties']['processos']['type'] = 'array'
+            process_function[0]['parameters']['properties']['processos']['description'] = 'Lista de processos de fabricação. Cada item deve ter nome e descrição detalhada.'
+            process_function[0]['parameters']['properties']['processos']['items'] = {}
+            process_function[0]['parameters']['properties']['processos']['items']['type'] = 'object'
+            process_function[0]['parameters']['properties']['processos']['items']['properties'] = {}
+            process_function[0]['parameters']['properties']['processos']['items']['properties']['nome'] = {}
+            process_function[0]['parameters']['properties']['processos']['items']['properties']['nome']['type'] = 'string'
+            process_function[0]['parameters']['properties']['processos']['items']['properties']['nome']['description'] = 'Nome do processo.'
+            process_function[0]['parameters']['properties']['processos']['items']['properties']['descricao'] = {}
+            process_function[0]['parameters']['properties']['processos']['items']['properties']['descricao']['type'] = 'string'
+            process_function[0]['parameters']['properties']['processos']['items']['properties']['descricao']['description'] = 'Descrição detalhada do que esse processo realiza.'
 
+            process_function[0]['parameters']['properties']['processos']['items']['required'] = ['nome', 'descricao']
+
+            # 3. Máquinas (lista)
             process_function[0]['parameters']['properties']['maquinas'] = {}
             process_function[0]['parameters']['properties']['maquinas']['type'] = 'array'
-            process_function[0]['parameters']['properties']['maquinas']['description'] = 'Liste aqui todas as máquinas necessárias para a fabricação da chapa.'
+            process_function[0]['parameters']['properties']['maquinas']['description'] = 'Baseado nos processos que você descreveu, liste todas as máquinas necessárias para a fabricação da chapa.'
             process_function[0]['parameters']['properties']['maquinas']['items'] = {}
             process_function[0]['parameters']['properties']['maquinas']['items']['type'] = 'string'
             process_function[0]['parameters']['properties']['maquinas']['items']['description'] = 'Nome da máquina necessária para o processo.'
 
+            # 4. Em estoque?
             process_function[0]['parameters']['properties']['em_estoque'] = {}
             process_function[0]['parameters']['properties']['em_estoque']['type'] = 'boolean'
-            process_function[0]['parameters']['properties']['em_estoque']['description'] = 'Indica se existe algum material em estoque que pode servir de matéria prima para fabricar o eixo.'
+            process_function[0]['parameters']['properties']['em_estoque']['description'] = 'Indica se existe algum material em estoque que pode servir de matéria-prima para fabricar a chapa.'
 
+            # 5. Item do estoque
             process_function[0]['parameters']['properties']['item_do_estoque'] = {}
             process_function[0]['parameters']['properties']['item_do_estoque']['type'] = 'string'
-            process_function[0]['parameters']['properties']['item_do_estoque']['description'] = 'Indica qual item do estoque pode ser usado como matéria prima para fabricar o eixo.'
+            process_function[0]['parameters']['properties']['item_do_estoque']['description'] = 'Qual item do estoque pode ser usado como matéria-prima, se aplicável.'
 
-            process_function[0]['parameters']['properties']['aproveitamento'] = {}
-            process_function[0]['parameters']['properties']['aproveitamento']['type'] = 'string'
-            process_function[0]['parameters']['properties']['aproveitamento']['description'] = 'Se solicitado mais de uma chapa, verifique a necessidade de um aproveitamento e o descreva aqui'
+            # 6. Observações
+            process_function[0]['parameters']['properties']['observacoes'] = {}
+            process_function[0]['parameters']['properties']['observacoes']['type'] = 'string'
+            process_function[0]['parameters']['properties']['observacoes']['description'] = 'Observações importantes encontradas na análise e que o usuário deve levar em consideração.'
 
+            # Campos obrigatórios
             process_function[0]['parameters']['required'] = ['materia_prima', 'processos', 'maquinas', 'em_estoque']
 
             # Monta a segunda chamada.
@@ -874,39 +929,57 @@ def analise_tubo(request):
 
         process_function[0]['type'] = 'function'
         process_function[0]['name'] = 'get_info'
-        process_function[0]['description'] = 'Determina a materia prima e os processos de fabricação necessários para a fabricação de um tubo.'
+        process_function[0]['description'] = 'Determina a matéria-prima e os processos de fabricação necessários para a fabricação de um tubo.'
         process_function[0]['parameters'] = {}
 
         process_function[0]['parameters']['type'] = 'object'
         process_function[0]['parameters']['properties'] = {}
 
+        # 1. Matéria-prima
         process_function[0]['parameters']['properties']['materia_prima'] = {}
         process_function[0]['parameters']['properties']['materia_prima']['type'] = 'string'
-        process_function[0]['parameters']['properties']['materia_prima']['description'] = 'Informe a matéria-prima baseando-se no catálogo.'
+        process_function[0]['parameters']['properties']['materia_prima']['description'] = 'Informe a matéria prima conforme o catálogo.'
 
+        # 2. Processos (lista de objetos)
         process_function[0]['parameters']['properties']['processos'] = {}
-        process_function[0]['parameters']['properties']['processos']['type'] = 'string'
-        process_function[0]['parameters']['properties']['processos']['description'] = 'Explique aqui o processo que cada máquina irá realizar. Coloque cada processo como um tópico, mas sem numeração.'
+        process_function[0]['parameters']['properties']['processos']['type'] = 'array'
+        process_function[0]['parameters']['properties']['processos']['description'] = 'Lista de processos de fabricação. Cada item deve ter nome e descrição detalhada.'
+        process_function[0]['parameters']['properties']['processos']['items'] = {}
+        process_function[0]['parameters']['properties']['processos']['items']['type'] = 'object'
+        process_function[0]['parameters']['properties']['processos']['items']['properties'] = {}
+        process_function[0]['parameters']['properties']['processos']['items']['properties']['nome'] = {}
+        process_function[0]['parameters']['properties']['processos']['items']['properties']['nome']['type'] = 'string'
+        process_function[0]['parameters']['properties']['processos']['items']['properties']['nome']['description'] = 'Nome do processo.'
+        process_function[0]['parameters']['properties']['processos']['items']['properties']['descricao'] = {}
+        process_function[0]['parameters']['properties']['processos']['items']['properties']['descricao']['type'] = 'string'
+        process_function[0]['parameters']['properties']['processos']['items']['properties']['descricao']['description'] = 'Descrição detalhada do que esse processo realiza.'
 
+        process_function[0]['parameters']['properties']['processos']['items']['required'] = ['nome', 'descricao']
+
+        # 3. Máquinas (lista)
         process_function[0]['parameters']['properties']['maquinas'] = {}
         process_function[0]['parameters']['properties']['maquinas']['type'] = 'array'
-        process_function[0]['parameters']['properties']['maquinas']['description'] = 'Liste aqui todas as máquinas necessárias para a fabricação do tubo.'
+        process_function[0]['parameters']['properties']['maquinas']['description'] = 'Baseado nos processos que você descreveu, liste todas as máquinas necessárias para a fabricação do tubo.'
         process_function[0]['parameters']['properties']['maquinas']['items'] = {}
         process_function[0]['parameters']['properties']['maquinas']['items']['type'] = 'string'
-        process_function[0]['parameters']['properties']['maquinas']['items']['description'] = 'Nome da máquina necessária para o processo.'
+        process_function[0]['parameters']['properties']['maquinas']['items']['description'] = 'Nome da máquina necessária para o processo (ex: Torno CNC, Furadeira de bancada).'
 
+        # 4. Em estoque?
         process_function[0]['parameters']['properties']['em_estoque'] = {}
         process_function[0]['parameters']['properties']['em_estoque']['type'] = 'boolean'
-        process_function[0]['parameters']['properties']['em_estoque']['description'] = 'Indica se existe algum material em estoque que pode servir de matéria prima para fabricar o eixo.'
+        process_function[0]['parameters']['properties']['em_estoque']['description'] = 'Indica se existe algum material em estoque que pode servir de matéria-prima para fabricar o tubo.'
 
+        # 5. Item do estoque
         process_function[0]['parameters']['properties']['item_do_estoque'] = {}
         process_function[0]['parameters']['properties']['item_do_estoque']['type'] = 'string'
-        process_function[0]['parameters']['properties']['item_do_estoque']['description'] = 'Indica qual item do estoque pode ser usado como matéria prima para fabricar o eixo.'
+        process_function[0]['parameters']['properties']['item_do_estoque']['description'] = 'Qual item do estoque pode ser usado como matéria-prima, se aplicável.'
 
+        # 6. Observações
         process_function[0]['parameters']['properties']['observacoes'] = {}
         process_function[0]['parameters']['properties']['observacoes']['type'] = 'string'
-        process_function[0]['parameters']['properties']['observacoes']['description'] = 'Observações importantes encontradas na análise e que o usuário deve levar em consideração'
+        process_function[0]['parameters']['properties']['observacoes']['description'] = 'Observações importantes encontradas na análise e que o usuário deve levar em consideração.'
 
+        # Campos obrigatórios
         process_function[0]['parameters']['required'] = ['materia_prima', 'processos', 'maquinas', 'em_estoque']
 
         # Monta a segunda chamada.
@@ -1009,21 +1082,72 @@ def analise_tecnica(request):
 
         analysis_function[0]['type'] = 'function'
         analysis_function[0]['name'] = 'get_info'
-        analysis_function[0]['description'] = 'Analisa com precisão um desenho mecânico.'
+        analysis_function[0]['description'] = 'Analisa com precisão um desenho mecânico e devolve uma estrutura JSON com todos os passos da fabricação e montagem.'
         analysis_function[0]['parameters'] = {}
 
         analysis_function[0]['parameters']['type'] = 'object'
         analysis_function[0]['parameters']['properties'] = {}
 
-        analysis_function[0]['parameters']['properties']['analise'] = {}
-        analysis_function[0]['parameters']['properties']['analise']['type'] = 'string'
-        analysis_function[0]['parameters']['properties']['analise']['description'] = 'Informe aqui todos os detalhes da sua análise.'
+        # 1. Tipo de desenho
+        analysis_function[0]['parameters']['properties']['tipo_desenho'] = {}
+        analysis_function[0]['parameters']['properties']['tipo_desenho']['type'] = 'string'
+        analysis_function[0]['parameters']['properties']['tipo_desenho']['description'] = 'Classificação geral do desenho (ex: montagem, peça composta, peça única).'
 
-        analysis_function[0]['parameters']['properties']['observacoes'] = {}
-        analysis_function[0]['parameters']['properties']['observacoes']['type'] = 'string'
-        analysis_function[0]['parameters']['properties']['observacoes']['description'] = 'Observações importantes encontradas na análise e que o usário deve levar em consideração'
+        # 2. Sub-partes / itens
+        analysis_function[0]['parameters']['properties']['subpartes'] = {}
+        analysis_function[0]['parameters']['properties']['subpartes']['type'] = 'array'
+        analysis_function[0]['parameters']['properties']['subpartes']['description'] = 'Lista de sub-partes ou itens que compõem a peça.'
 
-        analysis_function[0]['parameters']['required'] = ['analise', 'observacoes']
+        analysis_function[0]['parameters']['properties']['subpartes']['items'] = {
+            'type': 'object',
+            'properties': {
+                'nome': {'type': 'string', 'description': 'Nome ou identificação da sub-parte.'},
+
+                'classificacao': {'type': 'string', 'description': '“Fabricado” ou “Comercial”.'},
+
+                'funcao': {'type': 'string', 'description': 'Função ou observação crítica de cada item.'}
+            },
+
+            'required': ['nome', 'classificacao', 'funcao']
+        }
+
+        # 3. Estratégia de fabricação
+        analysis_function[0]['parameters']['properties']['estrategia_fabricacao'] = {}
+        analysis_function[0]['parameters']['properties']['estrategia_fabricacao']['type'] = 'array'
+        analysis_function[0]['parameters']['properties']['estrategia_fabricacao']['description'] = 'Processos recomendados para cada sub-parte fabricada.'
+
+        analysis_function[0]['parameters']['properties']['estrategia_fabricacao']['items'] = {
+            'type': 'object',
+            'properties': {
+                'item': {'type': 'string', 'description': 'Nome da sub-parte.'},
+
+                'processo': {'type': 'string', 'description': 'Processo principal (usinagem, corte laser, etc.).'},
+
+                'justificativa': {'type': 'string', 'description': 'Motivo da escolha do processo.'}
+            },
+
+            'required': ['item', 'processo', 'justificativa']
+        }
+
+        # 4. Sequência de fabricação
+        analysis_function[0]['parameters']['properties']['sequencia_fabricacao'] = {}
+        analysis_function[0]['parameters']['properties']['sequencia_fabricacao']['type'] = 'array'
+        analysis_function[0]['parameters']['properties']['sequencia_fabricacao']['description'] = 'Ordem lógica de operações de fabricação e montagem.'
+        analysis_function[0]['parameters']['properties']['sequencia_fabricacao']['items'] = {'type': 'string', 'description': 'Cada etapa da sequência, em ordem cronológica.'}
+
+        # 5. Pontos críticos
+        analysis_function[0]['parameters']['properties']['pontos_criticos'] = {}
+        analysis_function[0]['parameters']['properties']['pontos_criticos']['type'] = 'array'
+        analysis_function[0]['parameters']['properties']['pontos_criticos']['description'] = 'Principais pontos de atenção (tolerâncias, interferências, inspeções, etc.).'
+        analysis_function[0]['parameters']['properties']['pontos_criticos']['items'] = {'type': 'string', 'description': 'Descrição de cada ponto crítico.'}
+
+        # 6. Resumo final
+        analysis_function[0]['parameters']['properties']['resumo'] = {}
+        analysis_function[0]['parameters']['properties']['resumo']['type'] = 'string'
+        analysis_function[0]['parameters']['properties']['resumo']['description'] = 'Síntese da recomendação para fácil leitura ou exportação.'
+
+        # Campos obrigatórios
+        analysis_function[0]['parameters']['required'] = ['tipo_desenho', 'subpartes', 'estrategia_fabricacao', 'sequencia_fabricacao', 'pontos_criticos', 'resumo']
 
         # Monta o texto de contextualização da Empresa para a análise.
         company_info = _get_company_info(m.Company.objects.get(name=request.user.company.name))
@@ -1475,6 +1599,9 @@ def projeto(request, projeto_id):
 
     if (request.user.groups.filter(name='Gerente').exists() and request.user.company == projeto.company) or request.user == projeto.user:
         ctx['projeto'] = projeto
+        ctx['machines'] = projeto.machines.split(', ') if projeto.machines else []
+        ctx['processes'] = deepcopy(projeto.processes)
+
         return render(request, 'projeto.html', ctx)
 
 
