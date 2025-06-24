@@ -136,13 +136,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Restaura o último prompt usado (se houver)
-    const lastPrompt = localStorage.getItem('lastPrompt');
-    const promptElement = document.getElementById('prompt');
-    if (lastPrompt && promptElement) {
-        promptElement.value = lastPrompt;
-    }
-
     // Permite arrastar e soltar imagens
     const previewArea = document.getElementById('preview');
 
