@@ -22,4 +22,8 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('acesso_negado/', views.acesso_negado, name='acesso_negado'),
     path('test-tailwind/', views.test_tailwind, name='test_tailwind'),
+    path('analises/', views.analises, name='analises'),
+    path('analises_tecnicas/', views.analises_tecnicas, name='analises_tecnicas'),
+    path('analises_tecnicas_empresa/', views.analises_tecnicas_empresa, name='analises_tecnicas_empresa'),
+    path('detalhe_analise_tecnica/<int:analise_id>/', views.detalhe_analise_tecnica, name='detalhe_analise_tecnica'),
 ]

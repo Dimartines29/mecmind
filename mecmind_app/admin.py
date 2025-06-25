@@ -91,6 +91,32 @@ class ProjectAdmin(admin.ModelAdmin):
     # Define onde fica o link da tabela.
     list_display_links = ('id', 'user')
 
+@admin.register(m.TechnicalAnalysis)
+class TechnicalAnalysisAdmin(admin.ModelAdmin):
+    # Define o que será exibido no painel admin da tabela Análise Técnica.
+    list_display = ('id', 'user', 'company', 'analysis_name', 'quantity', 'created_date')
+
+    # Ordena os dados.
+    ordering = ('-id', )
+
+    #Filtros.
+    list_filter = ('user', 'company', 'analysis_name', 'created_date')
+
+    # Pesquisa.
+    search_fields = ('id', 'analysis_name', 'summary')
+
+    # Valores exibidos por página.
+    list_per_page = 30
+
+    # Número máximo de análises que podem ser exibidas.
+    list_max_show_all = 200
+
+    # Define onde fica o link da tabela.
+    list_display_links = ('id', 'user')
+
+    # Campos readonly para visualização dos dados JSON
+    readonly_fields = ('subparts', 'manufacturing_strategy', 'manufacturing_sequence', 'critical_points')
+
 @admin.register(m.Stock)
 class StockAdmin(admin.ModelAdmin):
     # Define o que será exibido no painel admin da tabela Estoque.

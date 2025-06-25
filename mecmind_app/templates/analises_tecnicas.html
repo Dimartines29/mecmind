@@ -1,22 +1,22 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}MecMind - Projetos{% endblock %}
+{% block title %}MecMind - Análises Técnicas{% endblock %}
 
 {% block extra_css %}{% endblock %}
 
 {% block content %}
     <div class="header-banner">
         <div class="banner-content">
-            <h1>Projetos</h1>
+            <h1>Análises Técnicas</h1>
         </div>
     </div>
 
     <div class="filter-container">
-        <form method="get" action="{% url 'projetos' %}" id="filter-form">
+        <form method="get" action="{% url 'analises_tecnicas' %}" id="filter-form">
             <div class="filter-row">
                 <div class="filter-group">
-                    <label for="analysis_type">Tipo de Projeto:</label>
+                    <label for="analysis_type">Tipo de Análise:</label>
 
                     <select name="analysis_type" id="analysis_type">
                         <option value="">Todos</option>
@@ -41,7 +41,7 @@
                         <i class="fas fa-filter"></i> Filtrar
                     </button>
 
-                    <a href="{% url 'projetos' %}" class="filter-button clear">
+                    <a href="{% url 'analises_tecnicas' %}" class="filter-button clear">
                         <i class="fas fa-times"></i> Limpar
                     </a>
                 </div>
@@ -50,14 +50,14 @@
     </div>
 
     <table class="list">
-        <col style="width: 20px;"> <!-- Projeto -->
+        <col style="width: 20px;"> <!-- Análise -->
         <col style="width: 20px;"> <!-- Criação -->
         <col style="width: 250px;"> <!-- M. Prima -->
         <col style="width: 250px;"> <!-- Máquinas -->
 
         <thead>
             <tr>
-                <th>Projeto</th>
+                <th>Análise</th>
                 <th>Criação</th>
                 <th>M. Prima</th>
                 <th>Máquinas</th>
@@ -67,7 +67,7 @@
         <tbody>
             {% for i in page_obj %}
                 <tr>
-                    <td><a class="list-link" href="{% url 'projeto' i.id %}">Projeto {{ i.analysis_name }}</a></td>
+                    <td><a class="list-link" href="{% url 'detalhe_analise_tecnica' i.id %}">Análise {{ i.analysis_name }}</a></td>
                     <td>{{ i.created_date|date:"d/m/Y H:i" }}</td>
                     <td><span title="{{ i.raw_material }}">{{ i.raw_material|truncatechars:45 }}</span></td>
                     <td><span title="{{ i.machines }}">{{ i.machines|truncatechars:45 }}</span></td>

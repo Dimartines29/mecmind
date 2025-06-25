@@ -1252,17 +1252,11 @@ def projetos(request):
     return render(request, 'projetos.html', ctx)
 
 @login_required(login_url='/login')
-def empresa(request):
-
-    return render(request, 'empresa.html')
-
-@login_required(login_url='/login')
 def projetos_empresa(request):
     if not request.user.groups.filter(name='Gerente').exists():
         return redirect('/acesso_negado')
 
     ctx = {}
-
     encoded_filters = request.GET.get('filters', '')
 
     if encoded_filters:
@@ -1326,6 +1320,135 @@ def projetos_empresa(request):
     ctx['encoded_filters'] = encoded_filters
 
     return render(request, 'projetos_empresa.html', ctx)
+
+@login_required(login_url='/login')
+def analises_tecnicas(request):
+    ctx = {}
+    encoded_filters = request.GET.get('filters', '')
+
+    if encoded_filters:
+        filters = _decode_filters(encoded_filters)
+        analysis_type = filters.get('analysis_type', '')
+        date_from = filters.get('date_from', '')
+        date_to = filters.get('date_to', '')
+
+    else:
+        analysis_type = request.GET.get('analysis_type', '')
+        date_from = request.GET.get('date_from', '')
+        date_to = request.GET.get('date_to', '')
+
+    # Inicia a query filtrada pelo usuário logado.
+    query = m.TechnicalAnalysis.objects.filter(user=request.user)
+
+    # Aplica os filtros se fornecidos.
+    if analysis_type:
+        query = query.filter(analysis_name=analysis_type)
+
+    if date_from:
+        date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()
+        query = query.filter(created_date__gte=datetime.combine(date_from_obj, time.min))
+
+    if date_to:
+        date_to_obj = datetime.strptime(date_to, '%Y-%m-%d').date()
+        query = query.filter(created_date__lte=datetime.combine(date_to_obj, time.max))
+
+    # Ordena os resultados por ID em ordem decrescente.
+    analises = query.order_by('-id')
+
+    # Paginação
+    paginator = Paginator(analises, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # Prepara os dados para o contexto.
+    ctx['page_obj'] = page_obj
+    ctx['analysis_choices'] = c.ANALISE_TECNICA['analise']
+    ctx['selected_analysis'] = analysis_type
+    ctx['selected_date_from'] = date_from
+    ctx['selected_date_to'] = date_to
+    ctx['encoded_filters'] = encoded_filters
+
+    return render(request, 'analises_tecnicas.html', ctx)
+
+@login_required(login_url='/login')
+def analises_tecnicas_empresa(request):
+    if not request.user.groups.filter(name='Gerente').exists():
+        return redirect('/acesso_negado')
+
+    ctx = {}
+    encoded_filters = request.GET.get('filters', '')
+
+    if encoded_filters:
+        filters = _decode_filters(encoded_filters)
+        user_filter = filters.get('user_filter', '')
+        analysis_type = filters.get('analysis_type', '')
+        date_from = filters.get('date_from', '')
+        date_to = filters.get('date_to', '')
+
+    else:
+        user_filter = request.GET.get('user_filter', '')
+        analysis_type = request.GET.get('analysis_type', '')
+        date_from = request.GET.get('date_from', '')
+        date_to = request.GET.get('date_to', '')
+
+    # Inicia a query filtrada pela empresa do usuário logado.
+    query = m.TechnicalAnalysis.objects.filter(company=request.user.company)
+
+    # Identificação de usuários da empresa.
+    users = []
+
+    for user in m.CustomUser.objects.filter(company=request.user.company):
+        users.append(f'{user.first_name} {user.last_name}')
+
+    # Aplica os filtros se fornecidos.
+    if user_filter:
+        #Passa o filtro para o contexto antes de processar a string.
+        ctx['user_filter'] = user_filter
+
+        user_filter = user_filter.split(' ')
+        first_name = user_filter[0]
+        last_name = user_filter[1] if len(user_filter) > 1 else ''
+        query = query.filter(user__first_name=first_name, user__last_name=last_name)
+
+    if analysis_type:
+        query = query.filter(analysis_name=analysis_type)
+
+    if date_from:
+        date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()
+        query = query.filter(created_date__gte=datetime.combine(date_from_obj, time.min))
+
+    if date_to:
+        date_to_obj = datetime.strptime(date_to, '%Y-%m-%d').date()
+        query = query.filter(created_date__lte=datetime.combine(date_to_obj, time.max))
+
+    # Ordena os resultados por ID em ordem decrescente.
+    analises = query.order_by('-id')
+
+    # Paginação
+    paginator = Paginator(analises, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # Prepara os dados para o contexto.
+    ctx['page_obj'] = page_obj
+    ctx['users'] = users
+    ctx['analysis_choices'] = c.ANALISE_TECNICA['analise']
+    ctx['selected_analysis'] = analysis_type
+    ctx['selected_date_from'] = date_from
+    ctx['selected_date_to'] = date_to
+    ctx['encoded_filters'] = encoded_filters
+
+    return render(request, 'analises_tecnicas_empresa.html', ctx)
+
+@login_required(login_url='/login')
+def empresa(request):
+
+    return render(request, 'empresa.html')
+
+@login_required(login_url='/login')
+def analises(request):
+
+    return render(request, 'analises.html')
 
 # TODO: Melhorar essa função.
 @login_required(login_url='/login')
@@ -1604,6 +1727,21 @@ def projeto(request, projeto_id):
 
         return render(request, 'projeto.html', ctx)
 
+
+    else:
+        return redirect('/acesso_negado')
+
+@login_required(login_url='/login')
+def detalhe_analise_tecnica(request, analise_id):
+    ctx = {}
+    analise = m.TechnicalAnalysis.objects.get(pk=analise_id)
+
+    if (request.user.groups.filter(name='Gerente').exists() and request.user.company == analise.company) or request.user == analise.user:
+        ctx['analise'] = analise
+        ctx['machines'] = analise.machines.split(', ') if analise.machines else []
+        ctx['processes'] = deepcopy(analise.processes)
+
+        return render(request, 'detalhe_analise_tecnica.html', ctx)
 
     else:
         return redirect('/acesso_negado')

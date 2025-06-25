@@ -1,32 +1,32 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}MecMind - Projeto {{ projeto.analysis_name }}{% endblock %}
+{% block title %}MecMind - Análise Técnica {{ analise.name }}{% endblock %}
 
 {% block content %}
 <div class="header-banner">
     <div class="banner-content">
-        <h1>Projeto: {{ projeto.analysis_name }} - {{ projeto.created_date|date:"d/m/Y H:i" }}</h1>
+        <h1>Análise Técnica: {{ analise.name }} - {{ analise.created_date|date:"d/m/Y H:i" }}</h1>
     </div>
 </div>
 
 <section class="project-detail-container">
     <div class="profile-image-container">
-        <img src="{{ projeto.drawing.url }}" alt="Imagem do desenho" class="drawing-image">
+        <img src="{{ analise.drawing.url }}" alt="Imagem do desenho" class="drawing-image">
     </div>
 
     <div class="info-card">
         <div class="info-card-header">
             <i class="fas fa-user-circle"></i>
-            <h4>{{ projeto.user.first_name }} {{ projeto.user.last_name }}</h4>
+            <h4>{{ analise.user.first_name }} {{ analise.user.last_name }}</h4>
         </div>
 
         <div class="detail-section">
             <h5>Matéria-prima</h5>
-            <p>{{ projeto.raw_material|default:"Não informado." }}</p><br>
+            <p>{{ analise.raw_material|default:"Não informado." }}</p><br>
 
             <h5>Disponibilidade de estoque</h5>
-            <p>{{ projeto.recommended_stock_item|default:"Sem Disponibilidade." }}</p>
+            <p>{{ analise.recommended_stock_item|default:"Sem Disponibilidade." }}</p>
         </div>
 
         <div class="detail-section">
@@ -48,12 +48,12 @@
 
         <div class="detail-section">
             <h5>Observações do Usuário</h5>
-            <p>{{ projeto.user_observation|default:"Nenhuma observação." }}</p>
+            <p>{{ analise.user_observation|default:"Nenhuma observação." }}</p>
         </div>
 
         <div class="detail-section">
             <h5>Observações da IA</h5>
-            <p>{{ projeto.ia_observation|default:"Nenhuma observação." }}</p>
+            <p>{{ analise.ia_observation|default:"Nenhuma observação." }}</p>
         </div>
     </div>
 </section>

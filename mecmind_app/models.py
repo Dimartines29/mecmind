@@ -1,7 +1,6 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import AbstractUser
-from mecmind_app import choices as c
 
 class Company(models.Model):
     name = models.CharField(max_length=50)
@@ -60,6 +59,32 @@ class Project(models.Model):
 
     def __str__(self):
         return f'{self.user.first_name} {self.user.last_name} - {self.analysis_name}'
+
+class TechnicalAnalysis(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='technical_analyses')
+    company = models.ForeignKey(Company, on_delete=models.SET_NULL, blank=True, null=True)
+    drawing = models.ImageField(upload_to='technical_analysis/%Y/%m/%d', blank=True)
+    created_date = models.DateTimeField(default=timezone.now)
+    quantity = models.PositiveIntegerField('Quantidade', default=1)
+
+    # Campos específicos da análise técnica baseados no function calling
+    analysis_name = models.CharField('Tipo de Análise', max_length=100, blank=True)
+    subparts = models.JSONField('Sub-partes', default=list, blank=True)
+    manufacturing_strategy = models.JSONField('Estratégia de Fabricação', default=list, blank=True)
+    manufacturing_sequence = models.JSONField('Sequência de Fabricação', default=list, blank=True)
+    critical_points = models.JSONField('Pontos Críticos', default=list, blank=True)
+    summary = models.TextField('Resumo', blank=True)
+
+    # Campos de observações
+    user_observation = models.TextField('Observações do Usuário', blank=True)
+
+    class Meta:
+        verbose_name = 'Análise Técnica'
+        verbose_name_plural = 'Análises Técnicas'
+        ordering = ['-created_date']
+
+    def __str__(self):
+        return f'{self.user.first_name} {self.user.last_name} - Análise Técnica - {self.created_date.strftime("%d/%m/%Y")}'
 
 class Stock(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='stocks')

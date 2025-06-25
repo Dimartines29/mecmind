@@ -31,3 +31,13 @@ ESTOQUE = {
         'Inativo',
     ),
 }
+
+ANALISE_TECNICA = {
+    'analise': (
+        'Montagem',
+        'Peça Composta',
+        'Peça Única',
+        'Soldagem',
+        'Conjunto Mecânico',
+    ),
+}

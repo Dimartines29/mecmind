@@ -30,6 +30,19 @@
         {% if request.user|has_group:"Gerente" %}
             <div class="tool-card" data-category="Informações">
                 <div class="tool-image">
+                    <a href="/analises_tecnicas_empresa"><img src="{% static 'images/infos.png' %}" alt="Informações" style="width: 150px;" class="placeholder"></a>
+                </div>
+                <div class="tool-info">
+                    <h3>Análises técnicas da empresa</h3>
+                    <p>Lista de todas as análises técnicas da empresa</p>
+                    <a href="/analises_tecnicas_empresa" class="tool-link">Acessar <i class="fas fa-chevron-right"></i></a>
+                </div>
+            </div>
+        {% endif %}
+
+        {% if request.user|has_group:"Gerente" %}
+            <div class="tool-card" data-category="Informações">
+                <div class="tool-image">
                     <a href="/informacoes_empresa"><img src="{% static 'images/infos.png' %}" alt="Informações" style="width: 150px;" class="placeholder"></a>
                 </div>
                 <div class="tool-info">
