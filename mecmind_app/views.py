@@ -73,10 +73,59 @@ def _get_company_info(company):
 
     return company_text
 
+# Páginas de visualização simples.
 @login_required(login_url='/login')
 def index(request):
     return render(request, 'index.html')
 
+@login_required(login_url='/login')
+def analises(request):
+    return render(request, 'analises.html')
+
+@login_required(login_url='/login')
+def empresa(request):
+    return render(request, 'empresa.html')
+
+@login_required(login_url='/login')
+def documentacao(request):
+    return render(request, 'documentacao.html')
+
+@login_required(login_url='/login')
+def suporte(request):
+    return render(request, 'suporte.html')
+
+def acesso_negado(request):
+    return render(request, 'acesso_negado.html')
+
+def server_error(request):
+    '''
+    View personalizada para erro 500 (erro interno do servidor)
+    Esta view é chamada automaticamente pelo Django quando ocorre um erro interno
+    '''
+
+    return render(request, 'server_error.html', status=500)
+
+# Páginas de login e logout.
+def login_view(request):
+    form = AuthenticationForm(request)
+
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+
+        if form.is_valid():
+            user = form.get_user()
+            auth.login(request, user)
+            return redirect('/')
+
+        messages.error(request, 'Login inválido')
+
+    return render(request, 'login.html',{'form': form})
+
+def logout_view(request):
+    auth.logout(request)
+    return redirect('/login')
+
+# Páginas de análise de projetos.
 @login_required(login_url='/login')
 def analise_eixo(request):
     ctx = {}
@@ -1201,6 +1250,7 @@ def analise_tecnica(request):
 
     return render(request, 'analise_tecnica.html')
 
+# Listas de projetos e análises técnicas.
 @login_required(login_url='/login')
 def projetos(request):
     ctx = {}
@@ -1440,17 +1490,10 @@ def analises_tecnicas_empresa(request):
 
     return render(request, 'analises_tecnicas_empresa.html', ctx)
 
-@login_required(login_url='/login')
-def empresa(request):
-
-    return render(request, 'empresa.html')
-
-@login_required(login_url='/login')
-def analises(request):
-
-    return render(request, 'analises.html')
-
+#Página de informações da empresa.
 # TODO: Melhorar essa função.
+#
+
 @login_required(login_url='/login')
 def informacoes_empresa(request):
     if not request.user.groups.filter(name='Gerente').exists():
@@ -1715,6 +1758,7 @@ def excluir_estoque(request, item_id):
 
         return redirect('estoque_empresa')
 
+# Página de detalhes do projeto e análise técnica.
 @login_required(login_url='/login')
 def projeto(request, projeto_id):
     ctx = {}
@@ -1726,7 +1770,6 @@ def projeto(request, projeto_id):
         ctx['processes'] = deepcopy(projeto.processes)
 
         return render(request, 'projeto.html', ctx)
-
 
     else:
         return redirect('/acesso_negado')
@@ -1745,44 +1788,3 @@ def detalhe_analise_tecnica(request, analise_id):
 
     else:
         return redirect('/acesso_negado')
-
-@login_required(login_url='/login')
-def documentacao(request):
-    return render(request, 'documentacao.html')
-
-@login_required(login_url='/login')
-def suporte(request):
-    return render(request, 'suporte.html')
-
-def login_view(request):
-    form = AuthenticationForm(request)
-
-    if request.method == 'POST':
-        form = AuthenticationForm(request, data=request.POST)
-
-        if form.is_valid():
-            user = form.get_user()
-            auth.login(request, user)
-            return redirect('/')
-
-        messages.error(request, 'Login inválido')
-
-    return render(request, 'login.html',{'form': form})
-
-def logout_view(request):
-    auth.logout(request)
-    return redirect('/login')
-
-def acesso_negado(request):
-    return render(request, 'acesso_negado.html')
-
-def server_error(request):
-    '''
-    View personalizada para erro 500 (erro interno do servidor)
-    Esta view é chamada automaticamente pelo Django quando ocorre um erro interno
-    '''
-
-    return render(request, 'server_error.html', status=500)
-
-def test_tailwind(request):
-    return render(request, 'test_tailwind.html')
