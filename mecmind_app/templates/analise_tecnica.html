@@ -12,7 +12,7 @@
             <p>Envie seu desenho técnico e receba todos os dados necessários para compra e fabricação.</p>
         </header>
 
-        {% if not analise_tecnica %}
+        {% if not tipo_desenho %}
             <div class="status-indicator">
                 <div class="step active">
                     <div class="step-icon">1</div>
@@ -73,7 +73,7 @@
             </div>
 
         {% else %}
-            <div class="response-container {% if analise_tecnica %}active{% endif %}">
+            <div class="response-container {% if tipo_desenho %}active{% endif %}">
                 <h2><i class="fas fa-clipboard-check"></i> Resultado da Análise</h2>
 
                 <div class="result-container">
@@ -83,16 +83,54 @@
 
                     <div class="result-info">
                         <div class="result-section">
-                            <h3><i class="fas fa-exclamation-circle"></i> Análise técnica</h3>
-                            <p>{{ analise_tecnica }}</p>
+                            <h3><i class="fas fa-exclamation-circle"></i> Tipo de desenho</h3>
+                            <p>{{ tipo_desenho }}</p>
                         </div>
 
-                        {% if observacoes %}
-                            <div class="result-section">
-                                <h3><i class="fas fa-exclamation-circle"></i> Observações Adicionais</h3>
-                                <p>{{ observacoes }}</p>
-                            </div>
-                        {% endif %}
+                        <div class="result-section">
+                            <h3><i class="fas fa-cogs"></i> Subpartes</h3>
+                            <ul>
+                                {% for subparte in subpartes %}
+                                    <li><strong>{{ subparte.nome }}</strong></li>
+                                     <p><strong>Classificação: </strong>{{ subparte.classificacao }}</p>
+                                    <p><strong>Função: </strong>{{ subparte.funcao }}</p><br>
+                                {% endfor %}
+                            </ul>
+                        </div>
+
+                        <div class="result-section">
+                            <h3><i class="fas fa-tools"></i> Estratégia de Fabricação</h3>
+                            <ul>
+                                {% for estrategia in estrategia_fabricacao %}
+                                    <li><strong>{{ estrategia.item }}</strong></li>
+                                    <p><strong>Processo: </strong>{{ estrategia.processo }}</p>
+                                    <p><strong>Justificativa: </strong>{{ estrategia.justificativa }}</p><br>
+                                {% endfor %}
+                            </ul>
+                        </div>
+
+                        <div class="result-section">
+                            <h3><i class="fas fa-list-ol"></i> Sequência de Fabricação</h3>
+                            <ul>
+                                {% for sequencia in sequencia_fabricacao %}
+                                    <li>{{ sequencia }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+
+                        <div class="result-section">
+                            <h3><i class="fas fa-exclamation-triangle"></i> Pontos Críticos</h3>
+                            <ul>
+                                {% for ponto in pontos_criticos %}
+                                    <li>{{ ponto }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+
+                        <div class="result-section">
+                            <h3><i class="fas fa-info-circle"></i> Resumo</h3>
+                            <p>{{ resumo }}</p>
+                        </div>
                     </div>
                 </div>
 

@@ -1118,7 +1118,8 @@ def analise_tecnica(request):
     ctx = {}
 
     if request.method == 'POST':
-        quantity_text = f' A quantidade de peças necessárias para este projeto é de {request.POST.get("quantidade", "1")}.'
+        quantity = request.POST.get('quantidade', 1)
+        quantity_text = f' A quantidade de peças necessárias para este projeto é de {quantity}.'
 
         # Adiciona a quantidade ao prompt do usuário.
         user_prompt = 'Observações adicionais do usuário: ' + request.POST.get('prompt', '') + '\n' + quantity_text
@@ -1241,10 +1242,45 @@ def analise_tecnica(request):
 
             return render(request, 'analise_tecnica.html')
 
+        # Coleta as informações necessárias.
+        tipo_desenho = dic.get('tipo_desenho', 'Análise Técnica')
+        subpartes = dic.get('subpartes', [])
+        estrategia_fabricacao = dic.get('estrategia_fabricacao', [])
+        sequencia_fabricacao = dic.get('sequencia_fabricacao', [])
+        pontos_criticos = dic.get('pontos_criticos', [])
+        resumo = dic.get('resumo', '')
+
+        # Salva o Projeto
+        analise = m.TechnicalAnalysis()
+
+        # Informações do usuário.
+        analise.user = request.user
+
+        if hasattr(request.user, 'company') and request.user.company:
+            analise.company = request.user.company
+
+        # Informações do projeto.
+        analise.drawing = request.FILES['image']
+        analise.quantity = quantity
+        analise.analysis_name = tipo_desenho
+        analise.subparts = subpartes
+        analise.manufacturing_strategy = estrategia_fabricacao
+        analise.manufacturing_sequence = sequencia_fabricacao
+        analise.critical_points = pontos_criticos
+        analise.summary = resumo
+        analise.user_observation = request.POST.get('prompt', '')
+
+        analise.save()
+
         # Adiciona as informações ao contexto.
-        ctx['analise_tecnica'] = dic.get('analise', '')
-        ctx['observacoes'] = dic.get('observacoes', '')
-        # ctx['image_url'] = project.drawing.url
+        ctx['tipo_desenho'] = tipo_desenho
+        ctx['subpartes'] = subpartes
+        ctx['estrategia_fabricacao'] = estrategia_fabricacao
+        ctx['sequencia_fabricacao'] = sequencia_fabricacao
+        ctx['pontos_criticos'] = pontos_criticos
+        ctx['resumo'] = resumo
+        ctx['quantity'] = quantity
+        ctx['image_url'] = analise.drawing.url
 
         return render(request, 'analise_tecnica.html', ctx)
 
