@@ -61,19 +61,15 @@
     </div>
 
     <table class="list">
-        <col style="width: 20px;"> <!-- Análise -->
+        <col style="width: 200px;"> <!-- Análise -->
         <col style="width: 50px;"> <!-- Usuário -->
         <col style="width: 50px;"> <!-- Criação -->
-        <col style="width: 230px;"> <!-- M. Prima -->
-        <col style="width: 230px;"> <!-- Máquinas -->
 
         <thead>
             <tr>
                 <th>Análise</th>
                 <th>Usuário</th>
                 <th>Criação</th>
-                <th>M. Prima</th>
-                <th>Máquinas</th>
             </tr>
         </thead>
 
@@ -83,8 +79,6 @@
                     <td><a class="list-link" href="{% url 'detalhe_analise_tecnica' i.id %}">Análise {{ i.analysis_name }}</a></td>
                     <td>{{ i.user }}</td>
                     <td>{{ i.created_date|date:"d/m/Y H:i" }}</td>
-                    <td><span title="{{ i.raw_material }}">{{ i.raw_material|truncatechars:40 }}</span></td>
-                    <td><span title="{{ i.machines }}">{{ i.machines|truncatechars:40 }}</span></td>
                 </tr>
             {% endfor %}
         </tbody>
