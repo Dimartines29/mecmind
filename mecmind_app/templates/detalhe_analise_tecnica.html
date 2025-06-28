@@ -22,33 +22,57 @@
         </div>
 
         <div class="detail-section">
-            <h5>Matéria-prima</h5>
-            <p>{{ analise.raw_material|default:"Não informado." }}</p><br>
-
-            <h5>Disponibilidade de estoque</h5>
-            <p>{{ analise.recommended_stock_item|default:"Sem Disponibilidade." }}</p>
+            <h5>Tipo de desenho</h5>
+            <p>{{ analise.analysis_name|default:"Não informado." }}</p>
         </div>
 
         <div class="detail-section">
-            <h5>Máquinas</h5>
+            <h5>Subpartes</h5>
 
-            {% for machine in machines %}
-                <p>• {{ machine }}</p>
-            {% endfor %}
+            <ul>
+                {% for subparte in subpartes %}
+                    <li><strong>{{ subparte.nome }}</strong></li>
+                        <p><strong>Classificação: </strong>{{ subparte.classificacao }}</p>
+                    <p><strong>Função: </strong>{{ subparte.funcao }}</p><br>
+                {% endfor %}
+            </ul>
         </div>
 
         <div class="detail-section">
-            <h5>Processos</h5>
+            <h5>Estratégia de fabricação</h5>
 
-            {% for process in processes %}
-                <h4>• {{ process.nome }}</h4>
-                <p>{{ process.descricao }}</p> <br>
-            {% endfor %}
+            <ul>
+                {% for estrategia in estrategia_fabricacao %}
+                    <li><strong>{{ estrategia.item }}</strong></li>
+                    <p><strong>Processo: </strong>{{ estrategia.processo }}</p>
+                    <p><strong>Justificativa: </strong>{{ estrategia.justificativa }}</p><br>
+                {% endfor %}
+            </ul>
         </div>
 
         <div class="detail-section">
-            <h5>Observações do Usuário</h5>
-            <p>{{ analise.user_observation|default:"Nenhuma observação." }}</p>
+            <h5>Sequência de fabricação</h5>
+
+            <ul>
+                {% for sequencia in analise.manufacturing_sequence %}
+                    <li>{{ sequencia }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="detail-section">
+            <h5>Pontos críticos</h5>
+
+            <ul>
+                {% for ponto in analise.critical_points %}
+                    <li>{{ ponto }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="detail-section">
+            <h5>Resumo</h5>
+            <p>{{ analise.summary|default:"Nenhum resumo disponível." }}</p>
         </div>
 
         <div class="detail-section">

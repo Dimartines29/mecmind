@@ -1817,8 +1817,10 @@ def detalhe_analise_tecnica(request, analise_id):
 
     if (request.user.groups.filter(name='Gerente').exists() and request.user.company == analise.company) or request.user == analise.user:
         ctx['analise'] = analise
-        ctx['machines'] = analise.machines.split(', ') if analise.machines else []
-        ctx['processes'] = deepcopy(analise.processes)
+
+        # Campos passados para o contexto para tratamento no template.
+        ctx['subpartes'] = deepcopy(analise.subparts)
+        ctx['estrategia_fabricacao'] = deepcopy(analise.manufacturing_strategy)
 
         return render(request, 'detalhe_analise_tecnica.html', ctx)
 
