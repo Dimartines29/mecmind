@@ -28,15 +28,8 @@ load_dotenv()
 # LOG.
 logger = logging.getLogger('mecmind_app')
 
-# OpenAI API key.
+# OpenAI API key e cliente.
 openai_api_key = os.getenv('OPENAI_API_KEY')
-
-# Garante que o diretório para salvar as imagens existe.
-IMAGE_UPLOAD_PATH = os.path.join('static', 'images')
-
-if not os.path.exists(IMAGE_UPLOAD_PATH):
-    os.makedirs(IMAGE_UPLOAD_PATH)
-
 cli = openai.OpenAI(api_key=openai_api_key)
 
 # Decoda filtros.
