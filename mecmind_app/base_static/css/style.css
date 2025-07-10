@@ -370,10 +370,6 @@ textarea:focus {
         padding: 10px;
     }
 
-    .container {
-        border-radius: 10px;
-    }
-
     header {
         padding: 30px 15px;
     }
@@ -404,10 +400,6 @@ textarea:focus {
 @media (max-width: 480px) {
     body {
         padding: 5px;
-    }
-
-    .container {
-        border-radius: 8px;
     }
 
     header {
