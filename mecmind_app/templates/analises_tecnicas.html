@@ -16,17 +16,6 @@
         <form method="get" action="{% url 'analises_tecnicas' %}" id="filter-form">
             <div class="filter-row">
                 <div class="filter-group">
-                    <label for="analysis_type">Tipo de Análise:</label>
-
-                    <select name="analysis_type" id="analysis_type">
-                        <option value="">Todos</option>
-                        {% for value in analysis_choices %}
-                            <option value="{{ value }}" {% if selected_analysis == value %}selected{% endif %}>{{ value }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div class="filter-group">
                     <label for="date_from">Data de Início:</label>
                     <input type="date" id="date_from" name="date_from" value="{{ selected_date_from }}">
                 </div>

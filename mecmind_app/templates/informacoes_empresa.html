@@ -68,26 +68,6 @@
                 </div>
             </div>
 
-            <div class="info-card" style="margin: 15px;">
-                <div class="info-card-header">
-                    <i class="fas fa-chart-line"></i>
-                    <h1>Capacidade Produtiva</h1>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group half-width">
-                        <label for="work_shifts"><i class="fas fa-clock"></i> Turnos de Trabalho</label>
-
-                        <select id="work_shifts" name="work_shifts" class="form-select">
-                            {% for turno in turnos %}
-                                <option value="{{ turno.1 }}" {% if company.work_shifts == turno.1 %}selected{% endif %}>{{ turno.1 }}</option>
-                            {% endfor %}
-                        </select>
-                        <small class="form-help">Quantidade de turnos em operação</small>
-                    </div>
-                </div>
-            </div>
-
             <div class="form-actions">
                 <a href="{% url 'informacoes_empresa' %}" class="btn-secondary"><i class="fas fa-times"></i> Cancelar</a>
 

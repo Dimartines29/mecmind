@@ -38,14 +38,9 @@
                     <select name="status" id="status">
                         <option value="">Todos</option>
                         {% for value in status_choices %}
-                            <option value="{{ value.1 }}" {% if status == value.1 %}selected{% endif %}>{{ value.1 }}</option>
+                            <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ value }}</option>
                         {% endfor %}
                     </select>
-                </div>
-
-                <div class="filter-group">
-                    <label for="material">Material:</label>
-                    <input name="material" id="material" value="{{ material }}"></input>
                 </div>
 
                 <div class="filter-actions">
