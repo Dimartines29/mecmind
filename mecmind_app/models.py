@@ -11,6 +11,7 @@ class Company(models.Model):
     created_date = models.DateTimeField(default=timezone.now)
     active = models.BooleanField(default=True)
     num_employees = models.PositiveIntegerField('Número de Funcionários', blank=True, null=True)
+    api_key = models.TextField('Chave de API', blank=True)
 
     # Campos contextuais para IA.
     machines_turning = models.TextField('Máquinas de Torneamento', blank=True)

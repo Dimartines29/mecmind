@@ -28,10 +28,6 @@ load_dotenv()
 # LOG.
 logger = logging.getLogger('mecmind_app')
 
-# OpenAI API key e cliente.
-openai_api_key = os.getenv('OPENAI_API_KEY')
-cli = openai.OpenAI(api_key=openai_api_key)
-
 # Decoda filtros.
 def _decode_filters(encoded_str):
     try:
@@ -122,6 +118,7 @@ def logout_view(request):
 @login_required(login_url='/login')
 def analise_eixo(request):
     ctx = {}
+    cli = openai.OpenAI(api_key=request.user.company.api_key) # Inicia o cliente OpenAI com a chave da empresa.
 
     if request.method == 'POST':
         quantity_text = f' A quantidade de peças necessárias para este projeto é de {request.POST.get("quantidade", "1")}.'
@@ -389,6 +386,7 @@ def analise_eixo(request):
 @login_required(login_url='/login')
 def analise_chapa(request):
     ctx = {}
+    cli = openai.OpenAI(api_key=request.user.company.api_key) # Inicia o cliente OpenAI com a chave da empresa.
 
     if request.method == 'POST':
         quantity_text = f' A quantidade de peças necessárias para este projeto é de {request.POST.get("quantidade", "1")}.'
@@ -848,6 +846,7 @@ def analise_chapa(request):
 
 @login_required(login_url='/login')
 def analise_tubo(request):
+    cli = openai.OpenAI(api_key=request.user.company.api_key) # Inicia o cliente OpenAI com a chave da empresa.
     ctx = {}
 
     if request.method == 'POST':
@@ -1109,6 +1108,7 @@ def analise_tubo(request):
 @login_required(login_url='/login')
 def analise_tecnica(request):
     ctx = {}
+    cli = openai.OpenAI(api_key=request.user.company.api_key) # Inicia o cliente OpenAI com a chave da empresa.
 
     if request.method == 'POST':
         quantity = request.POST.get('quantidade', 1)
