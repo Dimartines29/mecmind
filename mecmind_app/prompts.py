@@ -188,15 +188,35 @@ SYSTEM_ANALISE_TECNICA = '''
 
 # Prompts
 PROMPT_EIXO_ANALISE = '''
-    Você é um especialista em desenhos técnicos de eixos. Analise cuidadosamente a imagem fornecida e siga estas diretrizes com precisão, SEM ASSUMIR NADA que não esteja visivelmente representado no desenho.
+
+    Você é um **especialista em desenhos técnicos de eixos**.
+    Analise a imagem fornecida e preencha a função `get_info` **somente** com os campos solicitados.
+    Não ASSUMA nada que não esteja explicitamente representado.
+
     1. Informações Fundamentais
     * Verifique se o material está indicado (geralmente no canto inferior direito). Se não estiver, informe: “material não especificado”.
-    * Identifique o comprimento total do eixo:
-        Verifique se existe uma cota com linha de chamada que vai da extremidade esquerda até a extremidade direita do eixo.
-        Se sim, essa é a cota total — use esse valor.
-        Se não houver tal cota, some apenas as cotas parciais que juntas cobrem todo o comprimento da peça.
-        Nunca use como critério o alinhamento vertical entre cotas, pois cotas parciais podem estar alinhadas e mesmo assim não representar o total.
+
+    ╔════════════════════════════════════════════════════╗
+    ║     REGRA DE OURO — COMPRIMENTO TOTAL DO EIXO      ║
+    ╚════════════════════════════════════════════════════╝
+    1. Se existir **uma única cota** que liga a extremidade esquerda à direita → esse é o comprimento total → use esse valor.
+    2. Se NÃO existir cota total, **some apenas** as cotas parciais que, juntas, cobrem TODO o eixo.
+    3. Nunca confie apenas no alinhamento visual de cotas; verifique a seta da linha de chamada.
+    4. O campo `comprimento` **deve conter apenas o número**.
+
+    *Exemplos rápidos*
+    • **Exemplo A – cota total presente**
+    - Desenho apresenta 40 mm (total) e 20 mm parcial.
+    - `comprimento` = **40** (método: direto)
+
+    • **Exemplo B – cota total ausente**
+    - Desenho apresenta 20 mm + 15 mm + 5 mm.
+    - `comprimento` = **40** (método: soma)
+
     Verifique bem a sobreposiçao de cotas para não somar quando não for necessário, pois isso pode impactar MUITO a fabricação.
+
+    **IMPORTANTE** Analise bem, pois geralmente a maior cota presente do comprimento é a cota total, mas não é uma regra absoluta, se ficar na dúvida NÃO faça a soma!!!!
+    ====================================================
     * Identifique o maior diâmetro do eixo com precisão, comparando todos os valores disponíveis.
 
     2. Características Dimensionais e Geométricas

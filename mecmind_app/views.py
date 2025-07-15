@@ -148,8 +148,12 @@ def analise_eixo(request):
         analysis_function[0]['parameters']['properties']['diametros']['type'] = 'string'
         analysis_function[0]['parameters']['properties']['diametros']['description'] = 'Informe outros diâmetros relevantes para fabricação.'
 
+        analysis_function[0]['parameters']['properties']['explicacao_comprimento'] = {}
+        analysis_function[0]['parameters']['properties']['explicacao_comprimento']['type'] = 'string'
+        analysis_function[0]['parameters']['properties']['explicacao_comprimento']['description'] = 'Informe aqui como você chegou ao comprimento total do eixo com base na análise do desenho. Precisou fazer somas das cotas?'
+
         analysis_function[0]['parameters']['properties']['comprimento'] = {}
-        analysis_function[0]['parameters']['properties']['comprimento']['type'] = 'string'
+        analysis_function[0]['parameters']['properties']['comprimento']['type'] = 'number'
         analysis_function[0]['parameters']['properties']['comprimento']['description'] = 'Informe o comprimento total do eixo com base na análise do desenho.'
 
         analysis_function[0]['parameters']['properties']['roscas'] = {}
@@ -177,7 +181,7 @@ def analise_eixo(request):
         # Monta o dicionário para a primeira chamada.
         kwa = {}
 
-        kwa['model'] = 'o4-mini'
+        kwa['model'] = 'o3-2025-04-16'
         kwa['messages'] = [{}, {}]
 
         kwa['messages'][0]['role'] = 'system'
