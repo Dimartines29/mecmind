@@ -445,7 +445,7 @@ def analise_chapa(request):
 
             kwa = {}
 
-            kwa['model'] = 'o4-mini'
+            kwa['model'] = 'o3-2025-04-16'
             kwa['messages'] = [{}, {}]
 
             kwa['messages'][0]['role'] = 'system'
@@ -647,7 +647,7 @@ def analise_chapa(request):
 
             kwa = {}
 
-            kwa['model'] = 'o4-mini'
+            kwa['model'] = 'o3-2025-04-16'
             kwa['messages'] = [{}, {}]
 
             kwa['messages'][0]['role'] = 'system'

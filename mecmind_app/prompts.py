@@ -321,7 +321,6 @@ PROMPT_EIXO_FINAL = '''
     Forneça todas as respostas de forma clara, estruturada e objetiva, como em um relatório técnico para uso no chão de fábrica.
 
     8. **Catálogo Completo (para consulta):**
-
         Bitola: 1/4"
         Bitola: 5/16"
         Bitola: 3/8"
