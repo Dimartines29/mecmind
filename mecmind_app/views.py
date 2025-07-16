@@ -233,7 +233,7 @@ def analise_eixo(request):
         info_project += '\n'
 
         # Monta a lista de estoque de barras redondas disponíveis para análise da IA.
-        stock = m.Stock.objects.filter(company=request.user.company, status='disponivel', category='barra_redonda', diameter__gte=(diametro_maior + 10))
+        stock = m.Stock.objects.filter(company=request.user.company, status='Disponível', category='Barra Redonda', diameter__gte=(diametro_maior + 10))
         stock_list = []
 
         for item in stock:
@@ -493,7 +493,7 @@ def analise_chapa(request):
             info_project += '\n'
 
             # Monta a lista de estoque de chapas disponíveis para análise da IA.
-            stock = m.Stock.objects.filter(company=request.user.company, status='disponivel', category='chapa')
+            stock = m.Stock.objects.filter(company=request.user.company, status='Disponível', category='Chapa')
             stock_list = []
 
             for item in stock:
@@ -695,7 +695,7 @@ def analise_chapa(request):
             info_project += '\n'
 
             # Monta a lista de estoque de chapas disponíveis para análise da IA.
-            stock = m.Stock.objects.filter(company=request.user.company, status='disponivel', category='chapa')
+            stock = m.Stock.objects.filter(company=request.user.company, status='Disponível', category='Chapa')
             stock_list = []
 
             for item in stock:
@@ -955,7 +955,7 @@ def analise_tubo(request):
         info_project += '\n'
 
         # Monta a lista de estoque de barras redondas disponíveis para análise da IA.
-        stock = m.Stock.objects.filter(company=request.user.company, status='disponivel', category='tubo')
+        stock = m.Stock.objects.filter(company=request.user.company, status='Disponível', category='Tubo')
         stock_list = []
 
         for item in stock:
@@ -1586,13 +1586,10 @@ def estoque_empresa(request):
 
     # Aplica os filtros se fornecidos.
     if category:
-        query = query.filter(category=category.lower())
-
-    if material:
-        query = query.filter(material=material)
+        query = query.filter(category=category)
 
     if status:
-        query = query.filter(status=status.lower())
+        query = query.filter(status=status)
 
     # Paginação
     paginator = Paginator(query, 10)

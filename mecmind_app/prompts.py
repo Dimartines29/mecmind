@@ -274,6 +274,7 @@ PROMPT_EIXO_FINAL = '''
     Converta o diâmetro bruto de mm para polegadas com duas casas decimais.
 
     Consulte o estoque de peças e verifique se existe alguma peça com o diâmetro próximo do solicitado, você pode sugerir peças com diâmetros um pouco maiores se houver, menores NUNCA.
+    A mesma observação é válida para o comprimento, verifique se existe alguma peça com o comprimento próximo do solicitado, você pode sugerir peças com comprimentos maiores se houver (a empresa pode cortar a barra), menores NUNCA.
     Tente priorizar materiais do estoque, mas SOMENTE se esse material for atender o caso, se não, priorize a compra de material.
 
     Consulte o catálogo de bitolas comerciais e selecione a bitola imediatamente superior ao valor convertido.
@@ -410,6 +411,9 @@ PROMPT_CHAPA_FINAL = '''
     - Consulte o catálogo abaixo para selecionar a chapa com a espessura mais próxima à matéria prima fornecida.
     - Informe a matéria-prima a ser utilizada, comprimento (milímetro), largura (milímetro) e espessura (polegada).
     - O usuário deve receber a sua análise de forma clara e objetiva, com as medidas exatas da chapa a ser adquirida.
+
+    - IMPORTANTE: Verifique se a chapa já está disponível no estoque da empresa. Se não houver, informe que será necessário adquirir a chapa.
+        Analise a espessura da chapa em estoque e assuma que a empresa poderá cortar a chapa para atender às medidas desejadas, mas não poderá aumentar a espessura.
 
     2. **Processos de Fabricação:**
     - IMPORTANTE: As requisições das chapas, na maioria das vezes já são nas medidas desejadas, ou seja, não é necessário um adicionar um processo de corte a laser, a chapa já é recebida cortada.
@@ -558,6 +562,9 @@ PROMPT_CHAPA_DOBRAS_FINAL = '''
     - Determine a espessura com base nas medidas disponíveis e converta para polegadas.
     - Utilize o catálogo fornecido no sistema para indicar a chapa ideal com suas dimensões exatas (Comprimento x Largura x Espessura).
     - Indique a qualidade do material se especificada (ex: Aço Inox 304, SAE 1020 etc.).
+
+    - IMPORTANTE: Verifique se a chapa já está disponível no estoque da empresa. Se não houver, informe que será necessário adquirir a chapa.
+        Analise a espessura da chapa em estoque e assuma que a empresa poderá cortar a chapa para atender às medidas desejadas, mas não poderá aumentar a espessura.
 
     2. Processos de Fabricação:
     - Liste todos os processos técnicos necessários (ex: dobra CNC, usinagem de rebaixo, acabamento superficial).
