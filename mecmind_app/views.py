@@ -906,7 +906,7 @@ def analise_tubo(request):
         # Monta o dicionário para a primeira chamada.
         kwa = {}
 
-        kwa['model'] = 'o4-mini'
+        kwa['model'] = 'o3-2025-04-16'
         kwa['messages'] = [{}, {}]
 
         kwa['messages'][0]['role'] = 'system'
@@ -1202,7 +1202,7 @@ def analise_tecnica(request):
         # Monta o dicionário para a chamada.
         kwa = {}
 
-        kwa['model'] = 'o4-mini'
+        kwa['model'] = 'o3-2025-04-16'
         kwa['messages'] = [{}, {}]
 
         kwa['messages'][0]['role'] = 'system'
