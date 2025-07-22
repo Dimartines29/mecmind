@@ -74,13 +74,13 @@ class ProjectAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'company', 'analysis_name', 'created_date')
 
     # Ordena os dados.
-    ordering = ('-id', )
+    ordering = ('-created_date', )
 
     #Filtros.
-    list_filter = ('user', 'company', 'analysis_name')
+    list_filter = ('company', 'created_date', 'user')
 
     # Pesquisa.
-    search_fields = ('id', 'created_date')
+    search_fields = ('id', 'company', 'created_date', 'user')
 
     # Valores exibidos por página.
     list_per_page = 30
@@ -94,16 +94,16 @@ class ProjectAdmin(admin.ModelAdmin):
 @admin.register(m.TechnicalAnalysis)
 class TechnicalAnalysisAdmin(admin.ModelAdmin):
     # Define o que será exibido no painel admin da tabela Análise Técnica.
-    list_display = ('id', 'user', 'company', 'analysis_name', 'quantity', 'created_date')
+    list_display = ('id', 'user', 'company', 'analysis_name', 'created_date')
 
     # Ordena os dados.
-    ordering = ('-id', )
+    ordering = ('-created_date', )
 
     #Filtros.
-    list_filter = ('user', 'company', 'analysis_name', 'created_date')
+    list_filter = ('company', 'created_date', 'user')
 
     # Pesquisa.
-    search_fields = ('id', 'analysis_name', 'summary')
+    search_fields = ('id', 'company', 'created_date', 'user')
 
     # Valores exibidos por página.
     list_per_page = 30
