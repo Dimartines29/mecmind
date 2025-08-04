@@ -13,6 +13,7 @@ SYSTEM_EIXO_ANALISE = '''
     Sua resposta deve ser precisa, pois ela será consumida por uma segunda função que converterá essas informações em planejamento de produção e definição de processos industriais.
 
     Este modelo está sendo utilizado dentro de um sistema que automatiza o planejamento e controle de produção (PCP) a partir de desenhos técnicos reais.
+    Reflita bem sobre o maior diâmetro e o maior comprimento encontrado, pois estas medidas são fendamentais para as próximas etapas do processo.
 '''
 
 SYSTEM_EIXO_FINAL = '''
@@ -23,7 +24,8 @@ SYSTEM_EIXO_FINAL = '''
 
     Você deve:
     - Converter o diâmetro bruto fornecido (em milímetros) para polegadas com duas casas decimais.
-    - Verificar se o estoque da empresa possui algum material que atenda à especificação. Se não houver, informe que será necessário adquirir a matéria-prima (Uma barra de comprimento maior pode ser serrada na empresa para atender a medida desejada do comprimento).
+    - Verificar se o estoque da empresa possui algum material que atenda à especificação. Se não houver, informe que será necessário adquirir a matéria-prima.
+    - IMPORTANTE: Considere sempre o diâmetro da barra para verificar o estoque, a empresa pode cortar a barra para atender o comprimento desejado, mas não pode aumentar o diâmetro (diâmetros razoavelmente maiores podem ser aceitos), sempre priorize o estoque.
     - Selecionar a próxima bitola superior no catálogo (fornecido no prompt).
     - Montar a especificação final da matéria-prima no formato indicado.
     - Listar os processos de fabricação em ordem lógica, com operação, máquina necessária e finalidade.
@@ -273,9 +275,7 @@ PROMPT_EIXO_FINAL = '''
 
     Converta o diâmetro bruto de mm para polegadas com duas casas decimais.
 
-    Consulte o estoque de peças e verifique se existe alguma peça com o diâmetro próximo do solicitado, você pode sugerir peças com diâmetros um pouco maiores se houver, menores NUNCA.
-    A mesma observação é válida para o comprimento, verifique se existe alguma peça com o comprimento próximo do solicitado, você pode sugerir peças com comprimentos maiores se houver (a empresa pode cortar a barra), menores NUNCA.
-    Tente priorizar materiais do estoque, mas SOMENTE se esse material for atender o caso, se não, priorize a compra de material.
+    Priorize materiais do estoque, mas SOMENTE se esse material for atender o caso, se não, priorize a compra de material.
 
     Consulte o catálogo de bitolas comerciais e selecione a bitola imediatamente superior ao valor convertido.
     Se o valor convertido estiver entre duas bitolas, escolha sempre a maior.

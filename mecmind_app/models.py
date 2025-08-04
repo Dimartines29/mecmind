@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import AbstractUser
+from mecmind_app.validators import validate_inches
 
 class Company(models.Model):
     name = models.CharField(max_length=50)
@@ -95,8 +96,8 @@ class Stock(models.Model):
     category = models.CharField('Categoria', max_length=20)
     material = models.CharField('Material', max_length=50, blank=True)
     length = models.DecimalField('Comprimento', max_digits=10, decimal_places=2, blank=True, null=True)
-    diameter = models.DecimalField('Diâmetro', max_digits=10, decimal_places=2, blank=True, null=True)
-    thickness = models.DecimalField('Espessura', max_digits=10, decimal_places=2, blank=True, null=True)
+    diameter = models.CharField('Diâmetro', max_length=10, blank=True, null=True, validators=[validate_inches], help_text='Ex: "1/4", "1 1/4", ou "2"')
+    thickness = models.CharField('Espessura', max_length=10, blank=True, null=True, validators=[validate_inches], help_text='Ex: "1/4", "1 1/4", ou "2"')
     width = models.DecimalField('Largura', max_digits=10, decimal_places=2, blank=True, null=True)
     quantity = models.PositiveIntegerField('Quantidade', default=1)
     status = models.CharField('Status', max_length=20, default='Disponível')

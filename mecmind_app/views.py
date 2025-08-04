@@ -233,11 +233,11 @@ def analise_eixo(request):
         info_project += '\n'
 
         # Monta a lista de estoque de barras redondas disponíveis para análise da IA.
-        stock = m.Stock.objects.filter(company=request.user.company, status='Disponível', category='Barra Redonda', diameter__gte=(diametro_maior + 10))
+        stock = m.Stock.objects.filter(company=request.user.company, status='Disponível', category='Barra Redonda')
         stock_list = []
 
         for item in stock:
-            stock_list.append(f'Item: {item.name}, Código: {item.code}, Diâmetro: {item.diameter}, Comprimento: {item.length}, Material: {item.material}, Quantidade: {item.quantity}')
+            stock_list.append(f'Item: {item.name}, Código: {item.code}, Diâmetro: {item.diameter}", Comprimento: {item.length}, Material: {item.material}, Quantidade: {item.quantity}')
 
         msg_stock = 'Estes são os itens disponíveis no estoque:\n' + '\n'.join(stock_list)
 
@@ -309,7 +309,7 @@ def analise_eixo(request):
         kwa = {}
 
         kwa['model'] = 'gpt-4.1'
-        kwa['temperature'] = 0.3
+        kwa['temperature'] = 0.2
         kwa['messages'] = [{}, {}]
 
         kwa['messages'][0]['role'] = 'system'
@@ -497,7 +497,7 @@ def analise_chapa(request):
             stock_list = []
 
             for item in stock:
-                stock_list.append(f'Item: {item.name}, Código: {item.code}, Espessura: {item.thickness}, Comprimento: {item.length}, Largura: {item.width},  Material: {item.material}, Quantidade: {item.quantity}')
+                stock_list.append(f'Item: {item.name}, Código: {item.code}, Espessura: {item.thickness}", Comprimento: {item.length}, Largura: {item.width},  Material: {item.material}, Quantidade: {item.quantity}')
 
             msg_stock = 'Estes são os itens disponíveis no estoque:\n' + '\n'.join(stock_list)
 
@@ -521,7 +521,7 @@ def analise_chapa(request):
             # 1. Matéria-prima
             process_function[0]['parameters']['properties']['materia_prima'] = {}
             process_function[0]['parameters']['properties']['materia_prima']['type'] = 'string'
-            process_function[0]['parameters']['properties']['materia_prima']['description'] = 'Baseado no catálogo, coloque aqui as medidas Comprimento (milímetros) X Largura (milímetros) X Espessura (polegadas) (A Espessura deve ser compatível com as presentes no catálogo e deve ser fornecida em polegadas)'
+            process_function[0]['parameters']['properties']['materia_prima']['description'] = 'Baseado no catálogo, coloque aqui as medidas Comprimento (milímetros) X Largura (milímetros) X Espessura (polegadas) (A Espessura deve ser compatível com as presentes no catálogo e deve ser fornecida em polegadas da mesma forma que está no catálogo).'
 
             # 2. Processos (lista de objetos)
             process_function[0]['parameters']['properties']['processos'] = {}
@@ -569,7 +569,7 @@ def analise_chapa(request):
             kwa = {}
 
             kwa['model'] = 'gpt-4.1'
-            kwa['temperature'] = 0.3
+            kwa['temperature'] = 0.2
             kwa['messages'] = [{}, {}]
 
             kwa['messages'][0]['role'] = 'system'
@@ -699,7 +699,7 @@ def analise_chapa(request):
             stock_list = []
 
             for item in stock:
-                stock_list.append(f'Item: {item.name}, Código: {item.code}, Espessura: {item.thickness}, Comprimento: {item.length}, Largura: {item.width},  Material: {item.material}, Quantidade: {item.quantity}')
+                stock_list.append(f'Item: {item.name}, Código: {item.code}, Espessura: {item.thickness}", Comprimento: {item.length}, Largura: {item.width},  Material: {item.material}, Quantidade: {item.quantity}')
 
             msg_stock = 'Estes são os itens disponíveis no estoque:\n' + '\n'.join(stock_list)
 
@@ -771,7 +771,7 @@ def analise_chapa(request):
             kwa = {}
 
             kwa['model'] = 'gpt-4.1'
-            kwa['temperature'] = 0.3
+            kwa['temperature'] = 0.2
             kwa['messages'] = [{}, {}]
 
             kwa['messages'][0]['role'] = 'system'
@@ -959,7 +959,7 @@ def analise_tubo(request):
         stock_list = []
 
         for item in stock:
-            stock_list.append(f'Item: {item.name}, Código: {item.code}, Diâmetro: {item.diameter}, Comprimento: {item.length}, Material: {item.material}, Quantidade: {item.quantity}')
+            stock_list.append(f'Item: {item.name}, Código: {item.code}, Diâmetro: {item.diameter}", Comprimento: {item.length}, Material: {item.material}, Quantidade: {item.quantity}')
 
         msg_stock = 'Estes são os itens disponíveis no estoque:\n' + '\n'.join(stock_list)
 
@@ -1030,8 +1030,8 @@ def analise_tubo(request):
         # Monta a segunda chamada.
         kwa = {}
 
-        kwa['model'] = 'gpt-4o'
-        kwa['temperature'] = 0.3
+        kwa['model'] = 'gpt-4.1'
+        kwa['temperature'] = 0.2
         kwa['messages'] = [{}, {}]
 
         kwa['messages'][0]['role'] = 'system'
@@ -1594,10 +1594,10 @@ def estoque_empresa(request):
     # Paginação
     paginator = Paginator(query, 10)
     page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    data = paginator.get_page(page_number)
 
     # Prepara os dados para o contexto.
-    ctx['page_obj'] = page_obj
+    ctx['data'] = data
     ctx['category'] = category
     ctx['categories'] = c.ESTOQUE['categoria']
     ctx['status'] = status
@@ -1655,8 +1655,8 @@ def adicionar_estoque(request):
             # Dimensões (podem ser nulas)
             length = request.POST.get('length', '').strip()
             width = request.POST.get('width', '').strip()
-            thickness = request.POST.get('thickness', '').strip()
-            diameter = request.POST.get('diameter', '').strip()
+            thickness = request.POST.get('thickness', '')
+            diameter = request.POST.get('diameter', '')
 
             if length:
                 stock_item.length = float(length)
@@ -1665,10 +1665,10 @@ def adicionar_estoque(request):
                 stock_item.width = float(width)
 
             if thickness:
-                stock_item.thickness = float(thickness)
+                stock_item.thickness = thickness
 
             if diameter:
-                stock_item.diameter = float(diameter)
+                stock_item.diameter = diameter
 
             # Salvar no banco
             stock_item.save()
@@ -1709,7 +1709,7 @@ def editar_estoque(request, item_id):
             name = request.POST.get('name', '').strip()
             code = request.POST.get('code', '').strip()
             category = request.POST.get('category', '')
-            quantity = float(request.POST.get('quantity', '0'))
+            quantity = int(request.POST.get('quantity', '0'))
 
             # Validações básicas
             if not name:
@@ -1745,14 +1745,14 @@ def editar_estoque(request, item_id):
             # Atualizar dimensões
             length = request.POST.get('length', '').strip()
             width = request.POST.get('width', '').strip()
-            thickness = request.POST.get('thickness', '').strip()
-            diameter = request.POST.get('diameter', '').strip()
+            thickness = request.POST.get('thickness', '')
+            diameter = request.POST.get('diameter', '')
 
-            # Resetar dimensões para None se vazias
+            # Resetar dimensões se vazias
             stock_item.length = float(length) if length else None
             stock_item.width = float(width) if width else None
-            stock_item.thickness = float(thickness) if thickness else None
-            stock_item.diameter = float(diameter) if diameter else None
+            stock_item.thickness = thickness if thickness else None
+            stock_item.diameter = diameter if diameter else None
 
             # Salvar alterações
             stock_item.save()

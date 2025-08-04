@@ -93,15 +93,15 @@
 
                 <div class="form-row">
                     <div class="form-group half-width">
-                        <label for="thickness"><i class="fas fa-compress"></i> Espessura (mm)</label>
-                        <input type="number" id="thickness" name="thickness" value="{{ item.thickness|unlocalize }}" placeholder="0.00" step="0.01" min="0" class="form-input">
-                        <small class="form-help">Espessura em milímetros (para chapas)</small>
+                        <label for="thickness"><i class="fas fa-compress"></i> Espessura (")</label>
+                        <input type="text" id="thickness" name="thickness" value="{{ item.thickness|default_if_none:'' }}" placeholder="Ex: 1/4, 1 1/4, ou 2" class="form-input">
+                        <small class="form-help">Espessura em polegadas (para chapas)</small>
                     </div>
 
                     <div class="form-group half-width">
-                        <label for="diameter"><i class="fas fa-circle"></i> Diâmetro (mm)</label>
-                        <input type="number" id="diameter" name="diameter" value="{{ item.diameter|unlocalize }}" placeholder="0.00" step="0.01" min="0" class="form-input">
-                        <small class="form-help">Diâmetro em milímetros (para eixos/tubos)</small>
+                        <label for="diameter"><i class="fas fa-circle"></i> Diâmetro (")</label>
+                        <input type="text" id="diameter" name="diameter" value="{{ item.diameter|default_if_none:'' }}" placeholder="Ex: 1/4, 1 1/4, ou 2" class="form-input">
+                        <small class="form-help">Diâmetro em polegadas (para eixos/tubos)</small>
                     </div>
                 </div>
             </div>

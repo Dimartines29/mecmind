@@ -79,14 +79,14 @@
                 <th>QTD.</th>
                 <th>Comp.</th>
                 <th>Larg.</th>
-                <th>Esp.</th>
-                <th>Diâmetro</th>
+                <th>Esp. (")</th>
+                <th>Diâmetro (")</th>
                 <th></th>
             </tr>
         </thead>
 
         <tbody>
-            {% for i in page_obj %}
+            {% for i in data %}
                 <tr>
                     <td><a class="list-link" href="{% url 'editar_estoque' i.id %}">{{ i.code }}</a></td>
                     <td>{{ i.category }}</td>
