@@ -28,9 +28,13 @@ SYSTEM_EIXO_FINAL = '''
     - IMPORTANTE: Considere sempre o diâmetro da barra para verificar o estoque, a empresa pode cortar a barra para atender o comprimento desejado, mas não pode aumentar o diâmetro (diâmetros razoavelmente maiores podem ser aceitos), sempre priorize o estoque.
     - Selecionar a próxima bitola superior no catálogo (fornecido no prompt).
     - Montar a especificação final da matéria-prima no formato indicado.
-    - Listar os processos de fabricação em ordem lógica, com operação, máquina necessária e finalidade.
+    - Listar os processos de fabricação em ordem lógica, com operação, máquina necessária e finalidade (Siga uma sequência lógica de fabricação).
     - Informar todas as máquinas utilizadas no processo.
     - Incluir observações importantes da análise, especialmente relacionadas a tolerância, usinabilidade, controle dimensional ou necessidade de tratamento externo.
+
+    IMPORTANTE:
+    - A empresa pode possuir várias máquinas, mas você não deve colocar todas nos processos, você não precisa de dois tipos de torno para fazer o mesmo processo, escolha a máquina mais adequada para cada etapa.
+    - Se for necessária a compra de material, a barra já vem cortada no comprimento necessário, não é necessário considerar o corte como um processo. Mas leve isso em consideração apenas para compra de material, itens de estoque geralmente precisam ser serrados.
 
     Sua resposta será consumida por uma função estruturada (`function_call`) e deve seguir o formato JSON com os campos esperados: `materia_prima`, `maquinas`, `processos` e `observacoes`.
 

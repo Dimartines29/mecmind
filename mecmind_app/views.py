@@ -282,7 +282,7 @@ def analise_eixo(request):
         # 3. Máquinas (lista)
         process_function[0]['parameters']['properties']['maquinas'] = {}
         process_function[0]['parameters']['properties']['maquinas']['type'] = 'array'
-        process_function[0]['parameters']['properties']['maquinas']['description'] = 'Baseado nos processos que você descreveu, liste todas as máquinas necessárias para a fabricação do eixo.'
+        process_function[0]['parameters']['properties']['maquinas']['description'] = 'Baseado nos processos que você descreveu, liste todas as máquinas necessárias para a fabricação do eixo. Não coloque máquinas que não são necessárias.'
         process_function[0]['parameters']['properties']['maquinas']['items'] = {}
         process_function[0]['parameters']['properties']['maquinas']['items']['type'] = 'string'
         process_function[0]['parameters']['properties']['maquinas']['items']['description'] = 'Nome da máquina necessária para o processo (ex: Torno CNC, Furadeira de bancada).'
