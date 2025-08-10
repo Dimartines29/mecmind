@@ -1,5 +1,4 @@
 #Python
-import os
 import json
 import base64
 import logging
@@ -18,7 +17,6 @@ import openai
 from dotenv import load_dotenv
 
 #Local
-from mecmind_app import prompts as p
 from mecmind_app import models as m
 from mecmind_app import choices as c
 
