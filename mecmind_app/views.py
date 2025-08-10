@@ -181,7 +181,7 @@ def analise_eixo(request):
         # Monta o dicionário para a primeira chamada.
         kwa = {}
 
-        kwa['model'] = 'o3-2025-04-16'
+        kwa['model'] = 'gpt-5-2025-08-07'
         kwa['messages'] = [{}, {}]
 
         kwa['messages'][0]['role'] = 'system'
@@ -309,7 +309,7 @@ def analise_eixo(request):
         kwa = {}
 
         kwa['model'] = 'gpt-4.1'
-        kwa['temperature'] = 0.2
+        kwa['temperature'] = 0.1
         kwa['messages'] = [{}, {}]
 
         kwa['messages'][0]['role'] = 'system'
@@ -445,7 +445,7 @@ def analise_chapa(request):
 
             kwa = {}
 
-            kwa['model'] = 'o3-2025-04-16'
+            kwa['model'] = 'gpt-5-2025-08-07'
             kwa['messages'] = [{}, {}]
 
             kwa['messages'][0]['role'] = 'system'
@@ -569,7 +569,7 @@ def analise_chapa(request):
             kwa = {}
 
             kwa['model'] = 'gpt-4.1'
-            kwa['temperature'] = 0.2
+            kwa['temperature'] = 0.1
             kwa['messages'] = [{}, {}]
 
             kwa['messages'][0]['role'] = 'system'
@@ -647,7 +647,7 @@ def analise_chapa(request):
 
             kwa = {}
 
-            kwa['model'] = 'o3-2025-04-16'
+            kwa['model'] = 'gpt-5-2025-08-07'
             kwa['messages'] = [{}, {}]
 
             kwa['messages'][0]['role'] = 'system'
@@ -771,7 +771,7 @@ def analise_chapa(request):
             kwa = {}
 
             kwa['model'] = 'gpt-4.1'
-            kwa['temperature'] = 0.2
+            kwa['temperature'] = 0.1
             kwa['messages'] = [{}, {}]
 
             kwa['messages'][0]['role'] = 'system'
@@ -906,7 +906,7 @@ def analise_tubo(request):
         # Monta o dicionário para a primeira chamada.
         kwa = {}
 
-        kwa['model'] = 'o3-2025-04-16'
+        kwa['model'] = 'gpt-5-2025-08-07'
         kwa['messages'] = [{}, {}]
 
         kwa['messages'][0]['role'] = 'system'
@@ -1031,7 +1031,7 @@ def analise_tubo(request):
         kwa = {}
 
         kwa['model'] = 'gpt-4.1'
-        kwa['temperature'] = 0.2
+        kwa['temperature'] = 0.1
         kwa['messages'] = [{}, {}]
 
         kwa['messages'][0]['role'] = 'system'
@@ -1202,7 +1202,7 @@ def analise_tecnica(request):
         # Monta o dicionário para a chamada.
         kwa = {}
 
-        kwa['model'] = 'o3-2025-04-16'
+        kwa['model'] = 'gpt-5-2025-08-07'
         kwa['messages'] = [{}, {}]
 
         kwa['messages'][0]['role'] = 'system'

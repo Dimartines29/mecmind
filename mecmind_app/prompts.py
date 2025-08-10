@@ -4,6 +4,7 @@ SYSTEM_EIXO_ANALISE = '''
     Esta é a primeira etapa de um processo automatizado de planejamento de produção, e sua resposta será utilizada diretamente como base para uma segunda análise via API.
 
     Você deve:
+    - Usar o OCR para extrair todos os textos do desenho. Considere o texto e onde ele está posicionado no desenho para identificar as medidas.
     - Assumir o papel de um especialista técnico em interpretação de desenhos de eixos.
     - Trabalhar com foco em engenharia mecânica, tolerâncias dimensionais, e leitura correta de cotas.
     - Nunca assumir valores que não estejam expressamente indicados no desenho.
@@ -48,6 +49,7 @@ SYSTEM_CHAPA_ANALISE = '''
     Seu papel é interpretar essa descrição e estruturar os dados extraídos de forma organizada.
 
     A sua resposta será utilizada por uma segunda chamada que irá transformar esses dados em uma recomendação final de fabricação. Portanto, é essencial que os dados estejam completos e bem organizados.
+    Você deve usar o OCR para extrair todos os textos do desenho. Considere o texto e onde ele está posicionado no desenho para identificar as medidas.
 
     Você deve extrair e apresentar:
     - As dimensões da chapa (largura, comprimento, espessura).
@@ -81,6 +83,7 @@ SYSTEM_CHAPA_DOBRAS_ANALISE = '''
     Você está sendo utilizado em uma chamada de API como parte da primeira etapa de um sistema de análise técnica de chapas metálicas dobradas.
 
     Nesta etapa, você receberá como entrada a descrição visual de um desenho técnico, processada por um modelo de visão computacional. Seu papel é interpretar com precisão essas informações e organizar os dados técnicos relevantes para uma segunda etapa de análise.
+    Você deve usar o OCR para extrair todos os textos do desenho. Considere o texto e onde ele está posicionado no desenho para identificar as medidas.
 
     Você deve extrair e apresentar:
     - Espessura da chapa antes da dobra.
@@ -122,6 +125,7 @@ SYSTEM_TUBO_ANALISE = '''
     Esta é a primeira etapa de um processo automatizado de planejamento de produção, e sua resposta será utilizada diretamente como base para uma segunda análise via API.
 
     Você deve:
+    - Usar o OCR para extrair todos os textos do desenho. Considere o texto e onde ele está posicionado no desenho para identificar as medidas.
     - Assumir o papel de um especialista técnico em interpretação de desenhos de tubos mecânicos.
     - Trabalhar com foco em engenharia mecânica, tolerâncias dimensionais, e leitura correta de cotas.
     - Nunca assumir valores que não estejam expressamente indicados no desenho.
@@ -153,6 +157,7 @@ SYSTEM_TUBO_FINAL = '''
 
 SYSTEM_ANALISE_TECNICA = '''
     Você está sendo utilizado em uma chamada de API como Consultor Técnico de Interpretação de Desenhos Mecânicos.
+    Você deve usar o OCR para extrair todos os textos do desenho. Considere o texto e onde ele está posicionado no desenho para identificar as medidas.
 
     Objetivo
     ---------
