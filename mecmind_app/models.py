@@ -110,3 +110,25 @@ class Stock(models.Model):
 
     def __str__(self):
         return self.name
+
+class Prompt(models.Model):
+    name = models.CharField('Nome', max_length=50)
+    text = models.TextField('Texto', blank=True)
+
+    class Meta:
+        verbose_name = 'Prompt'
+        verbose_name_plural = 'Prompts'
+
+    def __str__(self):
+        return self.name
+
+class SystemMessages(models.Model):
+    name = models.CharField('Nome', max_length=50)
+    text = models.TextField('Texto', blank=True)
+
+    class Meta:
+        verbose_name = 'System message'
+        verbose_name_plural = 'System messages'
+
+    def __str__(self):
+        return self.name

@@ -139,3 +139,31 @@ class StockAdmin(admin.ModelAdmin):
 
     # Define onde fica o link da tabela.
     list_display_links = ('id', 'name')
+
+@admin.register(m.Prompt)
+class PromptAdmin(admin.ModelAdmin):
+    # Define o que será exibido no painel admin da tabela Estoque.
+    list_display = ('name',)
+
+    # Valores exibidos por página.
+    list_per_page = 30
+
+    # Número máximo de itens que podem ser exibidos.
+    list_max_show_all = 200
+
+    # Define onde fica o link da tabela.
+    list_display_links = ('name',)
+
+@admin.register(m.SystemMessages)
+class SystemMessagesAdmin(admin.ModelAdmin):
+    # Define o que será exibido no painel admin da tabela Mensagens do Sistema.
+    list_display = ('name',)
+
+    # Valores exibidos por página.
+    list_per_page = 30
+
+    # Número máximo de itens que podem ser exibidos.
+    list_max_show_all = 200
+
+    # Define onde fica o link da tabela.
+    list_display_links = ('name',)

@@ -118,7 +118,14 @@ def logout_view(request):
 @login_required(login_url='/login')
 def analise_eixo(request):
     ctx = {}
-    cli = openai.OpenAI(api_key=request.user.company.api_key) # Inicia o cliente OpenAI com a chave da empresa.
+    cli = openai.OpenAI(api_key=request.user.company.api_key)  # Inicia o cliente OpenAI com a chave da empresa.
+
+    # Busca os valores das system messages e prompts.
+    system_eixo_analise = m.SystemMessages.objects.get(name='system_eixo_analise').text
+    prompt_eixo_analise = m.Prompt.objects.get(name='prompt_eixo_analise').text
+
+    system_eixo_final = m.SystemMessages.objects.get(name='system_eixo_final').text
+    prompt_eixo_final = m.Prompt.objects.get(name='prompt_eixo_final').text
 
     if request.method == 'POST':
         quantity_text = f' A quantidade de peças necessárias para este projeto é de {request.POST.get("quantidade", "1")}.'
@@ -187,12 +194,12 @@ def analise_eixo(request):
         kwa['messages'][0]['role'] = 'system'
         kwa['messages'][0]['content'] = [{}]
         kwa['messages'][0]['content'][0]['type'] = 'text'
-        kwa['messages'][0]['content'][0]['text'] = p.SYSTEM_EIXO_ANALISE
+        kwa['messages'][0]['content'][0]['text'] = system_eixo_analise
 
         kwa['messages'][1]['role'] = 'user'
         kwa['messages'][1]['content'] = [{}, {}]
         kwa['messages'][1]['content'][0]['type'] = 'text'
-        kwa['messages'][1]['content'][0]['text'] = p.PROMPT_EIXO_ANALISE
+        kwa['messages'][1]['content'][0]['text'] = prompt_eixo_analise
         kwa['messages'][1]['content'][1]['type'] = 'image_url'
         kwa['messages'][1]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
 
@@ -315,12 +322,12 @@ def analise_eixo(request):
         kwa['messages'][0]['role'] = 'system'
         kwa['messages'][0]['content'] = [{}]
         kwa['messages'][0]['content'][0]['type'] = 'text'
-        kwa['messages'][0]['content'][0]['text'] = p.SYSTEM_EIXO_FINAL
+        kwa['messages'][0]['content'][0]['text'] = system_eixo_final
 
         kwa['messages'][1]['role'] = 'user'
         kwa['messages'][1]['content'] = [{}, {}, {}]
         kwa['messages'][1]['content'][0]['type'] = 'text'
-        kwa['messages'][1]['content'][0]['text'] = p.PROMPT_EIXO_FINAL
+        kwa['messages'][1]['content'][0]['text'] = prompt_eixo_final
         kwa['messages'][1]['content'][1]['type'] = 'text'
         kwa['messages'][1]['content'][1]['text'] = info_context
         kwa['messages'][1]['content'][2]['type'] = 'text'
@@ -390,7 +397,22 @@ def analise_eixo(request):
 @login_required(login_url='/login')
 def analise_chapa(request):
     ctx = {}
-    cli = openai.OpenAI(api_key=request.user.company.api_key) # Inicia o cliente OpenAI com a chave da empresa.
+    cli = openai.OpenAI(api_key=request.user.company.api_key)  # Inicia o cliente OpenAI com a chave da empresa.
+
+    # Busca os valores das system messages e prompts.
+    system_chapa_dobra_analise = m.SystemMessages.objects.get(name='system_chapa_dobra_analise').text
+    prompt_chapa_dobra_analise = m.Prompt.objects.get(name='prompt_chapa_dobra_analise').text
+
+    system_chapa_dobra_final = m.SystemMessages.objects.get(name='system_chapa_dobra_final').text
+    prompt_chapa_dobra_final = m.Prompt.objects.get(name='prompt_chapa_dobra_final').text
+
+    system_chapa_analise = m.SystemMessages.objects.get(name='system_chapa_analise').text
+    prompt_chapa_analise = m.Prompt.objects.get(name='prompt_chapa_analise').text
+
+    system_chapa_final = m.SystemMessages.objects.get(name='system_chapa_final').text
+    prompt_chapa_final = m.Prompt.objects.get(name='prompt_chapa_final').text
+
+
 
     if request.method == 'POST':
         quantity_text = f' A quantidade de peças necessárias para este projeto é de {request.POST.get("quantidade", "1")}.'
@@ -451,12 +473,12 @@ def analise_chapa(request):
             kwa['messages'][0]['role'] = 'system'
             kwa['messages'][0]['content'] = [{}]
             kwa['messages'][0]['content'][0]['type'] = 'text'
-            kwa['messages'][0]['content'][0]['text'] = p.SYSTEM_CHAPA_DOBRAS_ANALISE
+            kwa['messages'][0]['content'][0]['text'] = system_chapa_dobra_analise
 
             kwa['messages'][1]['role'] = 'user'
             kwa['messages'][1]['content'] = [{}, {}]
             kwa['messages'][1]['content'][0]['type'] = 'text'
-            kwa['messages'][1]['content'][0]['text'] = p.PROMPT_CHAPA_DOBRAS_ANALISE
+            kwa['messages'][1]['content'][0]['text'] = prompt_chapa_dobra_analise
             kwa['messages'][1]['content'][1]['type'] = 'image_url'
             kwa['messages'][1]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
 
@@ -575,12 +597,12 @@ def analise_chapa(request):
             kwa['messages'][0]['role'] = 'system'
             kwa['messages'][0]['content'] = [{}]
             kwa['messages'][0]['content'][0]['type'] = 'text'
-            kwa['messages'][0]['content'][0]['text'] = p.SYSTEM_CHAPA_DOBRAS_FINAL
+            kwa['messages'][0]['content'][0]['text'] = system_chapa_dobra_final
 
             kwa['messages'][1]['role'] = 'user'
             kwa['messages'][1]['content'] = [{}, {}, {}]
             kwa['messages'][1]['content'][0]['type'] = 'text'
-            kwa['messages'][1]['content'][0]['text'] = p.PROMPT_CHAPA_DOBRAS_FINAL
+            kwa['messages'][1]['content'][0]['text'] = prompt_chapa_dobra_final
             kwa['messages'][1]['content'][1]['type'] = 'text'
             kwa['messages'][1]['content'][1]['text'] = info_context
             kwa['messages'][1]['content'][2]['type'] = 'text'
@@ -653,12 +675,12 @@ def analise_chapa(request):
             kwa['messages'][0]['role'] = 'system'
             kwa['messages'][0]['content'] = [{}]
             kwa['messages'][0]['content'][0]['type'] = 'text'
-            kwa['messages'][0]['content'][0]['text'] = p.SYSTEM_CHAPA_ANALISE
+            kwa['messages'][0]['content'][0]['text'] = system_chapa_analise
 
             kwa['messages'][1]['role'] = 'user'
             kwa['messages'][1]['content'] = [{}, {}]
             kwa['messages'][1]['content'][0]['type'] = 'text'
-            kwa['messages'][1]['content'][0]['text'] = p.PROMPT_CHAPA_ANALISE
+            kwa['messages'][1]['content'][0]['text'] = prompt_chapa_analise
             kwa['messages'][1]['content'][1]['type'] = 'image_url'
             kwa['messages'][1]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
 
@@ -777,12 +799,12 @@ def analise_chapa(request):
             kwa['messages'][0]['role'] = 'system'
             kwa['messages'][0]['content'] = [{}]
             kwa['messages'][0]['content'][0]['type'] = 'text'
-            kwa['messages'][0]['content'][0]['text'] = p.SYSTEM_CHAPA_FINAL
+            kwa['messages'][0]['content'][0]['text'] = system_chapa_final
 
             kwa['messages'][1]['role'] = 'user'
             kwa['messages'][1]['content'] = [{}, {}, {}]
             kwa['messages'][1]['content'][0]['type'] = 'text'
-            kwa['messages'][1]['content'][0]['text'] = p.PROMPT_CHAPA_FINAL
+            kwa['messages'][1]['content'][0]['text'] = prompt_chapa_final
             kwa['messages'][1]['content'][1]['type'] = 'text'
             kwa['messages'][1]['content'][1]['text'] = info_context
             kwa['messages'][1]['content'][2]['type'] = 'text'
@@ -850,8 +872,15 @@ def analise_chapa(request):
 
 @login_required(login_url='/login')
 def analise_tubo(request):
-    cli = openai.OpenAI(api_key=request.user.company.api_key) # Inicia o cliente OpenAI com a chave da empresa.
+    cli = openai.OpenAI(api_key=request.user.company.api_key)  # Inicia o cliente OpenAI com a chave da empresa.
     ctx = {}
+
+    # Busca os valores das system messages e prompts.
+    sysem_tubo_analise = m.SystemMessages.objects.get(name='system_tubo_analise').text
+    prompt_tubo_analise = m.Prompt.objects.get(name='prompt_tubo_analise').text
+
+    system_tubo_final = m.SystemMessages.objects.get(name='system_tubo_final').text
+    prompt_tubo_final = m.Prompt.objects.get(name='prompt_tubo_final').text
 
     if request.method == 'POST':
         quantity_text = f' A quantidade de peças necessárias para este projeto é de {request.POST.get("quantidade", "1")}.'
@@ -912,12 +941,12 @@ def analise_tubo(request):
         kwa['messages'][0]['role'] = 'system'
         kwa['messages'][0]['content'] = [{}]
         kwa['messages'][0]['content'][0]['type'] = 'text'
-        kwa['messages'][0]['content'][0]['text'] = p.SYSTEM_TUBO_ANALISE
+        kwa['messages'][0]['content'][0]['text'] = sysem_tubo_analise
 
         kwa['messages'][1]['role'] = 'user'
         kwa['messages'][1]['content'] = [{}, {}]
         kwa['messages'][1]['content'][0]['type'] = 'text'
-        kwa['messages'][1]['content'][0]['text'] = p.PROMPT_TUBO_ANALISE
+        kwa['messages'][1]['content'][0]['text'] = prompt_tubo_analise
         kwa['messages'][1]['content'][1]['type'] = 'image_url'
         kwa['messages'][1]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
 
@@ -1037,12 +1066,12 @@ def analise_tubo(request):
         kwa['messages'][0]['role'] = 'system'
         kwa['messages'][0]['content'] = [{}]
         kwa['messages'][0]['content'][0]['type'] = 'text'
-        kwa['messages'][0]['content'][0]['text'] = p.SYSTEM_TUBO_FINAL
+        kwa['messages'][0]['content'][0]['text'] = system_tubo_final
 
         kwa['messages'][1]['role'] = 'user'
         kwa['messages'][1]['content'] = [{}, {}, {}]
         kwa['messages'][1]['content'][0]['type'] = 'text'
-        kwa['messages'][1]['content'][0]['text'] = p.PROMPT_TUBO_FINAL
+        kwa['messages'][1]['content'][0]['text'] = prompt_tubo_final
         kwa['messages'][1]['content'][1]['type'] = 'text'
         kwa['messages'][1]['content'][1]['text'] = info_context
         kwa['messages'][1]['content'][2]['type'] = 'text'
@@ -1112,7 +1141,11 @@ def analise_tubo(request):
 @login_required(login_url='/login')
 def analise_tecnica(request):
     ctx = {}
-    cli = openai.OpenAI(api_key=request.user.company.api_key) # Inicia o cliente OpenAI com a chave da empresa.
+    cli = openai.OpenAI(api_key=request.user.company.api_key)  # Inicia o cliente OpenAI com a chave da empresa.
+
+    # Busca os valores das system messages e prompts.
+    system_analise_tecnica = m.SystemMessages.objects.get(name='system_analise_tecnica').text
+    prompt_analise_tecnica = m.Prompt.objects.get(name='prompt_analise_tecnica').text
 
     if request.method == 'POST':
         quantity = request.POST.get('quantidade', 1)
@@ -1208,12 +1241,12 @@ def analise_tecnica(request):
         kwa['messages'][0]['role'] = 'system'
         kwa['messages'][0]['content'] = [{}]
         kwa['messages'][0]['content'][0]['type'] = 'text'
-        kwa['messages'][0]['content'][0]['text'] = p.SYSTEM_ANALISE_TECNICA
+        kwa['messages'][0]['content'][0]['text'] = system_analise_tecnica
 
         kwa['messages'][1]['role'] = 'user'
         kwa['messages'][1]['content'] = [{}, {}, {}]
         kwa['messages'][1]['content'][0]['type'] = 'text'
-        kwa['messages'][1]['content'][0]['text'] = p.PROMPT_ANALISE_TECNICA
+        kwa['messages'][1]['content'][0]['text'] = prompt_analise_tecnica
         kwa['messages'][1]['content'][1]['type'] = 'image_url'
         kwa['messages'][1]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
         kwa['messages'][1]['content'][2]['type'] = 'text'
