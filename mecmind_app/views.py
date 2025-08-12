@@ -139,49 +139,135 @@ def analise_eixo(request):
 
         analysis_function[0]['type'] = 'function'
         analysis_function[0]['name'] = 'get_info'
-        analysis_function[0]['description'] = 'Analisa com precisão um desenho mecânico de eixo e determina todos os pontos relevantes para fabricação.'
+        analysis_function[0]['description'] = 'Extrai dados verificáveis de um desenho técnico de eixo para PCP.'
         analysis_function[0]['parameters'] = {}
 
         analysis_function[0]['parameters']['type'] = 'object'
         analysis_function[0]['parameters']['properties'] = {}
 
-        analysis_function[0]['parameters']['properties']['diametro_maior'] = {}
-        analysis_function[0]['parameters']['properties']['diametro_maior']['type'] = 'number'
-        analysis_function[0]['parameters']['properties']['diametro_maior']['description'] = 'Informe o maior diâmetro (em milímetros) do eixo com base na análise do desenho.'
+        analysis_function[0]['parameters']['properties']['material'] = {
+            'type': 'string',
+            'description': 'Material indicado no desenho; ou "não especificado".'
+        }
 
-        analysis_function[0]['parameters']['properties']['diametros'] = {}
-        analysis_function[0]['parameters']['properties']['diametros']['type'] = 'string'
-        analysis_function[0]['parameters']['properties']['diametros']['description'] = 'Informe outros diâmetros relevantes para fabricação.'
+        analysis_function[0]['parameters']['properties']['comprimento'] = {
+            'type': ['number', 'null'],
+            'description': 'Comprimento total do eixo em mm (apenas número).'
+        }
 
-        analysis_function[0]['parameters']['properties']['explicacao_comprimento'] = {}
-        analysis_function[0]['parameters']['properties']['explicacao_comprimento']['type'] = 'string'
-        analysis_function[0]['parameters']['properties']['explicacao_comprimento']['description'] = 'Informe aqui como você chegou ao comprimento total do eixo com base na análise do desenho. Precisou fazer somas das cotas?'
+        analysis_function[0]['parameters']['properties']['metodo_comprimento'] = {
+            'type': 'string',
+            'enum': ['direto', 'soma', 'indeterminado'],
+            'description': 'Como o comprimento foi determinado.'
+        }
 
-        analysis_function[0]['parameters']['properties']['comprimento'] = {}
-        analysis_function[0]['parameters']['properties']['comprimento']['type'] = 'number'
-        analysis_function[0]['parameters']['properties']['comprimento']['description'] = 'Informe o comprimento total do eixo com base na análise do desenho.'
+        analysis_function[0]['parameters']['properties']['explicacao_comprimento'] = {
+            'type': 'string',
+            'description': 'Resumo curto de como o comprimento foi obtido (<=200 chars).'
+        }
 
-        analysis_function[0]['parameters']['properties']['roscas'] = {}
-        analysis_function[0]['parameters']['properties']['roscas']['type'] = 'string'
-        analysis_function[0]['parameters']['properties']['roscas']['description'] = 'Informe se identificou a presença de roscas internas ou externas. Informe suas posições e todas suas especificações.'
+        analysis_function[0]['parameters']['properties']['diametro_maior'] = {
+            'type': ['number', 'null'],
+            'description': 'Maior diâmetro do eixo em mm.'
+        }
 
-        analysis_function[0]['parameters']['properties']['furos'] = {}
-        analysis_function[0]['parameters']['properties']['furos']['type'] = 'string'
-        analysis_function[0]['parameters']['properties']['furos']['description'] = 'Informe se identificou a presença de furos. Informe suas posições e todas suas especificações.'
+        analysis_function[0]['parameters']['properties']['diametros'] = {
+            'type': 'array',
+            'items': {
+                'type': 'object',
+                'properties': {
+                    'valor_mm': { 'type': 'number' },
+                    'posicao': { 'type': 'string' },
+                    'tolerancia': { 'type': ['string', 'null'] }
+                },
+                'required': ['valor_mm']
+            },
+            'description': 'Lista de diâmetros relevantes.'
+        }
 
-        analysis_function[0]['parameters']['properties']['rasgos_de_chaveta'] = {}
-        analysis_function[0]['parameters']['properties']['rasgos_de_chaveta']['type'] = 'string'
-        analysis_function[0]['parameters']['properties']['rasgos_de_chaveta']['description'] = 'Informe se identificou a presença de rasgos de chaveta. Informe suas posições e todas suas especificações.'
+        analysis_function[0]['parameters']['properties']['roscas'] = {
+            'type': 'array',
+            'items': {
+                'type': 'object',
+                'properties': {
+                    'tipo': { 'type': 'string' },
+                    'designacao': { 'type': 'string' },
+                    'interna_externa': { 'type': 'string', 'enum': ['interna', 'externa'] },
+                    'posicao': { 'type': ['string', 'null'] },
+                    'comprimento_mm': { 'type': ['number', 'null'] }
+                },
+                'required': ['designacao', 'interna_externa']
+            },
+            'description': 'Roscas identificadas.'
+        }
 
-        analysis_function[0]['parameters']['properties']['materia_prima'] = {}
-        analysis_function[0]['parameters']['properties']['materia_prima']['type'] = 'string'
-        analysis_function[0]['parameters']['properties']['materia_prima']['description'] = 'Informe a matéria-prima com base na análise do desenho. Especifique o diâmetro e o comprimento final.'
+        analysis_function[0]['parameters']['properties']['furos'] = {
+            'type': 'array',
+            'items': {
+                'type': 'object',
+                'properties': {
+                    'diametro_mm': { 'type': 'number' },
+                    'profundidade_mm': { 'type': ['number', 'null'] },
+                    'central': { 'type': 'boolean' },
+                    'quantidade': { 'type': ['integer', 'null'] },
+                    'posicao': { 'type': ['string', 'null'] }
+                },
+                'required': ['diametro_mm', 'central']
+            },
+            'description': 'Furos internos/axiais ou transversais.'
+        }
 
-        analysis_function[0]['parameters']['properties']['observacoes'] = {}
-        analysis_function[0]['parameters']['properties']['observacoes']['type'] = 'string'
-        analysis_function[0]['parameters']['properties']['observacoes']['description'] = 'Observações importantes encontradas na análise e que o próximo modelo deve levar em consideração'
+        analysis_function[0]['parameters']['properties']['rasgos_de_chaveta'] = {
+            'type': 'array',
+            'items': {
+                'type': 'object',
+                'properties': {
+                    'tipo': { 'type': 'string', 'enum': ['reto', 'fundo_arredondado', 'nao_especificado'] },
+                    'largura_mm': { 'type': ['number', 'null'] },
+                    'profundidade_mm': { 'type': ['number', 'null'] },
+                    'extensao_mm': { 'type': ['number', 'null'] },
+                    'posicao': { 'type': ['string', 'null'] },
+                    'norma': { 'type': ['string', 'null'] }
+                },
+                'required': ['tipo']
+            },
+            'description': 'Rasgos de chaveta.'
+        }
 
-        analysis_function[0]['parameters']['required'] = ['diametro_maior', 'comprimento', 'materia_prima', 'observacoes']
+        analysis_function[0]['parameters']['properties']['chanfros'] = {
+            'type': 'array',
+            'items': {
+                'type': 'object',
+                'properties': {
+                    'medida_mm': { 'type': ['number', 'null'] },
+                    'angulo_graus': { 'type': ['number', 'null'] },
+                    'posicao': { 'type': ['string', 'null'] }
+                }
+            },
+            'description': 'Chanfros identificados.'
+        }
+
+        analysis_function[0]['parameters']['properties']['acabamento_tolerancias'] = {
+            'type': ['string', 'null'],
+            'description': 'Símbolos de rugosidade, tolerâncias gerais/específicas relevantes.'
+        }
+
+        analysis_function[0]['parameters']['properties']['materia_prima'] = {
+            'type': 'object',
+            'description': 'Medidas brutas encontradas no desenho mais 10mm de sobremetal para cada medida, isso ajuda a chegar no grau de acabamento necessário.',
+            'properties': {
+                'diametro_bruto_mm': { 'type': ['number', 'null'] },
+                'comprimento_bruto_mm': { 'type': ['number', 'null'] }
+            }
+        }
+
+        analysis_function[0]['parameters']['properties']['observacoes'] = {
+            'type': 'array',
+            'items': { 'type': 'string' },
+            'description': 'Ambiguidades, itens faltantes ou checagens recomendadas.'
+        }
+
+        analysis_function[0]['parameters']['required'] = ['comprimento', 'metodo_comprimento', 'diametro_maior', 'materia_prima', 'observacoes']
 
         # Monta o dicionário para a primeira chamada.
         kwa = {}
