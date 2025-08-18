@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const imageInput = document.getElementById('image');
+    const fileInput = document.getElementById('file');
     const imagePreview = document.getElementById('imagePreview');
     const fileName = document.getElementById('file-name');
     const uploadForm = document.getElementById('uploadForm');
@@ -78,8 +78,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Atualiza a pré-visualização da imagem quando um arquivo é selecionado
-    if (imageInput) {
-        imageInput.addEventListener('change', function() {
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
             const file = this.files[0];
             if (file) {
                 const reader = new FileReader();
@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (uploadForm) {
         uploadForm.addEventListener('submit', function(e) {
             // Verifica se um arquivo foi selecionado
-            if (!imageInput || !imageInput.files[0]) {
+            if (!fileInput || !fileInput.files[0]) {
                 e.preventDefault();
                 showToast('Por favor, selecione uma imagem para analisar.', 'error');
                 return;
@@ -161,8 +161,8 @@ document.addEventListener('DOMContentLoaded', function() {
             this.classList.remove('drag-over');
 
             const file = e.dataTransfer.files[0];
-            if (file && file.type.match('image.*') && imageInput) {
-                imageInput.files = e.dataTransfer.files;
+            if (file && fileInput) {
+                fileInput.files = e.dataTransfer.files;
 
                 const reader = new FileReader();
                 reader.onload = function(e) {
@@ -186,8 +186,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Clique no preview também deve acionar a seleção de arquivos
         previewArea.addEventListener('click', function() {
-            if (imageInput) {
-                imageInput.click();
+            if (fileInput) {
+                fileInput.click();
             }
         });
     }
