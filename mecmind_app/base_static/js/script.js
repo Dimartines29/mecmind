@@ -82,22 +82,37 @@ document.addEventListener('DOMContentLoaded', function() {
         fileInput.addEventListener('change', function() {
             const file = this.files[0];
             if (file) {
-                const reader = new FileReader();
+                const displayName = file.name.length > 25
+                    ? file.name.substring(0, 22) + '...'
+                    : file.name;
+                fileName.textContent = displayName;
+                fileName.title = file.name;
 
-                reader.onload = function(e) {
-                    imagePreview.src = e.target.result;
-                    // Truncate filename if too long
-                    const displayName = file.name.length > 25
-                        ? file.name.substring(0, 22) + '...'
-                        : file.name;
-                    fileName.textContent = displayName;
-                    fileName.title = file.name; // Add full name as tooltip
+                const previewContainer = document.getElementById('preview');
 
-                    // Remover placeholder text do preview quando há imagem
-                    document.getElementById('preview').classList.add('has-image');
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        imagePreview.src = e.target.result;
+                        previewContainer.classList.add('has-image');
+                    }
+                    reader.readAsDataURL(file);
+
+                } else if (file.type === 'application/pdf') {
+                    const fileURL = URL.createObjectURL(file);
+                    imagePreview.style.display = 'none';
+
+                    const existingIframe = previewContainer.querySelector('iframe');
+                    if (existingIframe) existingIframe.remove();
+                    const iframe = document.createElement('iframe');
+                    iframe.src = fileURL;
+                    iframe.style.width = '100%';
+                    iframe.style.height = '100%';
+                    iframe.style.border = 'none';
+                    previewContainer.appendChild(iframe);
+                    previewContainer.classList.add('has-image');
                 }
 
-                reader.readAsDataURL(file);
             } else {
                 imagePreview.src = '/static/images/placeholder.png';
                 fileName.textContent = 'Nenhum arquivo selecionado';

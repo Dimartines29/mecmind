@@ -121,6 +121,43 @@
     text-align: center;
 }
 
+.pdf-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa;
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    min-height: 300px;
+}
+
+.pdf-icon {
+    text-align: center;
+}
+
+.pdf-icon p {
+    margin: 10px 0;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.btn-view-pdf {
+    display: inline-block;
+    background-color: #dc3545;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    margin-top: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.btn-view-pdf:hover {
+    background-color: #c82333;
+    color: white;
+    text-decoration: none;
+}
+
 @media (max-width: 768px) {
     .project-detail-container {
         grid-template-columns: 1fr;
