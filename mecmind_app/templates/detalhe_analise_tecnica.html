@@ -12,7 +12,22 @@
 
 <section class="project-detail-container">
     <div class="profile-image-container">
-        <img src="{{ analise.drawing.url }}" alt="Imagem do desenho" class="drawing-image">
+        {% if analise.drawing %}
+            {% if analise.drawing.name|slice:"-4:" == ".pdf" %}
+                <div class="pdf-preview drawing-image">
+                    <div class="pdf-icon">
+                        <i class="fas fa-file-pdf" style="font-size: 4rem; color: #dc3545;"></i>
+                        <p>{{ analise.drawing.name }}</p>
+                        <a href="{{ analise.drawing.url }}" target="_blank" class="btn-view-pdf">
+                            <i class="fas fa-external-link-alt"></i> Visualizar PDF
+                        </a>
+                    </div>
+                </div>
+
+            {% else %}
+                <img src="{{ analise.drawing.url }}" alt="Imagem do desenho" class="drawing-image">
+            {% endif %}
+        {% endif %}
     </div>
 
     <div class="info-card">
