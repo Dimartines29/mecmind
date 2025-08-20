@@ -45,10 +45,10 @@
                         </div>
 
                         <div class="file-input-container">
-                            <label for="image" class="upload-btn">
+                            <label for="file" class="upload-btn">
                                 <i class="fas fa-upload"></i> Escolher arquivo
                             </label>
-                            <input type="file" id="image" name="image" accept="image/*" required>
+                            <input type="file" id="file" name="file" accept="image/*,application/pdf" required>
                             <span id="file-name">Nenhum arquivo selecionado</span>
                         </div>
                     </div>
@@ -77,7 +77,24 @@
                 <h2><i class="fas fa-clipboard-check"></i> Resultado da Análise</h2>
 
                 <div class="result-container">
-                    <img src="{{ image_url }}" alt="Desenho analisado" class="drawing-image">
+                    <div class="result-image-container">
+                        {% if image_url %}
+                            {% if image_url|slice:"-4:" == ".pdf" %}
+                                <div class="pdf-preview">
+                                    <div class="pdf-icon">
+                                        <i class="fas fa-file-pdf" style="font-size: 4rem; color: #dc3545;"></i>
+                                        <p>Arquivo PDF</p>
+                                        <a href="{{ image_url }}" target="_blank" class="btn-view-pdf">
+                                            <i class="fas fa-external-link-alt"></i> Visualizar PDF
+                                        </a>
+                                    </div>
+                                </div>
+
+                            {% else %}
+                                <img src="{{ image_url }}" alt="Desenho analisado" class="result-image">
+                            {% endif %}
+                        {% endif %}
+                    </div>
 
                     <div class="result-info">
                         <div class="result-section">

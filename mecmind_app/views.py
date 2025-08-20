@@ -586,75 +586,29 @@ def analise_tubo(request):
         # Adiciona a quantidade ao prompt do usuário.
         user_prompt = 'Observações adicionais do usuário: ' + request.POST.get('prompt', '') + '\n' + quantity_text
 
-        # Encoda a imagem
-        base64_image = _encode_file(request.FILES['image'])
-
-        # Monta a função para estruturar a PRIMEIRA chamada de API.
-        analysis_function = [{}]
-
-        analysis_function[0]['type'] = 'function'
-        analysis_function[0]['name'] = 'get_info'
-        analysis_function[0]['description'] = 'Analisa com precisão um desenho mecânico de um tubo mecânico e determina todos os pontos relevantes para fabricação.'
-        analysis_function[0]['parameters'] = {}
-
-        analysis_function[0]['parameters']['type'] = 'object'
-        analysis_function[0]['parameters']['properties'] = {}
-
-        analysis_function[0]['parameters']['properties']['diametro_maior'] = {}
-        analysis_function[0]['parameters']['properties']['diametro_maior']['type'] = 'number'
-        analysis_function[0]['parameters']['properties']['diametro_maior']['description'] = 'Informe o maior diâmetro (em milímetros) do tubo com base na análise do desenho.'
-
-        analysis_function[0]['parameters']['properties']['diametros'] = {}
-        analysis_function[0]['parameters']['properties']['diametros']['type'] = 'string'
-        analysis_function[0]['parameters']['properties']['diametros']['description'] = 'Informe outros diâmetros relevantes para fabricação.'
-
-        analysis_function[0]['parameters']['properties']['comprimento'] = {}
-        analysis_function[0]['parameters']['properties']['comprimento']['type'] = 'string'
-        analysis_function[0]['parameters']['properties']['comprimento']['description'] = 'Informe o comprimento total do tubo com base na análise do desenho.'
-
-        analysis_function[0]['parameters']['properties']['roscas'] = {}
-        analysis_function[0]['parameters']['properties']['roscas']['type'] = 'string'
-        analysis_function[0]['parameters']['properties']['roscas']['description'] = 'Informe se identificou a presença de roscas internas ou externas. Informe suas posições e todas suas especificações.'
-
-        analysis_function[0]['parameters']['properties']['furos'] = {}
-        analysis_function[0]['parameters']['properties']['furos']['type'] = 'string'
-        analysis_function[0]['parameters']['properties']['furos']['description'] = 'Informe se identificou a presença de furos. Informe suas posições e todas suas especificações.'
-
-        analysis_function[0]['parameters']['properties']['materia_prima'] = {}
-        analysis_function[0]['parameters']['properties']['materia_prima']['type'] = 'string'
-        analysis_function[0]['parameters']['properties']['materia_prima']['description'] = 'Informe a matéria-prima com base na análise do desenho. Especifique o diâmetro e o comprimento final.'
-
-        analysis_function[0]['parameters']['properties']['observacoes'] = {}
-        analysis_function[0]['parameters']['properties']['observacoes']['type'] = 'string'
-        analysis_function[0]['parameters']['properties']['observacoes']['description'] = 'Observações importantes encontradas na análise e que o próximo modelo deve levar em consideração'
-
-        analysis_function[0]['parameters']['required'] = ['diametro_maior', 'comprimento', 'materia_prima', 'observacoes']
-
         # Monta o dicionário para a primeira chamada.
         kwa = {}
 
-        kwa['model'] = 'gpt-5-2025-08-07'
-        kwa['messages'] = [{}, {}]
+        kwa['model'] = 'gpt-5'
+        kwa['input'] = [{}, {}]
 
-        kwa['messages'][0]['role'] = 'system'
-        kwa['messages'][0]['content'] = [{}]
-        kwa['messages'][0]['content'][0]['type'] = 'text'
-        kwa['messages'][0]['content'][0]['text'] = sysem_tubo_analise
+        kwa['input'][0]['role'] = 'system'
+        kwa['input'][0]['content'] = [{}]
+        kwa['input'][0]['content'][0]['type'] = 'input_text'
+        kwa['input'][0]['content'][0]['text'] = sysem_tubo_analise
 
-        kwa['messages'][1]['role'] = 'user'
-        kwa['messages'][1]['content'] = [{}, {}]
-        kwa['messages'][1]['content'][0]['type'] = 'text'
-        kwa['messages'][1]['content'][0]['text'] = prompt_tubo_analise
-        kwa['messages'][1]['content'][1]['type'] = 'image_url'
-        kwa['messages'][1]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
+        kwa['input'][1]['role'] = 'user'
+        kwa['input'][1]['content'] = [{}, {}]
+        kwa['input'][1]['content'][0]['type'] = 'input_text'
+        kwa['input'][1]['content'][0]['text'] = prompt_tubo_analise
+        kwa['input'][1]['content'][1] = build_content_item(cli, request.FILES['file'])
 
-        kwa['functions'] = analysis_function
-        kwa['function_call'] = {'name': 'get_info'}
+        kwa['text_format'] = sc.TuboAnalysis
 
         # Faz a requisição.
         try:
-            chat_completion = cli.chat.completions.create(**kwa)
-            dic = json.loads(chat_completion.choices[0].message.function_call.arguments)
+            response = cli.responses.parse(**kwa)
+            dic = response.output_parsed.dict()
 
         except openai.OpenAIError as e:
             logger.error(f'Error occurred: {str(e)}', exc_info=True)
@@ -696,92 +650,33 @@ def analise_tubo(request):
         # Agrupa todas as informações de contexto.
         info_context = f'{company_info}\n{msg_stock}\n{info_project}'
 
-        # Monta a função para estruturar a SEGUNDA chamada de API.
-        process_function = [{}]
-
-        process_function[0]['type'] = 'function'
-        process_function[0]['name'] = 'get_info'
-        process_function[0]['description'] = 'Determina a matéria-prima e os processos de fabricação necessários para a fabricação de um tubo.'
-        process_function[0]['parameters'] = {}
-
-        process_function[0]['parameters']['type'] = 'object'
-        process_function[0]['parameters']['properties'] = {}
-
-        # 1. Matéria-prima
-        process_function[0]['parameters']['properties']['materia_prima'] = {}
-        process_function[0]['parameters']['properties']['materia_prima']['type'] = 'string'
-        process_function[0]['parameters']['properties']['materia_prima']['description'] = 'Informe a matéria prima conforme o catálogo.'
-
-        # 2. Processos (lista de objetos)
-        process_function[0]['parameters']['properties']['processos'] = {}
-        process_function[0]['parameters']['properties']['processos']['type'] = 'array'
-        process_function[0]['parameters']['properties']['processos']['description'] = 'Lista de processos de fabricação. Cada item deve ter nome e descrição detalhada.'
-        process_function[0]['parameters']['properties']['processos']['items'] = {}
-        process_function[0]['parameters']['properties']['processos']['items']['type'] = 'object'
-        process_function[0]['parameters']['properties']['processos']['items']['properties'] = {}
-        process_function[0]['parameters']['properties']['processos']['items']['properties']['nome'] = {}
-        process_function[0]['parameters']['properties']['processos']['items']['properties']['nome']['type'] = 'string'
-        process_function[0]['parameters']['properties']['processos']['items']['properties']['nome']['description'] = 'Nome do processo.'
-        process_function[0]['parameters']['properties']['processos']['items']['properties']['descricao'] = {}
-        process_function[0]['parameters']['properties']['processos']['items']['properties']['descricao']['type'] = 'string'
-        process_function[0]['parameters']['properties']['processos']['items']['properties']['descricao']['description'] = 'Descrição detalhada do que esse processo realiza.'
-
-        process_function[0]['parameters']['properties']['processos']['items']['required'] = ['nome', 'descricao']
-
-        # 3. Máquinas (lista)
-        process_function[0]['parameters']['properties']['maquinas'] = {}
-        process_function[0]['parameters']['properties']['maquinas']['type'] = 'array'
-        process_function[0]['parameters']['properties']['maquinas']['description'] = 'Baseado nos processos que você descreveu, liste todas as máquinas necessárias para a fabricação do tubo.'
-        process_function[0]['parameters']['properties']['maquinas']['items'] = {}
-        process_function[0]['parameters']['properties']['maquinas']['items']['type'] = 'string'
-        process_function[0]['parameters']['properties']['maquinas']['items']['description'] = 'Nome da máquina necessária para o processo (ex: Torno CNC, Furadeira de bancada).'
-
-        # 4. Em estoque?
-        process_function[0]['parameters']['properties']['em_estoque'] = {}
-        process_function[0]['parameters']['properties']['em_estoque']['type'] = 'boolean'
-        process_function[0]['parameters']['properties']['em_estoque']['description'] = 'Indica se existe algum material em estoque que pode servir de matéria-prima para fabricar o tubo.'
-
-        # 5. Item do estoque
-        process_function[0]['parameters']['properties']['item_do_estoque'] = {}
-        process_function[0]['parameters']['properties']['item_do_estoque']['type'] = 'string'
-        process_function[0]['parameters']['properties']['item_do_estoque']['description'] = 'Qual item do estoque pode ser usado como matéria-prima, se aplicável.'
-
-        # 6. Observações
-        process_function[0]['parameters']['properties']['observacoes'] = {}
-        process_function[0]['parameters']['properties']['observacoes']['type'] = 'string'
-        process_function[0]['parameters']['properties']['observacoes']['description'] = 'Observações importantes encontradas na análise e que o usuário deve levar em consideração.'
-
-        # Campos obrigatórios
-        process_function[0]['parameters']['required'] = ['materia_prima', 'processos', 'maquinas', 'em_estoque']
-
         # Monta a segunda chamada.
         kwa = {}
 
         kwa['model'] = 'gpt-4.1'
         kwa['temperature'] = 0.1
-        kwa['messages'] = [{}, {}]
+        kwa['input'] = [{}, {}]
 
-        kwa['messages'][0]['role'] = 'system'
-        kwa['messages'][0]['content'] = [{}]
-        kwa['messages'][0]['content'][0]['type'] = 'text'
-        kwa['messages'][0]['content'][0]['text'] = system_tubo_final
+        kwa['input'][0]['role'] = 'system'
+        kwa['input'][0]['content'] = [{}]
+        kwa['input'][0]['content'][0]['type'] = 'input_text'
+        kwa['input'][0]['content'][0]['text'] = system_tubo_final
 
-        kwa['messages'][1]['role'] = 'user'
-        kwa['messages'][1]['content'] = [{}, {}, {}]
-        kwa['messages'][1]['content'][0]['type'] = 'text'
-        kwa['messages'][1]['content'][0]['text'] = prompt_tubo_final
-        kwa['messages'][1]['content'][1]['type'] = 'text'
-        kwa['messages'][1]['content'][1]['text'] = info_context
-        kwa['messages'][1]['content'][2]['type'] = 'text'
-        kwa['messages'][1]['content'][2]['text'] = user_prompt
+        kwa['input'][1]['role'] = 'user'
+        kwa['input'][1]['content'] = [{}, {}, {}]
+        kwa['input'][1]['content'][0]['type'] = 'input_text'
+        kwa['input'][1]['content'][0]['text'] = prompt_tubo_final
+        kwa['input'][1]['content'][1]['type'] = 'input_text'
+        kwa['input'][1]['content'][1]['text'] = info_context
+        kwa['input'][1]['content'][2]['type'] = 'input_text'
+        kwa['input'][1]['content'][2]['text'] = user_prompt
 
-        kwa['functions'] = process_function
-        kwa['function_call'] = {'name': 'get_info'}
+        kwa['text_format'] = sc.TuboFabricacao
 
         # Faz a requisição.
         try:
-            chat_completion = cli.chat.completions.create(**kwa)
-            dic = json.loads(chat_completion.choices[0].message.function_call.arguments)
+            response = cli.responses.parse(**kwa)
+            dic = response.output_parsed.dict()
 
         except openai.OpenAIError as e:
             logger.error(f'Error occurred: {str(e)}', exc_info=True)
@@ -812,13 +707,13 @@ def analise_tubo(request):
 
         # Informações do projeto.
         project.analysis_name = 'Tubo'
-        project.drawing = request.FILES['image']
+        project.drawing = request.FILES['file']
         project.user_observation = request.POST.get('prompt', '')
         project.raw_material = materia_prima
         project.machines = ', '.join(maquinas)
         project.processes = processos
         project.in_stock = em_estoque
-        project.recommended_stock_item = item_do_estoque
+        project.recommended_stock_item = item_do_estoque if item_do_estoque else ''
         project.ia_observation = observacoes
 
         project.save()
@@ -852,111 +747,34 @@ def analise_tecnica(request):
         # Adiciona a quantidade ao prompt do usuário.
         user_prompt = 'Observações adicionais do usuário: ' + request.POST.get('prompt', '') + '\n' + quantity_text
 
-        # Encoda a imagem
-        base64_image = _encode_file(request.FILES['image'])
-
-        # Monta a função para estruturar a chamada de API.
-        analysis_function = [{}]
-
-        analysis_function[0]['type'] = 'function'
-        analysis_function[0]['name'] = 'get_info'
-        analysis_function[0]['description'] = 'Analisa com precisão um desenho mecânico e devolve uma estrutura JSON com todos os passos da fabricação e montagem.'
-        analysis_function[0]['parameters'] = {}
-
-        analysis_function[0]['parameters']['type'] = 'object'
-        analysis_function[0]['parameters']['properties'] = {}
-
-        # 1. Tipo de desenho
-        analysis_function[0]['parameters']['properties']['tipo_desenho'] = {}
-        analysis_function[0]['parameters']['properties']['tipo_desenho']['type'] = 'string'
-        analysis_function[0]['parameters']['properties']['tipo_desenho']['description'] = 'Classificação geral do desenho (ex: montagem, peça composta, peça única).'
-
-        # 2. Sub-partes / itens
-        analysis_function[0]['parameters']['properties']['subpartes'] = {}
-        analysis_function[0]['parameters']['properties']['subpartes']['type'] = 'array'
-        analysis_function[0]['parameters']['properties']['subpartes']['description'] = 'Lista de sub-partes ou itens que compõem a peça.'
-
-        analysis_function[0]['parameters']['properties']['subpartes']['items'] = {
-            'type': 'object',
-            'properties': {
-                'nome': {'type': 'string', 'description': 'Nome ou identificação da sub-parte.'},
-
-                'classificacao': {'type': 'string', 'description': '“Fabricado” ou “Comercial”.'},
-
-                'funcao': {'type': 'string', 'description': 'Função ou observação crítica de cada item.'}
-            },
-
-            'required': ['nome', 'classificacao', 'funcao']
-        }
-
-        # 3. Estratégia de fabricação
-        analysis_function[0]['parameters']['properties']['estrategia_fabricacao'] = {}
-        analysis_function[0]['parameters']['properties']['estrategia_fabricacao']['type'] = 'array'
-        analysis_function[0]['parameters']['properties']['estrategia_fabricacao']['description'] = 'Processos recomendados para cada sub-parte fabricada.'
-
-        analysis_function[0]['parameters']['properties']['estrategia_fabricacao']['items'] = {
-            'type': 'object',
-            'properties': {
-                'item': {'type': 'string', 'description': 'Nome da sub-parte.'},
-
-                'processo': {'type': 'string', 'description': 'Processo principal (usinagem, corte laser, etc.).'},
-
-                'justificativa': {'type': 'string', 'description': 'Motivo da escolha do processo.'}
-            },
-
-            'required': ['item', 'processo', 'justificativa']
-        }
-
-        # 4. Sequência de fabricação
-        analysis_function[0]['parameters']['properties']['sequencia_fabricacao'] = {}
-        analysis_function[0]['parameters']['properties']['sequencia_fabricacao']['type'] = 'array'
-        analysis_function[0]['parameters']['properties']['sequencia_fabricacao']['description'] = 'Ordem lógica de operações de fabricação e montagem.'
-        analysis_function[0]['parameters']['properties']['sequencia_fabricacao']['items'] = {'type': 'string', 'description': 'Cada etapa da sequência, em ordem cronológica.'}
-
-        # 5. Pontos críticos
-        analysis_function[0]['parameters']['properties']['pontos_criticos'] = {}
-        analysis_function[0]['parameters']['properties']['pontos_criticos']['type'] = 'array'
-        analysis_function[0]['parameters']['properties']['pontos_criticos']['description'] = 'Principais pontos de atenção (tolerâncias, interferências, inspeções, etc.).'
-        analysis_function[0]['parameters']['properties']['pontos_criticos']['items'] = {'type': 'string', 'description': 'Descrição de cada ponto crítico.'}
-
-        # 6. Resumo final
-        analysis_function[0]['parameters']['properties']['resumo'] = {}
-        analysis_function[0]['parameters']['properties']['resumo']['type'] = 'string'
-        analysis_function[0]['parameters']['properties']['resumo']['description'] = 'Síntese da recomendação para fácil leitura ou exportação.'
-
-        # Campos obrigatórios
-        analysis_function[0]['parameters']['required'] = ['tipo_desenho', 'subpartes', 'estrategia_fabricacao', 'sequencia_fabricacao', 'pontos_criticos', 'resumo']
-
         # Monta o texto de contextualização da Empresa para a análise.
         company_info = _get_company_info(m.Company.objects.get(name=request.user.company.name))
 
         # Monta o dicionário para a chamada.
         kwa = {}
 
-        kwa['model'] = 'gpt-5-2025-08-07'
-        kwa['messages'] = [{}, {}]
+        kwa['model'] = 'gpt-5'
+        kwa['input'] = [{}, {}]
 
-        kwa['messages'][0]['role'] = 'system'
-        kwa['messages'][0]['content'] = [{}]
-        kwa['messages'][0]['content'][0]['type'] = 'text'
-        kwa['messages'][0]['content'][0]['text'] = system_analise_tecnica
+        kwa['input'][0]['role'] = 'system'
+        kwa['input'][0]['content'] = [{}]
+        kwa['input'][0]['content'][0]['type'] = 'input_text'
+        kwa['input'][0]['content'][0]['text'] = system_analise_tecnica
 
-        kwa['messages'][1]['role'] = 'user'
-        kwa['messages'][1]['content'] = [{}, {}, {}]
-        kwa['messages'][1]['content'][0]['type'] = 'text'
-        kwa['messages'][1]['content'][0]['text'] = prompt_analise_tecnica
-        kwa['messages'][1]['content'][1]['type'] = 'image_url'
-        kwa['messages'][1]['content'][1]['image_url'] = {'url': f'data:image/jpeg;base64,{base64_image}'}
-        kwa['messages'][1]['content'][2]['type'] = 'text'
-        kwa['messages'][1]['content'][2]['text'] = company_info + '\n' + user_prompt
+        kwa['input'][1]['role'] = 'user'
+        kwa['input'][1]['content'] = [{}, {}, {}]
+        kwa['input'][1]['content'][0]['type'] = 'input_text'
+        kwa['input'][1]['content'][0]['text'] = prompt_analise_tecnica
+        kwa['input'][1]['content'][1] = build_content_item(cli, request.FILES['file'])
+        kwa['input'][1]['content'][2]['type'] = 'input_text'
+        kwa['input'][1]['content'][2]['text'] = company_info + '\n' + user_prompt
 
-        kwa['functions'] = analysis_function
-        kwa['function_call'] = {'name': 'get_info'}
+        kwa['text_format'] = sc.AnaliseTecnica
 
         # Faz a requisição.
         try:
-            chat_completion = cli.chat.completions.create(**kwa)
-            dic = json.loads(chat_completion.choices[0].message.function_call.arguments)
+            response = cli.responses.parse(**kwa)
+            dic = response.output_parsed.dict()
 
         except openai.OpenAIError as e:
             logger.error(f'Error occurred: {str(e)}', exc_info=True)
@@ -988,7 +806,7 @@ def analise_tecnica(request):
             analise.company = request.user.company
 
         # Informações do projeto.
-        analise.drawing = request.FILES['image']
+        analise.drawing = request.FILES['file']
         analise.quantity = quantity
         analise.analysis_name = tipo_desenho
         analise.subparts = subpartes
