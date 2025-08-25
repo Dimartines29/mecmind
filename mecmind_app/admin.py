@@ -48,7 +48,7 @@ class CustomUserAdmin(UserAdmin):
 @admin.register(m.Company)
 class CompanyAdmin(admin.ModelAdmin):
     # Define o que será exibido no painel admin da tabela Empresa.
-    list_display = ('id', 'name', 'cnpj', 'address', 'phone', 'email')
+    list_display = ('id', 'name', 'cnpj', 'monthly_analysis_limit', 'active', 'num_employees')
 
     # Ordena os dados.
     ordering = ('-id', )
@@ -167,3 +167,26 @@ class SystemMessagesAdmin(admin.ModelAdmin):
 
     # Define onde fica o link da tabela.
     list_display_links = ('name',)
+
+@admin.register(m.CompanyUsage)
+class CompanyUsageAdmin(admin.ModelAdmin):
+    # Define o que será exibido no painel admin da tabela Uso Mensal.
+    list_display = ('id', 'company', 'analyses_used', 'analyses_limit', 'updated_date')
+
+    # Ordena os dados.
+    ordering = ('-year', '-month', 'company__name')
+
+    # Filtros.
+    list_filter = ('year', 'month', 'company')
+
+    # Pesquisa.
+    search_fields = ('company__name', 'year', 'month')
+
+    # Valores exibidos por página.
+    list_per_page = 50
+
+    # Número máximo de registros que podem ser exibidos.
+    list_max_show_all = 200
+
+    # Define onde fica o link da tabela.
+    list_display_links = ('id', 'company')

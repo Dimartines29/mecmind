@@ -22,6 +22,9 @@ class Company(models.Model):
     external_processes = models.TextField('Processos Externos', blank=True)
     work_shifts = models.TextField('Turnos de Trabalho', blank=True)
 
+    # Limite de análises por mês.
+    monthly_analysis_limit = models.PositiveIntegerField('Limite Mensal de Análises', default=50, help_text='Número máximo de análises por mês')
+
     def __str__(self):
         return self.name
 
@@ -132,3 +135,34 @@ class SystemMessages(models.Model):
 
     def __str__(self):
         return self.name
+
+class CompanyUsage(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='usage_records')
+    year = models.IntegerField('Ano')
+    month = models.IntegerField('Mês')
+    analyses_used = models.PositiveIntegerField('Análises Utilizadas', default=0)
+    analyses_limit = models.PositiveIntegerField('Limite de Análises')
+    updated_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Uso Mensal da Empresa'
+        verbose_name_plural = 'Uso Mensal das Empresas'
+        ordering = ['-year', '-month', 'company__name']
+        unique_together = ['company', 'year', 'month']
+
+    def __str__(self):
+        return f'{self.company.name} - {self.month:02d}/{self.year} ({self.analyses_used}/{self.analyses_limit})'
+
+    @property
+    def is_over_limit(self):
+        '''Retorna True se ultrapassou o limite'''
+
+        return self.analyses_used > self.analyses_limit
+
+    @property
+    def usage_percentage(self):
+        '''Retorna percentual de uso (0-100)'''
+
+        if self.analyses_limit == 0:
+            return 0
+        return min(100, (self.analyses_used / self.analyses_limit) * 100)

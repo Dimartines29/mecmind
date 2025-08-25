@@ -12,6 +12,7 @@ from django.contrib import auth, messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.contrib.auth.forms import AuthenticationForm
+from django.db import transaction
 
 #Libs
 import openai
@@ -23,6 +24,47 @@ from mecmind_app import schemas as sc
 
 # LOG.
 logger = logging.getLogger('mecmind_app')
+
+def _increment_company_analysis_usage(company):
+    '''
+    Incrementa o contador de análises mensais da empresa.
+    Cria novo registro se não existir para o mês atual.
+    '''
+
+    now = datetime.now()
+    current_year = now.year
+    current_month = now.month
+
+    with transaction.atomic():
+        # Tenta buscar registro existente do mês atual
+        usage_record, _ = m.CompanyUsage.objects.get_or_create(company=company, year=current_year, month=current_month, defaults={'analyses_used': 0, 'analyses_limit': company.monthly_analysis_limit})
+
+        # Incrementa contador
+        usage_record.analyses_used += 1
+        usage_record.save()
+
+        return usage_record
+
+def _check_company_analysis_limit(company):
+    '''
+    Verifica se a empresa ainda pode fazer análises no mês atual.
+    Retorna tuple (pode_fazer_analise: bool, registro_atual: CompanyUsage or None)
+    '''
+
+    now = datetime.now()
+    current_year = now.year
+    current_month = now.month
+
+    try:
+        usage_record = m.CompanyUsage.objects.get(company=company, year=current_year, month=current_month)
+
+        # Verifica se ainda pode fazer análises
+        can_analyze = usage_record.analyses_used < usage_record.analyses_limit
+
+        return can_analyze, usage_record
+
+    except m.CompanyUsage.DoesNotExist:  # Se não existe registro, pode fazer análise (será o primeiro do mês)
+        return True, None
 
 # Decoda filtros.
 def _decode_filters(encoded_str):
@@ -144,6 +186,13 @@ def analise_eixo(request):
     prompt_eixo_final = m.Prompt.objects.get(name='prompt_eixo_final').text
 
     if request.method == 'POST':
+        # Verifica se a empresa pode fazer análises.
+        can_analyze, usage_record = _check_company_analysis_limit(request.user.company)
+
+        if not can_analyze:
+            messages.error(request, f'Limite de análises mensais atingido ({usage_record.analyses_used}/{usage_record.analyses_limit}). Se deseja aumentar o limite, entre em contato com o suporte.')
+            return render(request, 'analise_eixo.html')
+
         quantity_text = f' A quantidade de peças necessárias para este projeto é de {request.POST.get("quantidade", "1")}.'
 
         # Adiciona a quantidade ao prompt do usuário.
@@ -283,6 +332,7 @@ def analise_eixo(request):
         project.ia_observation = observacoes
 
         project.save()
+        _increment_company_analysis_usage(request.user.company)
 
         # Adiciona as informações ao contexto.
         ctx['materia_prima'] = materia_prima
@@ -316,6 +366,13 @@ def analise_chapa(request):
     prompt_chapa_final = m.Prompt.objects.get(name='prompt_chapa_final').text
 
     if request.method == 'POST':
+        # Verifica se a empresa pode fazer análises.
+        can_analyze, usage_record = _check_company_analysis_limit(request.user.company)
+
+        if not can_analyze:
+            messages.error(request, f'Limite de análises mensais atingido ({usage_record.analyses_used}/{usage_record.analyses_limit}). Se deseja aumentar o limite, entre em contato com o suporte.')
+            return render(request, 'analise_chapa.html')
+
         quantity_text = f' A quantidade de peças necessárias para este projeto é de {request.POST.get("quantidade", "1")}.'
 
         # Adiciona a quantidade ao prompt do usuário.
@@ -554,6 +611,7 @@ def analise_chapa(request):
         project.ia_observation = aproveitamento
 
         project.save()
+        _increment_company_analysis_usage(request.user.company)
 
         # Adiciona as informações ao contexto
         ctx['materia_prima'] = materia_prima
@@ -581,6 +639,13 @@ def analise_tubo(request):
     prompt_tubo_final = m.Prompt.objects.get(name='prompt_tubo_final').text
 
     if request.method == 'POST':
+        # Verifica se a empresa pode fazer análises.
+        can_analyze, usage_record = _check_company_analysis_limit(request.user.company)
+
+        if not can_analyze:
+            messages.error(request, f'Limite de análises mensais atingido ({usage_record.analyses_used}/{usage_record.analyses_limit}). Se deseja aumentar o limite, entre em contato com o suporte.')
+            return render(request, 'analise_tubo.html')
+
         quantity_text = f' A quantidade de peças necessárias para este projeto é de {request.POST.get("quantidade", "1")}.'
 
         # Adiciona a quantidade ao prompt do usuário.
@@ -717,6 +782,7 @@ def analise_tubo(request):
         project.ia_observation = observacoes
 
         project.save()
+        _increment_company_analysis_usage(request.user.company)
 
         # Adiciona as informações ao contexto.
         ctx['materia_prima'] = materia_prima
@@ -741,6 +807,13 @@ def analise_tecnica(request):
     prompt_analise_tecnica = m.Prompt.objects.get(name='prompt_analise_tecnica').text
 
     if request.method == 'POST':
+        # Verifica se a empresa pode fazer análises.
+        can_analyze, usage_record = _check_company_analysis_limit(request.user.company)
+
+        if not can_analyze:
+            messages.error(request, f'Limite de análises mensais atingido ({usage_record.analyses_used}/{usage_record.analyses_limit}). Se deseja aumentar o limite, entre em contato com o suporte.')
+            return render(request, 'analise_tecnica.html')
+
         quantity = request.POST.get('quantidade', 1)
         quantity_text = f' A quantidade de peças necessárias para este projeto é de {quantity}.'
 
@@ -817,6 +890,7 @@ def analise_tecnica(request):
         analise.user_observation = request.POST.get('prompt', '')
 
         analise.save()
+        _increment_company_analysis_usage(request.user.company)
 
         # Adiciona as informações ao contexto.
         ctx['tipo_desenho'] = tipo_desenho
