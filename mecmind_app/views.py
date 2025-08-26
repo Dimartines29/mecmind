@@ -37,7 +37,7 @@ def _increment_company_analysis_usage(company):
 
     with transaction.atomic():
         # Tenta buscar registro existente do mês atual
-        usage_record, _ = m.CompanyUsage.objects.get_or_create(company=company, year=current_year, month=current_month, defaults={'analyses_used': 0, 'analyses_limit': company.monthly_analysis_limit})
+        usage_record, _ = m.CompanyUsage.objects.get_or_create(company=company, year=current_year, month=current_month, defaults={'analyses_used': 0})
 
         # Incrementa contador
         usage_record.analyses_used += 1
@@ -59,7 +59,7 @@ def _check_company_analysis_limit(company):
         usage_record = m.CompanyUsage.objects.get(company=company, year=current_year, month=current_month)
 
         # Verifica se ainda pode fazer análises
-        can_analyze = usage_record.analyses_used < usage_record.analyses_limit
+        can_analyze = usage_record.analyses_used < company.monthly_analysis_limit
 
         return can_analyze, usage_record
 
@@ -190,7 +190,7 @@ def analise_eixo(request):
         can_analyze, usage_record = _check_company_analysis_limit(request.user.company)
 
         if not can_analyze:
-            messages.error(request, f'Limite de análises mensais atingido ({usage_record.analyses_used}/{usage_record.analyses_limit}). Se deseja aumentar o limite, entre em contato com o suporte.')
+            messages.error(request, f'Limite de análises mensais atingido ({usage_record.analyses_used}/{request.user.company.monthly_analysis_limit}). Se deseja aumentar o limite, entre em contato com o suporte.')
             return render(request, 'analise_eixo.html')
 
         quantity_text = f' A quantidade de peças necessárias para este projeto é de {request.POST.get("quantidade", "1")}.'
@@ -370,7 +370,7 @@ def analise_chapa(request):
         can_analyze, usage_record = _check_company_analysis_limit(request.user.company)
 
         if not can_analyze:
-            messages.error(request, f'Limite de análises mensais atingido ({usage_record.analyses_used}/{usage_record.analyses_limit}). Se deseja aumentar o limite, entre em contato com o suporte.')
+            messages.error(request, f'Limite de análises mensais atingido ({usage_record.analyses_used}/{request.user.company.monthly_analysis_limit}). Se deseja aumentar o limite, entre em contato com o suporte.')
             return render(request, 'analise_chapa.html')
 
         quantity_text = f' A quantidade de peças necessárias para este projeto é de {request.POST.get("quantidade", "1")}.'
@@ -643,7 +643,7 @@ def analise_tubo(request):
         can_analyze, usage_record = _check_company_analysis_limit(request.user.company)
 
         if not can_analyze:
-            messages.error(request, f'Limite de análises mensais atingido ({usage_record.analyses_used}/{usage_record.analyses_limit}). Se deseja aumentar o limite, entre em contato com o suporte.')
+            messages.error(request, f'Limite de análises mensais atingido ({usage_record.analyses_used}/{request.user.company.monthly_analysis_limit}). Se deseja aumentar o limite, entre em contato com o suporte.')
             return render(request, 'analise_tubo.html')
 
         quantity_text = f' A quantidade de peças necessárias para este projeto é de {request.POST.get("quantidade", "1")}.'
@@ -811,7 +811,7 @@ def analise_tecnica(request):
         can_analyze, usage_record = _check_company_analysis_limit(request.user.company)
 
         if not can_analyze:
-            messages.error(request, f'Limite de análises mensais atingido ({usage_record.analyses_used}/{usage_record.analyses_limit}). Se deseja aumentar o limite, entre em contato com o suporte.')
+            messages.error(request, f'Limite de análises mensais atingido ({usage_record.analyses_used}/{request.user.company.monthly_analysis_limit}). Se deseja aumentar o limite, entre em contato com o suporte.')
             return render(request, 'analise_tecnica.html')
 
         quantity = request.POST.get('quantidade', 1)

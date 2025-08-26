@@ -141,7 +141,6 @@ class CompanyUsage(models.Model):
     year = models.IntegerField('Ano')
     month = models.IntegerField('Mês')
     analyses_used = models.PositiveIntegerField('Análises Utilizadas', default=0)
-    analyses_limit = models.PositiveIntegerField('Limite de Análises')
     updated_date = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -151,18 +150,4 @@ class CompanyUsage(models.Model):
         unique_together = ['company', 'year', 'month']
 
     def __str__(self):
-        return f'{self.company.name} - {self.month:02d}/{self.year} ({self.analyses_used}/{self.analyses_limit})'
-
-    @property
-    def is_over_limit(self):
-        '''Retorna True se ultrapassou o limite'''
-
-        return self.analyses_used > self.analyses_limit
-
-    @property
-    def usage_percentage(self):
-        '''Retorna percentual de uso (0-100)'''
-
-        if self.analyses_limit == 0:
-            return 0
-        return min(100, (self.analyses_used / self.analyses_limit) * 100)
+        return f'{self.company.name} - {self.month:02d}/{self.year} ({self.analyses_used})'

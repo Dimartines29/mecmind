@@ -171,7 +171,7 @@ class SystemMessagesAdmin(admin.ModelAdmin):
 @admin.register(m.CompanyUsage)
 class CompanyUsageAdmin(admin.ModelAdmin):
     # Define o que será exibido no painel admin da tabela Uso Mensal.
-    list_display = ('id', 'company', 'analyses_used', 'analyses_limit', 'updated_date')
+    list_display = ('id', 'company', 'analyses_used', 'updated_date')
 
     # Ordena os dados.
     ordering = ('-year', '-month', 'company__name')
