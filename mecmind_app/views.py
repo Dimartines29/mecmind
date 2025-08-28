@@ -131,7 +131,19 @@ def analises(request):
 
 @login_required(login_url='/login')
 def empresa(request):
-    return render(request, 'empresa.html')
+    ctx = {}
+    company = request.user.company
+    now = datetime.now()
+    current_year = now.year
+    current_month = now.month
+
+    usage_record, _ = m.CompanyUsage.objects.get_or_create(company=company, year=current_year, month=current_month, defaults={'analyses_used': 0})
+
+
+    ctx['analises_mes'] = company.monthly_analysis_limit
+    ctx['analises_usadas'] = usage_record.analyses_used
+
+    return render(request, 'empresa.html', ctx)
 
 @login_required(login_url='/login')
 def documentacao(request):

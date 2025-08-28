@@ -11,6 +11,9 @@
 <section class="tools-section">
     <div class="section-header">
         <h2><i class="fas fa-building"></i> {{ request.user.company }}</h2>
+        {% if request.user|has_group:"Gerente" %}
+            <h3>Análises mensais - {{ analises_usadas }} / {{ analises_mes }}</h3>
+        {% endif %}
     </div>
 
     <div class="tools-grid">
