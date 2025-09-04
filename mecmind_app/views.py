@@ -16,6 +16,8 @@ from django.db import transaction
 
 #Libs
 import openai
+import fitz
+import os
 
 #Local
 from mecmind_app import models as m
@@ -80,6 +82,23 @@ def _decode_filters(encoded_str):
 def _encode_file(file):
     content = file.read()
     return base64.b64encode(content).decode('utf-8')
+
+def _generate_pdf_thumbnail(instance):
+    '''Gera thumbnail de PDF'''
+
+    # Abre o PDF e pega primeira página
+    doc = fitz.open(instance.drawing.path)
+    page = doc[0]
+
+    # Converte para imagem e bytes
+    pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))
+    img_data = pix.tobytes("png")
+
+    # Gera nome e salva
+    filename = os.path.basename(instance.drawing.name)
+    thumbnail_name = f"thumb_{filename.replace('.pdf', '.png')}"
+    instance.drawing_thumbnail.save(thumbnail_name, BytesIO(img_data), save=False)
+    doc.close()
 
 def build_content_item(cli, file):
     mime = file.content_type
@@ -346,6 +365,10 @@ def analise_eixo(request):
         project.save()
         _increment_company_analysis_usage(request.user.company)
 
+        if project.drawing and project.drawing.name.endswith('.pdf'):
+            _generate_pdf_thumbnail(project)
+            project.save()
+
         # Adiciona as informações ao contexto.
         ctx['materia_prima'] = materia_prima
         ctx['maquinas'] = maquinas
@@ -354,6 +377,7 @@ def analise_eixo(request):
         ctx['item_do_estoque'] = item_do_estoque
         ctx['observacoes'] = observacoes
         ctx['image_url'] = project.drawing.url
+        ctx['project'] = project
 
         return render(request, 'analise_eixo.html', ctx)
 
@@ -625,6 +649,10 @@ def analise_chapa(request):
         project.save()
         _increment_company_analysis_usage(request.user.company)
 
+        if project.drawing and project.drawing.name.endswith('.pdf'):
+            _generate_pdf_thumbnail(project)
+            project.save()
+
         # Adiciona as informações ao contexto
         ctx['materia_prima'] = materia_prima
         ctx['maquinas'] = maquinas
@@ -633,6 +661,7 @@ def analise_chapa(request):
         ctx['item_do_estoque'] = item_do_estoque
         ctx['aproveitamento'] = aproveitamento
         ctx['image_url'] = project.drawing.url
+        ctx['project'] = project
 
         return render(request, 'analise_chapa.html', ctx)
 
@@ -796,6 +825,10 @@ def analise_tubo(request):
         project.save()
         _increment_company_analysis_usage(request.user.company)
 
+        if project.drawing and project.drawing.name.endswith('.pdf'):
+            _generate_pdf_thumbnail(project)
+            project.save()
+
         # Adiciona as informações ao contexto.
         ctx['materia_prima'] = materia_prima
         ctx['maquinas'] = maquinas
@@ -804,6 +837,7 @@ def analise_tubo(request):
         ctx['item_do_estoque'] = item_do_estoque
         ctx['observacoes'] = observacoes
         ctx['image_url'] = project.drawing.url
+        ctx['project'] = project
 
         return render(request, 'analise_tubo.html', ctx)
 
@@ -904,6 +938,11 @@ def analise_tecnica(request):
         analise.save()
         _increment_company_analysis_usage(request.user.company)
 
+        # Gerar miniatura do PDF.
+        if analise.drawing and analise.drawing.name.endswith('.pdf'):
+            _generate_pdf_thumbnail(analise)
+            analise.save()
+
         # Adiciona as informações ao contexto.
         ctx['tipo_desenho'] = tipo_desenho
         ctx['subpartes'] = subpartes
@@ -913,6 +952,7 @@ def analise_tecnica(request):
         ctx['resumo'] = resumo
         ctx['quantity'] = quantity
         ctx['image_url'] = analise.drawing.url
+        ctx['analise'] = analise
 
         return render(request, 'analise_tecnica.html', ctx)
 

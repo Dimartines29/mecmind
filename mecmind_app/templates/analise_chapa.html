@@ -86,7 +86,10 @@
                 <div class="result-container">
                     <div class="result-image-container">
                         {% if image_url %}
-                            {% if image_url|slice:"-4:" == ".pdf" %}
+                            {% if project.drawing_thumbnail %}
+                                <img src="{{ project.drawing_thumbnail.url }}" alt="Preview do PDF" class="drawing-image">
+
+                            {% elif image_url|slice:"-4:" == ".pdf" %}
                                 <div class="pdf-preview">
                                     <div class="pdf-icon">
                                         <i class="fas fa-file-pdf" style="font-size: 4rem; color: #dc3545;"></i>

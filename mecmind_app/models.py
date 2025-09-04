@@ -48,6 +48,7 @@ class Project(models.Model):
     company = models.ForeignKey(Company, on_delete=models.SET_NULL, blank=True, null=True)
     analysis_name = models.CharField(max_length=20)
     drawing = models.ImageField(upload_to='projects/%Y/%m/%d', blank=True)
+    drawing_thumbnail = models.ImageField(upload_to='projects/thumbnails/%Y/%m/%d', blank=True, null=True)  # NOVO CAMPO
     created_date = models.DateTimeField(default=timezone.now)
     raw_material = models.TextField('Matéria Prima', blank=True)
     machines = models.JSONField('Máquinas', default=list, blank=True)
@@ -69,6 +70,7 @@ class TechnicalAnalysis(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='technical_analyses')
     company = models.ForeignKey(Company, on_delete=models.SET_NULL, blank=True, null=True)
     drawing = models.ImageField(upload_to='technical_analysis/%Y/%m/%d', blank=True)
+    drawing_thumbnail = models.ImageField(upload_to='technical_analysis/thumbnails/%Y/%m/%d', blank=True, null=True)
     created_date = models.DateTimeField(default=timezone.now)
     quantity = models.PositiveIntegerField('Quantidade', default=1)
 
