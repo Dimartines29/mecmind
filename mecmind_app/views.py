@@ -190,13 +190,6 @@ def analise_eixo(request):
     ctx = {}
     cli = openai.OpenAI(api_key=request.user.company.api_key)  # Inicia o cliente OpenAI com a chave da empresa.
 
-    # Busca os valores das system messages e prompts.
-    system_eixo_analise = m.SystemMessages.objects.get(name='system_eixo_analise').text
-    prompt_eixo_analise = m.Prompt.objects.get(name='prompt_eixo_analise').text
-
-    system_eixo_final = m.SystemMessages.objects.get(name='system_eixo_final').text
-    prompt_eixo_final = m.Prompt.objects.get(name='prompt_eixo_final').text
-
     if request.method == 'POST':
         # Verifica se a empresa pode fazer análises.
         can_analyze, usage_record = _check_company_analysis_limit(request.user.company)
@@ -219,12 +212,12 @@ def analise_eixo(request):
         kwa['input'][0]['role'] = 'system'
         kwa['input'][0]['content'] = [{}]
         kwa['input'][0]['content'][0]['type'] = 'input_text'
-        kwa['input'][0]['content'][0]['text'] = system_eixo_analise
+        kwa['input'][0]['content'][0]['text'] = m.SystemMessages.objects.get(name='system_eixo_analise').text
 
         kwa['input'][1]['role'] = 'user'
         kwa['input'][1]['content'] = [{}, {}]
         kwa['input'][1]['content'][0]['type'] = 'input_text'
-        kwa['input'][1]['content'][0]['text'] = prompt_eixo_analise
+        kwa['input'][1]['content'][0]['text'] = m.Prompt.objects.get(name='prompt_eixo_analise').text
         kwa['input'][1]['content'][1] = build_content_item(cli, request.FILES['file'])
 
         kwa['text_format'] = sc.EixoAnalysis
@@ -287,12 +280,12 @@ def analise_eixo(request):
         kwa['input'][0]['role'] = 'system'
         kwa['input'][0]['content'] = [{}]
         kwa['input'][0]['content'][0]['type'] = 'input_text'
-        kwa['input'][0]['content'][0]['text'] = system_eixo_final
+        kwa['input'][0]['content'][0]['text'] = m.SystemMessages.objects.get(name='system_eixo_final').text
 
         kwa['input'][1]['role'] = 'user'
         kwa['input'][1]['content'] = [{}, {}, {}]
         kwa['input'][1]['content'][0]['type'] = 'input_text'
-        kwa['input'][1]['content'][0]['text'] = prompt_eixo_final
+        kwa['input'][1]['content'][0]['text'] = m.Prompt.objects.get(name='prompt_eixo_final').text
         kwa['input'][1]['content'][1]['type'] = 'input_text'
         kwa['input'][1]['content'][1]['text'] = info_context
         kwa['input'][1]['content'][2]['type'] = 'input_text'
@@ -364,19 +357,6 @@ def analise_chapa(request):
     ctx = {}
     cli = openai.OpenAI(api_key=request.user.company.api_key)  # Inicia o cliente OpenAI com a chave da empresa.
 
-    # Busca os valores das system messages e prompts.
-    system_chapa_dobra_analise = m.SystemMessages.objects.get(name='system_chapa_dobra_analise').text
-    prompt_chapa_dobra_analise = m.Prompt.objects.get(name='prompt_chapa_dobra_analise').text
-
-    system_chapa_dobra_final = m.SystemMessages.objects.get(name='system_chapa_dobra_final').text
-    prompt_chapa_dobra_final = m.Prompt.objects.get(name='prompt_chapa_dobra_final').text
-
-    system_chapa_analise = m.SystemMessages.objects.get(name='system_chapa_analise').text
-    prompt_chapa_analise = m.Prompt.objects.get(name='prompt_chapa_analise').text
-
-    system_chapa_final = m.SystemMessages.objects.get(name='system_chapa_final').text
-    prompt_chapa_final = m.Prompt.objects.get(name='prompt_chapa_final').text
-
     if request.method == 'POST':
         # Verifica se a empresa pode fazer análises.
         can_analyze, usage_record = _check_company_analysis_limit(request.user.company)
@@ -400,12 +380,12 @@ def analise_chapa(request):
             kwa['input'][0]['role'] = 'system'
             kwa['input'][0]['content'] = [{}]
             kwa['input'][0]['content'][0]['type'] = 'input_text'
-            kwa['input'][0]['content'][0]['text'] = system_chapa_dobra_analise
+            kwa['input'][0]['content'][0]['text'] = m.SystemMessages.objects.get(name='system_chapa_dobra_analise').text
 
             kwa['input'][1]['role'] = 'user'
             kwa['input'][1]['content'] = [{}, {}]
             kwa['input'][1]['content'][0]['type'] = 'input_text'
-            kwa['input'][1]['content'][0]['text'] = prompt_chapa_dobra_analise
+            kwa['input'][1]['content'][0]['text'] = m.Prompt.objects.get(name='prompt_chapa_dobra_analise').text
             kwa['input'][1]['content'][1] = build_content_item(cli, request.FILES['file'])
 
             kwa['text_format'] = sc.ChapadobradaAnalysis
@@ -464,12 +444,12 @@ def analise_chapa(request):
             kwa['input'][0]['role'] = 'system'
             kwa['input'][0]['content'] = [{}]
             kwa['input'][0]['content'][0]['type'] = 'input_text'
-            kwa['input'][0]['content'][0]['text'] = system_chapa_dobra_final
+            kwa['input'][0]['content'][0]['text'] = m.SystemMessages.objects.get(name='system_chapa_dobra_final').text
 
             kwa['input'][1]['role'] = 'user'
             kwa['input'][1]['content'] = [{}, {}, {}]
             kwa['input'][1]['content'][0]['type'] = 'input_text'
-            kwa['input'][1]['content'][0]['text'] = prompt_chapa_dobra_final
+            kwa['input'][1]['content'][0]['text'] = m.Prompt.objects.get(name='prompt_chapa_dobra_final').text
             kwa['input'][1]['content'][1]['type'] = 'input_text'
             kwa['input'][1]['content'][1]['text'] = info_context
             kwa['input'][1]['content'][2]['type'] = 'input_text'
@@ -502,12 +482,12 @@ def analise_chapa(request):
             kwa['input'][0]['role'] = 'system'
             kwa['input'][0]['content'] = [{}]
             kwa['input'][0]['content'][0]['type'] = 'input_text'
-            kwa['input'][0]['content'][0]['text'] = system_chapa_analise
+            kwa['input'][0]['content'][0]['text'] = m.SystemMessages.objects.get(name='system_chapa_analise').text
 
             kwa['input'][1]['role'] = 'user'
             kwa['input'][1]['content'] = [{}, {}]
             kwa['input'][1]['content'][0]['type'] = 'input_text'
-            kwa['input'][1]['content'][0]['text'] = prompt_chapa_analise
+            kwa['input'][1]['content'][0]['text'] = m.Prompt.objects.get(name='prompt_chapa_analise').text
             kwa['input'][1]['content'][1] = build_content_item(cli, request.FILES['file'])
 
             kwa['text_format'] = sc.ChapaAnalysis
@@ -566,12 +546,12 @@ def analise_chapa(request):
             kwa['input'][0]['role'] = 'system'
             kwa['input'][0]['content'] = [{}]
             kwa['input'][0]['content'][0]['type'] = 'input_text'
-            kwa['input'][0]['content'][0]['text'] = system_chapa_final
+            kwa['input'][0]['content'][0]['text'] = m.SystemMessages.objects.get(name='system_chapa_final').text
 
             kwa['input'][1]['role'] = 'user'
             kwa['input'][1]['content'] = [{}, {}, {}]
             kwa['input'][1]['content'][0]['type'] = 'input_text'
-            kwa['input'][1]['content'][0]['text'] = prompt_chapa_final
+            kwa['input'][1]['content'][0]['text'] = m.Prompt.objects.get(name='prompt_chapa_final').text
             kwa['input'][1]['content'][1]['type'] = 'input_text'
             kwa['input'][1]['content'][1]['text'] = info_context
             kwa['input'][1]['content'][2]['type'] = 'input_text'
@@ -643,13 +623,6 @@ def analise_tubo(request):
     cli = openai.OpenAI(api_key=request.user.company.api_key)  # Inicia o cliente OpenAI com a chave da empresa.
     ctx = {}
 
-    # Busca os valores das system messages e prompts.
-    sysem_tubo_analise = m.SystemMessages.objects.get(name='system_tubo_analise').text
-    prompt_tubo_analise = m.Prompt.objects.get(name='prompt_tubo_analise').text
-
-    system_tubo_final = m.SystemMessages.objects.get(name='system_tubo_final').text
-    prompt_tubo_final = m.Prompt.objects.get(name='prompt_tubo_final').text
-
     if request.method == 'POST':
         # Verifica se a empresa pode fazer análises.
         can_analyze, usage_record = _check_company_analysis_limit(request.user.company)
@@ -672,12 +645,12 @@ def analise_tubo(request):
         kwa['input'][0]['role'] = 'system'
         kwa['input'][0]['content'] = [{}]
         kwa['input'][0]['content'][0]['type'] = 'input_text'
-        kwa['input'][0]['content'][0]['text'] = sysem_tubo_analise
+        kwa['input'][0]['content'][0]['text'] = m.SystemMessages.objects.get(name='system_tubo_analise').text
 
         kwa['input'][1]['role'] = 'user'
         kwa['input'][1]['content'] = [{}, {}]
         kwa['input'][1]['content'][0]['type'] = 'input_text'
-        kwa['input'][1]['content'][0]['text'] = prompt_tubo_analise
+        kwa['input'][1]['content'][0]['text'] = m.Prompt.objects.get(name='prompt_tubo_analise').text
         kwa['input'][1]['content'][1] = build_content_item(cli, request.FILES['file'])
 
         kwa['text_format'] = sc.TuboAnalysis
@@ -737,12 +710,12 @@ def analise_tubo(request):
         kwa['input'][0]['role'] = 'system'
         kwa['input'][0]['content'] = [{}]
         kwa['input'][0]['content'][0]['type'] = 'input_text'
-        kwa['input'][0]['content'][0]['text'] = system_tubo_final
+        kwa['input'][0]['content'][0]['text'] = m.SystemMessages.objects.get(name='system_tubo_final').text
 
         kwa['input'][1]['role'] = 'user'
         kwa['input'][1]['content'] = [{}, {}, {}]
         kwa['input'][1]['content'][0]['type'] = 'input_text'
-        kwa['input'][1]['content'][0]['text'] = prompt_tubo_final
+        kwa['input'][1]['content'][0]['text'] = m.Prompt.objects.get(name='prompt_tubo_final').text
         kwa['input'][1]['content'][1]['type'] = 'input_text'
         kwa['input'][1]['content'][1]['text'] = info_context
         kwa['input'][1]['content'][2]['type'] = 'input_text'
@@ -814,10 +787,6 @@ def analise_tecnica(request):
     ctx = {}
     cli = openai.OpenAI(api_key=request.user.company.api_key)  # Inicia o cliente OpenAI com a chave da empresa.
 
-    # Busca os valores das system messages e prompts.
-    system_analise_tecnica = m.SystemMessages.objects.get(name='system_analise_tecnica').text
-    prompt_analise_tecnica = m.Prompt.objects.get(name='prompt_analise_tecnica').text
-
     if request.method == 'POST':
         # Verifica se a empresa pode fazer análises.
         can_analyze, usage_record = _check_company_analysis_limit(request.user.company)
@@ -844,12 +813,12 @@ def analise_tecnica(request):
         kwa['input'][0]['role'] = 'system'
         kwa['input'][0]['content'] = [{}]
         kwa['input'][0]['content'][0]['type'] = 'input_text'
-        kwa['input'][0]['content'][0]['text'] = system_analise_tecnica
+        kwa['input'][0]['content'][0]['text'] = m.SystemMessages.objects.get(name='system_analise_tecnica').text
 
         kwa['input'][1]['role'] = 'user'
         kwa['input'][1]['content'] = [{}, {}, {}]
         kwa['input'][1]['content'][0]['type'] = 'input_text'
-        kwa['input'][1]['content'][0]['text'] = prompt_analise_tecnica
+        kwa['input'][1]['content'][0]['text'] = m.Prompt.objects.get(name='prompt_analise_tecnica').text
         kwa['input'][1]['content'][1] = build_content_item(cli, request.FILES['file'])
         kwa['input'][1]['content'][2]['type'] = 'input_text'
         kwa['input'][1]['content'][2]['text'] = company_info + '\n' + user_prompt
