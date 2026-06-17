@@ -25,4 +25,17 @@ urlpatterns = [
     path('analises_tecnicas/', views.analises_tecnicas, name='analises_tecnicas'),
     path('analises_tecnicas_empresa/', views.analises_tecnicas_empresa, name='analises_tecnicas_empresa'),
     path('detalhe_analise_tecnica/<int:analise_id>/', views.detalhe_analise_tecnica, name='detalhe_analise_tecnica'),
+
+    # Chat de refino agêntico.
+    path('chat/iniciar/<str:analysis_kind>/<int:analysis_id>/', views.chat_iniciar, name='chat_iniciar'),
+    path('chat/<int:sessao_id>/', views.chat_refino, name='chat_refino'),
+    path('chat/<int:sessao_id>/enviar/', views.chat_enviar, name='chat_enviar'),
+
+    # Documentos: Ordem de Compra (CSV) e Ordem de Serviço (PDF).
+    path('ordens_compra/', views.ordens_compra, name='ordens_compra'),
+    path('ordens_servico/', views.ordens_servico, name='ordens_servico'),
+    path('ordem_compra/gerar/<str:analysis_kind>/<int:analysis_id>/', views.ordem_compra_gerar, name='ordem_compra_gerar'),
+    path('ordem_compra/<int:pr_id>/csv/', views.ordem_compra_csv, name='ordem_compra_csv'),
+    path('ordem_servico/gerar/<str:analysis_kind>/<int:analysis_id>/', views.ordem_servico_gerar, name='ordem_servico_gerar'),
+    path('ordem_servico/<int:so_id>/pdf/', views.ordem_servico_pdf, name='ordem_servico_pdf'),
 ]

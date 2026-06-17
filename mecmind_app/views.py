@@ -7,7 +7,8 @@ from copy import deepcopy
 from io import BytesIO
 
 #Django
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse, HttpResponse
 from django.contrib import auth, messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
@@ -21,6 +22,10 @@ import openai
 from mecmind_app import models as m
 from mecmind_app import choices as c
 from mecmind_app import schemas as sc
+from mecmind_app import ai_client as ai
+from mecmind_app import chat_agent
+from mecmind_app import documents
+from mecmind_app import validation
 
 # LOG.
 logger = logging.getLogger('mecmind_app')
@@ -184,603 +189,289 @@ def logout_view(request):
     auth.logout(request)
     return redirect('/login')
 
+# =========================================================================
+# Motor genérico de análise de projeto (eixo, chapa, tubo).
+#
+# Os três fluxos eram o mesmo pipeline de duas etapas (extração com gpt-5 →
+# planejamento com gpt-4.1) que salva um Project; só mudavam nomes de prompt/
+# schema, categoria de estoque e os campos exibidos. A duplicação foi colapsada
+# aqui, dirigida por _PROJETO_SPECS, preservando exatamente os textos enviados
+# ao modelo e a ordem do conteúdo.
+# =========================================================================
+
+# Campos repassados ao planejamento (label exibido, chave no dic da extração).
+# IMPORTANTE: as chaves precisam bater com os campos reais de cada schema em
+# schemas.py — antes várias estavam erradas (ex.: 'espessura' em vez de
+# 'espessura_mm', ou 'rasgos_de_chaveta' em tubo, que nem existe), repassando
+# vazio ao planejamento.
+_INFO_FIELDS_EIXO = [
+    ('Diâmetro maior', 'diametro_maior'),
+    ('Diâmetros', 'diametros'),
+    ('Comprimento', 'comprimento'),
+    ('Roscas', 'roscas'),
+    ('Furos', 'furos'),
+    ('Rasgos de chaveta', 'rasgos_de_chaveta'),
+    ('Chanfros', 'chanfros'),
+    ('Acabamento/Tolerâncias', 'acabamento_tolerancias'),
+    ('Matéria-prima', 'materia_prima'),
+    ('Observações', 'observacoes'),
+]
+
+_INFO_FIELDS_TUBO = [
+    ('Diâmetro maior', 'diametro_maior'),
+    ('Diâmetro externo (mm)', 'diametro_externo_mm'),
+    ('Diâmetro interno (mm)', 'diametro_interno_mm'),
+    ('Comprimento (mm)', 'comprimento_mm'),
+    ('Espessura de parede', 'espessura_parede'),
+    ('Diâmetros', 'diametros'),
+    ('Roscas', 'roscas'),
+    ('Furos', 'furos'),
+    ('Chanfros', 'chanfros'),
+    ('Matéria-prima', 'materia_prima'),
+    ('Observações', 'observacoes'),
+]
+
+_INFO_FIELDS_CHAPA_DOBRA = [
+    ('Espessura (mm)', 'espessura_mm'),
+    ('Comprimento (mm)', 'comprimento_mm'),
+    ('Largura (mm)', 'largura_mm'),
+    ('Desenvolvimento plano (mm)', 'desenvolvimento_plano_mm'),
+    ('Número de dobras', 'numero_dobras'),
+    ('Dobras', 'dobras'),
+    ('Fator K', 'fator_k'),
+    ('Dedução de dobra (mm)', 'deducao_dobra_mm'),
+    ('Furos', 'furos'),
+    ('Rebaixos', 'rebaixos'),
+    ('Matéria-prima', 'materia_prima'),
+    ('Observações', 'observacoes'),
+]
+
+_INFO_FIELDS_CHAPA_COMUM = [
+    ('Espessura (mm)', 'espessura_mm'),
+    ('Comprimento (mm)', 'comprimento_mm'),
+    ('Largura (mm)', 'largura_mm'),
+    ('Furos', 'furos'),
+    ('Rebaixos', 'rebaixos'),
+    ('Cortes especiais', 'cortes_especiais'),
+    ('Acabamento superficial', 'acabamento_superficial'),
+    ('Tolerâncias', 'tolerancias'),
+    ('Matéria-prima', 'materia_prima'),
+    ('Observações', 'observacoes'),
+]
+
+# stock_format: 'redondo' (linha com Diâmetro) ou 'chapa' (Espessura/Largura).
+# extra_field: campo do plano que vira ia_observation e a chave extra do ctx.
+_PROJETO_SPECS = {
+    'eixo': {
+        'template': 'analise_eixo.html', 'analysis_name': 'Eixo', 'tipo': 'eixo',
+        'stock_category': 'Barra Redonda', 'stock_format': 'redondo',
+        'sys_analise': 'system_eixo_analise', 'prompt_analise': 'prompt_eixo_analise',
+        'schema_analise': sc.EixoAnalysis,
+        'sys_final': 'system_eixo_final', 'prompt_final': 'prompt_eixo_final',
+        'schema_final': sc.EixoFabricacao,
+        'info_fields': _INFO_FIELDS_EIXO, 'extra_field': 'observacoes',
+    },
+    'tubo': {
+        'template': 'analise_tubo.html', 'analysis_name': 'Tubo', 'tipo': 'tubo',
+        'stock_category': 'Tubo', 'stock_format': 'redondo',
+        'sys_analise': 'system_tubo_analise', 'prompt_analise': 'prompt_tubo_analise',
+        'schema_analise': sc.TuboAnalysis,
+        'sys_final': 'system_tubo_final', 'prompt_final': 'prompt_tubo_final',
+        'schema_final': sc.TuboFabricacao,
+        'info_fields': _INFO_FIELDS_TUBO, 'extra_field': 'observacoes',
+    },
+    'chapa_dobra': {
+        'template': 'analise_chapa.html', 'analysis_name': 'Chapa', 'tipo': 'chapa_dobra',
+        'stock_category': 'Chapa', 'stock_format': 'chapa',
+        'sys_analise': 'system_chapa_dobra_analise', 'prompt_analise': 'prompt_chapa_dobra_analise',
+        'schema_analise': sc.ChapadobradaAnalysis,
+        'sys_final': 'system_chapa_dobra_final', 'prompt_final': 'prompt_chapa_dobra_final',
+        'schema_final': sc.ChapadobradaFabricacao,
+        'info_fields': _INFO_FIELDS_CHAPA_DOBRA, 'extra_field': 'aproveitamento',
+    },
+    'chapa_comum': {
+        'template': 'analise_chapa.html', 'analysis_name': 'Chapa', 'tipo': 'chapa_comum',
+        'stock_category': 'Chapa', 'stock_format': 'chapa',
+        'sys_analise': 'system_chapa_analise', 'prompt_analise': 'prompt_chapa_analise',
+        'schema_analise': sc.ChapaAnalysis,
+        'sys_final': 'system_chapa_final', 'prompt_final': 'prompt_chapa_final',
+        'schema_final': sc.ChapaFabricacao,
+        'info_fields': _INFO_FIELDS_CHAPA_COMUM, 'extra_field': 'aproveitamento',
+    },
+}
+
+
+def _formata_item_estoque(item, formato):
+    if formato == 'chapa':
+        return f'Item: {item.name}, Código: {item.code}, Espessura: {item.thickness}", Comprimento: {item.length}, Largura: {item.width},  Material: {item.material}, Quantidade: {item.quantity}'
+
+    return f'Item: {item.name}, Código: {item.code}, Diâmetro: {item.diameter}", Comprimento: {item.length}, Material: {item.material}, Quantidade: {item.quantity}'
+
+
+def _build_stock_message(company, category, formato):
+    stock = m.Stock.objects.filter(company=company, status='Disponível', category=category)
+    stock_list = [_formata_item_estoque(item, formato) for item in stock]
+    return 'Estes são os itens disponíveis no estoque:\n' + '\n'.join(stock_list)
+
+
+def _etapa_mensagens(sys_name, prompt_name):
+    '''Monta os dois itens de input base: system + user (com o prompt base).'''
+
+    return [
+        {'role': 'system', 'content': [
+            {'type': 'input_text', 'text': m.SystemMessages.objects.get(name=sys_name).text}]},
+        {'role': 'user', 'content': [
+            {'type': 'input_text', 'text': m.Prompt.objects.get(name=prompt_name).text}]},
+    ]
+
+
+def _executar_analise_projeto(cli, request, spec, user_prompt):
+    '''Roda as duas etapas (extração + planejamento) e devolve o dic do plano.
+    Pode levantar openai.OpenAIError ou outras exceções (tratadas pela view).'''
+
+    drawing_item = build_content_item(cli, request.FILES['file'])
+
+    # Etapa 1 — extração do desenho (gpt-5 + reasoning alto via parse_with_retry).
+    kwa = {
+        'model': 'gpt-5',
+        'input': _etapa_mensagens(spec['sys_analise'], spec['prompt_analise']),
+        'text_format': spec['schema_analise'],
+    }
+    kwa['input'][1]['content'].append(drawing_item)
+    extracao = ai.parse_with_retry(cli, **kwa).output_parsed.dict()
+
+    # Contexto pro planejamento: dados extraídos + estoque + empresa.
+    info_project = 'Essas são todas as informações necessárias para a sua análise: \n'
+
+    for label, key in spec['info_fields']:
+        info_project += f'{label}: {extracao.get(key, "")}\n'
+
+    info_project += '\n'
+
+    # Validação de plausibilidade: avisa o planejamento sobre inconsistências
+    # detectadas na leitura do desenho (não bloqueia a análise).
+    avisos = validation.validar_extracao(spec.get('tipo', ''), extracao)
+
+    if avisos:
+        logger.warning(f"Inconsistências na extração ({spec['analysis_name']}): {avisos}")
+        info_project += 'ATENÇÃO — possíveis inconsistências detectadas na leitura do desenho (verifique e não confie cegamente nos valores acima):\n'
+
+        for aviso in avisos:
+            info_project += f'- {aviso}\n'
+
+        info_project += '\n'
+
+    msg_stock = _build_stock_message(request.user.company, spec['stock_category'], spec['stock_format'])
+    company_info = _get_company_info(m.Company.objects.get(name=request.user.company.name))
+    info_context = f'{company_info}\n{msg_stock}\n{info_project}'
+
+    # Etapa 2 — planejamento de fabricação (gpt-4.1, temperatura baixa). O desenho
+    # vai junto pra o planejamento conferir o que a extração leu.
+    kwa = {
+        'model': 'gpt-4.1',
+        'temperature': 0.1,
+        'input': _etapa_mensagens(spec['sys_final'], spec['prompt_final']),
+        'text_format': spec['schema_final'],
+    }
+    kwa['input'][1]['content'].append({'type': 'input_text', 'text': info_context})
+    kwa['input'][1]['content'].append({'type': 'input_text', 'text': user_prompt})
+    kwa['input'][1]['content'].append(drawing_item)
+
+    return ai.parse_with_retry(cli, **kwa).output_parsed.dict()
+
+
+def _salvar_projeto(request, spec, plano):
+    '''Salva o Project a partir do dic do plano e devolve o ctx pro template.'''
+
+    materia_prima = plano.get('materia_prima', '')
+    maquinas = plano.get('maquinas', [])
+    processos = plano.get('processos', '')
+    em_estoque = plano.get('em_estoque', False)
+    item_do_estoque = plano.get('item_do_estoque', '')
+    extra = plano.get(spec['extra_field'], '')
+
+    project = m.Project()
+    project.user = request.user
+
+    if hasattr(request.user, 'company') and request.user.company:
+        project.company = request.user.company
+
+    project.analysis_name = spec['analysis_name']
+    project.drawing = request.FILES['file']
+    project.user_observation = request.POST.get('prompt', '')
+    project.raw_material = materia_prima
+    project.machines = ', '.join(maquinas)
+    project.processes = processos
+    project.in_stock = em_estoque
+    project.recommended_stock_item = item_do_estoque if item_do_estoque else ''
+    project.ia_observation = extra
+
+    project.save()
+    _increment_company_analysis_usage(request.user.company)
+
+    return {
+        'materia_prima': materia_prima,
+        'maquinas': maquinas,
+        'processos': processos,
+        'em_estoque': em_estoque,
+        'item_do_estoque': item_do_estoque,
+        spec['extra_field']: extra,
+        'image_url': project.drawing.url,
+    }
+
+
+def _processar_analise_projeto(request, spec):
+    '''GET → formulário; POST → roda análise, salva e renderiza o resultado.
+    Trata limite mensal e erros da API de forma uniforme aos três fluxos.'''
+
+    template = spec['template']
+
+    if request.method != 'POST':
+        return render(request, template)
+
+    # Verifica se a empresa pode fazer análises.
+    can_analyze, usage_record = _check_company_analysis_limit(request.user.company)
+
+    if not can_analyze:
+        messages.error(request, f'Limite de análises mensais atingido ({usage_record.analyses_used}/{request.user.company.monthly_analysis_limit}). Se deseja aumentar o limite, entre em contato com o suporte.')
+        return render(request, template)
+
+    cli = openai.OpenAI(api_key=request.user.company.api_key)  # Cliente OpenAI com a chave da empresa.
+
+    quantity_text = f' A quantidade de peças necessárias para este projeto é de {request.POST.get("quantidade", "1")}.'
+    user_prompt = 'Observações adicionais do usuário: ' + request.POST.get('prompt', '') + '\n' + quantity_text
+
+    try:
+        plano = _executar_analise_projeto(cli, request, spec, user_prompt)
+
+    except openai.OpenAIError as e:
+        logger.error(f'Error occurred: {str(e)}', exc_info=True)
+        messages.error(request, 'Não foi possível processar o desenho devido a um erro na API da OpenAI, tente novamente mais tarde.')
+        return render(request, template)
+
+    except Exception as e:
+        logger.error(f'Error occurred: {str(e)}', exc_info=True)
+        messages.error(request, 'Ocorreu um erro inesperado. Por favor, entre em contato com o suporte.')
+        return render(request, template)
+
+    ctx = _salvar_projeto(request, spec, plano)
+    return render(request, template, ctx)
+
 # Páginas de análise de projetos.
 @login_required(login_url='/login')
 def analise_eixo(request):
-    ctx = {}
-    cli = openai.OpenAI(api_key=request.user.company.api_key)  # Inicia o cliente OpenAI com a chave da empresa.
-
-    if request.method == 'POST':
-        # Verifica se a empresa pode fazer análises.
-        can_analyze, usage_record = _check_company_analysis_limit(request.user.company)
-
-        if not can_analyze:
-            messages.error(request, f'Limite de análises mensais atingido ({usage_record.analyses_used}/{request.user.company.monthly_analysis_limit}). Se deseja aumentar o limite, entre em contato com o suporte.')
-            return render(request, 'analise_eixo.html')
-
-        quantity_text = f' A quantidade de peças necessárias para este projeto é de {request.POST.get("quantidade", "1")}.'
-
-        # Adiciona a quantidade ao prompt do usuário.
-        user_prompt = 'Observações adicionais do usuário: ' + request.POST.get('prompt', '') + '\n' + quantity_text
-
-        # Monta o dicionário para a primeira chamada.
-        kwa = {}
-
-        kwa['model'] = 'gpt-5'
-        kwa['input'] = [{}, {}]
-
-        kwa['input'][0]['role'] = 'system'
-        kwa['input'][0]['content'] = [{}]
-        kwa['input'][0]['content'][0]['type'] = 'input_text'
-        kwa['input'][0]['content'][0]['text'] = m.SystemMessages.objects.get(name='system_eixo_analise').text
-
-        kwa['input'][1]['role'] = 'user'
-        kwa['input'][1]['content'] = [{}, {}]
-        kwa['input'][1]['content'][0]['type'] = 'input_text'
-        kwa['input'][1]['content'][0]['text'] = m.Prompt.objects.get(name='prompt_eixo_analise').text
-        kwa['input'][1]['content'][1] = build_content_item(cli, request.FILES['file'])
-
-        kwa['text_format'] = sc.EixoAnalysis
-
-        # Faz a requisição.
-        try:
-            response = cli.responses.parse(**kwa)
-            dic = response.output_parsed.dict()
-
-        except openai.OpenAIError as e:
-            logger.error(f'Error occurred: {str(e)}', exc_info=True)
-            messages.error(request, 'Não foi possível processar o desenho devido a um erro na API da OpenAI, tente novamente mais tarde.')
-
-            return render(request, 'analise_eixo.html')
-
-        except Exception as e:
-            logger.error(f'Error occurred: {str(e)}', exc_info=True)
-            messages.error(request, 'Ocorreu um erro inesperado. Por favor, entre em contato com o suporte.')
-
-            return render(request, 'analise_eixo.html')
-
-        # Busca o valor de diâmetro maior para análises.
-        diametro_maior = dic.get('diametro_maior', 0)
-
-        # Monta o texto de contextualização do projeto.
-        info_project = 'Essas são todas as informações necessárias para a sua análise: \n'
-
-        info_project += f'Diâmetro maior: {diametro_maior}\n'
-        info_project += f'Diâmetros: {dic.get("diametros", "")}\n'
-        info_project += f'Comprimento: {dic.get("comprimento", "")}\n'
-        info_project += f'Roscas: {dic.get("roscas", "")}\n'
-        info_project += f'Furos: {dic.get("furos", "")}\n'
-        info_project += f'Rasgos de chaveta: {dic.get("rasgos_de_chaveta", "")}\n'
-        info_project += f'Matéria-prima: {dic.get("materia_prima", "")}\n'
-        info_project += f'Observações: {dic.get("observacoes", "")}\n'
-        info_project += '\n'
-
-        # Monta a lista de estoque de barras redondas disponíveis para análise da IA.
-        stock = m.Stock.objects.filter(company=request.user.company, status='Disponível', category='Barra Redonda')
-        stock_list = []
-
-        for item in stock:
-            stock_list.append(f'Item: {item.name}, Código: {item.code}, Diâmetro: {item.diameter}", Comprimento: {item.length}, Material: {item.material}, Quantidade: {item.quantity}')
-
-        msg_stock = 'Estes são os itens disponíveis no estoque:\n' + '\n'.join(stock_list)
-
-        # Monta o texto de contextualização da Empresa para a análise.
-        company_info = _get_company_info(m.Company.objects.get(name=request.user.company.name))
-
-        # Agrupa todas as informações de contexto.
-        info_context = f'{company_info}\n{msg_stock}\n{info_project}'
-
-        # Monta a segunda chamada.
-        kwa = {}
-
-        kwa['model'] = 'gpt-4.1'
-        kwa['temperature'] = 0.1
-        kwa['input'] = [{}, {}]
-
-        kwa['input'][0]['role'] = 'system'
-        kwa['input'][0]['content'] = [{}]
-        kwa['input'][0]['content'][0]['type'] = 'input_text'
-        kwa['input'][0]['content'][0]['text'] = m.SystemMessages.objects.get(name='system_eixo_final').text
-
-        kwa['input'][1]['role'] = 'user'
-        kwa['input'][1]['content'] = [{}, {}, {}]
-        kwa['input'][1]['content'][0]['type'] = 'input_text'
-        kwa['input'][1]['content'][0]['text'] = m.Prompt.objects.get(name='prompt_eixo_final').text
-        kwa['input'][1]['content'][1]['type'] = 'input_text'
-        kwa['input'][1]['content'][1]['text'] = info_context
-        kwa['input'][1]['content'][2]['type'] = 'input_text'
-        kwa['input'][1]['content'][2]['text'] = user_prompt
-
-        kwa['text_format'] = sc.EixoFabricacao
-
-        # Faz a requisição.
-        try:
-            response = cli.responses.parse(**kwa)
-            dic = response.output_parsed.dict()
-
-        except openai.OpenAIError as e:
-            logger.error(f'Error occurred: {str(e)}', exc_info=True)
-            messages.error(request, 'Não foi possível processar o desenho devido a um erro na API da OpenAI, tente novamente mais tarde.')
-            return render(request, 'analise_eixo.html')
-
-        except Exception as e:
-            logger.error(f'Error occurred: {str(e)}', exc_info=True)
-            messages.error(request, 'Ocorreu um erro inesperado. Por favor, entre em contato com o suporte.')
-            return render(request, 'analise_eixo.html')
-
-        # Coleta as informações necessárias.
-        materia_prima = dic.get('materia_prima', '')
-        maquinas = dic.get('maquinas', [])
-        processos = dic.get('processos', '')
-        em_estoque = dic.get('em_estoque', False)
-        item_do_estoque = dic.get('item_do_estoque', '')
-        observacoes = dic.get('observacoes', '')
-
-        # Salva o Projeto
-        project = m.Project()
-
-        # Informações do usuário.
-        project.user = request.user
-
-        if hasattr(request.user, 'company') and request.user.company:
-            project.company = request.user.company
-
-        # Informações do projeto.
-        project.analysis_name = 'Eixo'
-        project.drawing = request.FILES['file']
-        project.user_observation = request.POST.get('prompt', '')
-        project.raw_material = materia_prima
-        project.machines = ', '.join(maquinas)
-        project.processes = processos
-        project.in_stock = em_estoque
-        project.recommended_stock_item = item_do_estoque if item_do_estoque else ''
-        project.ia_observation = observacoes
-
-        project.save()
-        _increment_company_analysis_usage(request.user.company)
-
-        # Adiciona as informações ao contexto.
-        ctx['materia_prima'] = materia_prima
-        ctx['maquinas'] = maquinas
-        ctx['processos'] = processos
-        ctx['em_estoque'] = em_estoque
-        ctx['item_do_estoque'] = item_do_estoque
-        ctx['observacoes'] = observacoes
-        ctx['image_url'] = project.drawing.url
-
-        return render(request, 'analise_eixo.html', ctx)
-
-    return render(request, 'analise_eixo.html')
+    return _processar_analise_projeto(request, _PROJETO_SPECS['eixo'])
 
 @login_required(login_url='/login')
 def analise_chapa(request):
-    ctx = {}
-    cli = openai.OpenAI(api_key=request.user.company.api_key)  # Inicia o cliente OpenAI com a chave da empresa.
-
-    if request.method == 'POST':
-        # Verifica se a empresa pode fazer análises.
-        can_analyze, usage_record = _check_company_analysis_limit(request.user.company)
-
-        if not can_analyze:
-            messages.error(request, f'Limite de análises mensais atingido ({usage_record.analyses_used}/{request.user.company.monthly_analysis_limit}). Se deseja aumentar o limite, entre em contato com o suporte.')
-            return render(request, 'analise_chapa.html')
-
-        quantity_text = f' A quantidade de peças necessárias para este projeto é de {request.POST.get("quantidade", "1")}.'
-
-        # Adiciona a quantidade ao prompt do usuário.
-        user_prompt = 'Observações adicionais do usuário: ' + request.POST.get('prompt', '') + '\n' + quantity_text
-
-        if 'chapa-dobra' in request.POST:
-            # Monta o dicionário para a primeira chamada.
-            kwa = {}
-
-            kwa['model'] = 'gpt-5'
-            kwa['input'] = [{}, {}]
-
-            kwa['input'][0]['role'] = 'system'
-            kwa['input'][0]['content'] = [{}]
-            kwa['input'][0]['content'][0]['type'] = 'input_text'
-            kwa['input'][0]['content'][0]['text'] = m.SystemMessages.objects.get(name='system_chapa_dobra_analise').text
-
-            kwa['input'][1]['role'] = 'user'
-            kwa['input'][1]['content'] = [{}, {}]
-            kwa['input'][1]['content'][0]['type'] = 'input_text'
-            kwa['input'][1]['content'][0]['text'] = m.Prompt.objects.get(name='prompt_chapa_dobra_analise').text
-            kwa['input'][1]['content'][1] = build_content_item(cli, request.FILES['file'])
-
-            kwa['text_format'] = sc.ChapadobradaAnalysis
-
-            # Faz a requisição.
-            try:
-                response = cli.responses.parse(**kwa)
-                dic = response.output_parsed.dict()
-
-            except openai.OpenAIError as e:
-                logger.error(f'Error occurred: {str(e)}', exc_info=True)
-                messages.error(request, 'Não foi possível processar o desenho devido a um erro na API da OpenAI, tente novamente mais tarde.')
-
-                return render(request, 'analise_chapa.html')
-
-            except Exception as e:
-                logger.error(f'Error occurred: {str(e)}', exc_info=True)
-                messages.error(request, 'Ocorreu um erro inesperado. Por favor, entre em contato com o suporte.')
-
-                return render(request, 'analise_chapa.html')
-
-            # Monta o texto de contextualização do projeto.
-            info_project = 'Essas são todas as informações necessárias para a sua análise: \n'
-
-            info_project += f'Espessura: {dic.get("espessura", "")}\n'
-            info_project += f'Comprimento: {dic.get("comprimento", "")}\n'
-            info_project += f'Largura: {dic.get("largura", "")}\n'
-            info_project += f'Rebaixos: {dic.get("rebaixos", "")}\n'
-            info_project += f'Furos: {dic.get("furos", "")}\n'
-            info_project += f'Matéria-prima: {dic.get("materia_prima", "")}\n'
-            info_project += f'Observações: {dic.get("observacoes", "")}\n'
-            info_project += '\n'
-
-            # Monta a lista de estoque de chapas disponíveis para análise da IA.
-            stock = m.Stock.objects.filter(company=request.user.company, status='Disponível', category='Chapa')
-            stock_list = []
-
-            for item in stock:
-                stock_list.append(f'Item: {item.name}, Código: {item.code}, Espessura: {item.thickness}", Comprimento: {item.length}, Largura: {item.width},  Material: {item.material}, Quantidade: {item.quantity}')
-
-            msg_stock = 'Estes são os itens disponíveis no estoque:\n' + '\n'.join(stock_list)
-
-            # Monta o texto de contextualização da Empresa para a análise.
-            company_info = _get_company_info(m.Company.objects.get(name=request.user.company.name))
-
-            # Agrupa todas as informações de contexto.
-            info_context = f'{company_info}\n{msg_stock}\n{info_project}'
-
-            # Monta a segunda chamada.
-            kwa = {}
-
-            kwa['model'] = 'gpt-4.1'
-            kwa['temperature'] = 0.1
-            kwa['input'] = [{}, {}]
-
-            kwa['input'][0]['role'] = 'system'
-            kwa['input'][0]['content'] = [{}]
-            kwa['input'][0]['content'][0]['type'] = 'input_text'
-            kwa['input'][0]['content'][0]['text'] = m.SystemMessages.objects.get(name='system_chapa_dobra_final').text
-
-            kwa['input'][1]['role'] = 'user'
-            kwa['input'][1]['content'] = [{}, {}, {}]
-            kwa['input'][1]['content'][0]['type'] = 'input_text'
-            kwa['input'][1]['content'][0]['text'] = m.Prompt.objects.get(name='prompt_chapa_dobra_final').text
-            kwa['input'][1]['content'][1]['type'] = 'input_text'
-            kwa['input'][1]['content'][1]['text'] = info_context
-            kwa['input'][1]['content'][2]['type'] = 'input_text'
-            kwa['input'][1]['content'][2]['text'] = user_prompt
-
-            kwa['text_format'] = sc.ChapadobradaFabricacao
-
-            # Faz a requisição.
-            try:
-                response = cli.responses.parse(**kwa)
-                dic = response.output_parsed.dict()
-
-            except openai.OpenAIError as e:
-                logger.error(f'Error occurred: {str(e)}', exc_info=True)
-                messages.error(request, 'Não foi possível processar o desenho devido a um erro na API da OpenAI, tente novamente mais tarde.')
-                return render(request, 'analise_chapa.html')
-
-            except Exception as e:
-                logger.error(f'Error occurred: {str(e)}', exc_info=True)
-                messages.error(request, 'Ocorreu um erro inesperado. Por favor, entre em contato com o suporte.')
-                return render(request, 'analise_chapa.html')
-
-        else:  # Para chapas comuns.
-            # Monta o dicionário para a primeira chamada.
-            kwa = {}
-
-            kwa['model'] = 'gpt-5'
-            kwa['input'] = [{}, {}]
-
-            kwa['input'][0]['role'] = 'system'
-            kwa['input'][0]['content'] = [{}]
-            kwa['input'][0]['content'][0]['type'] = 'input_text'
-            kwa['input'][0]['content'][0]['text'] = m.SystemMessages.objects.get(name='system_chapa_analise').text
-
-            kwa['input'][1]['role'] = 'user'
-            kwa['input'][1]['content'] = [{}, {}]
-            kwa['input'][1]['content'][0]['type'] = 'input_text'
-            kwa['input'][1]['content'][0]['text'] = m.Prompt.objects.get(name='prompt_chapa_analise').text
-            kwa['input'][1]['content'][1] = build_content_item(cli, request.FILES['file'])
-
-            kwa['text_format'] = sc.ChapaAnalysis
-
-            # Faz a requisição.
-            try:
-                response = cli.responses.parse(**kwa)
-                dic = response.output_parsed.dict()
-
-            except openai.OpenAIError as e:
-                logger.error(f'Error occurred: {str(e)}', exc_info=True)
-                messages.error(request, 'Não foi possível processar o desenho devido a um erro na API da OpenAI, tente novamente mais tarde.')
-
-                return render(request, 'analise_chapa.html')
-
-            except Exception as e:
-                logger.error(f'Error occurred: {str(e)}', exc_info=True)
-                messages.error(request, 'Ocorreu um erro inesperado. Por favor, entre em contato com o suporte.')
-
-                return render(request, 'analise_chapa.html')
-
-            # Monta o texto de contextualização do projeto.
-            info_project = 'Essas são todas as informações necessárias para a sua análise: \n'
-
-            info_project += f'Espessura: {dic.get("espessura", "")}\n'
-            info_project += f'Comprimento: {dic.get("comprimento", "")}\n'
-            info_project += f'Largura: {dic.get("largura", "")}\n'
-            info_project += f'Rebaixos: {dic.get("rebaixos", "")}\n'
-            info_project += f'Furos: {dic.get("furos", "")}\n'
-            info_project += f'Matéria-prima: {dic.get("materia_prima", "")}\n'
-            info_project += f'Observações: {dic.get("observacoes", "")}\n'
-            info_project += '\n'
-
-            # Monta a lista de estoque de chapas disponíveis para análise da IA.
-            stock = m.Stock.objects.filter(company=request.user.company, status='Disponível', category='Chapa')
-            stock_list = []
-
-            for item in stock:
-                stock_list.append(f'Item: {item.name}, Código: {item.code}, Espessura: {item.thickness}", Comprimento: {item.length}, Largura: {item.width},  Material: {item.material}, Quantidade: {item.quantity}')
-
-            msg_stock = 'Estes são os itens disponíveis no estoque:\n' + '\n'.join(stock_list)
-
-            # Monta o texto de contextualização da Empresa para a análise.
-            company_info = _get_company_info(m.Company.objects.get(name=request.user.company.name))
-
-            # Agrupa todas as informações de contexto.
-            info_context = f'{company_info}\n{msg_stock}\n{info_project}'
-
-            # Monta a segunda chamada.
-            kwa = {}
-
-            kwa['model'] = 'gpt-4.1'
-            kwa['temperature'] = 0.1
-            kwa['input'] = [{}, {}]
-
-            kwa['input'][0]['role'] = 'system'
-            kwa['input'][0]['content'] = [{}]
-            kwa['input'][0]['content'][0]['type'] = 'input_text'
-            kwa['input'][0]['content'][0]['text'] = m.SystemMessages.objects.get(name='system_chapa_final').text
-
-            kwa['input'][1]['role'] = 'user'
-            kwa['input'][1]['content'] = [{}, {}, {}]
-            kwa['input'][1]['content'][0]['type'] = 'input_text'
-            kwa['input'][1]['content'][0]['text'] = m.Prompt.objects.get(name='prompt_chapa_final').text
-            kwa['input'][1]['content'][1]['type'] = 'input_text'
-            kwa['input'][1]['content'][1]['text'] = info_context
-            kwa['input'][1]['content'][2]['type'] = 'input_text'
-            kwa['input'][1]['content'][2]['text'] = user_prompt
-
-            kwa['text_format'] = sc.ChapaFabricacao
-
-            # Faz a requisição.
-            try:
-                response = cli.responses.parse(**kwa)
-                dic = response.output_parsed.dict()
-
-            except openai.OpenAIError as e:
-                logger.error(f'Error occurred: {str(e)}', exc_info=True)
-                messages.error(request, 'Não foi possível processar o desenho devido a um erro na API da OpenAI, tente novamente mais tarde.')
-                return render(request, 'analise_chapa.html')
-
-            except Exception as e:
-                logger.error(f'Error occurred: {str(e)}', exc_info=True)
-                messages.error(request, 'Ocorreu um erro inesperado. Por favor, entre em contato com o suporte.')
-                return render(request, 'analise_chapa.html')
-
-        # Coleta as informações necessárias.
-        materia_prima = dic.get('materia_prima', '')
-        maquinas = dic.get('maquinas', [])
-        processos = dic.get('processos', '')
-        em_estoque = dic.get('em_estoque', False)
-        item_do_estoque = dic.get('item_do_estoque', '')
-        aproveitamento = dic.get('aproveitamento', '')
-
-        # Salva o Projeto
-        project = m.Project()
-
-        # Informações do usuário.
-        project.user = request.user
-
-        if hasattr(request.user, 'company') and request.user.company:
-            project.company = request.user.company
-
-        # Informações do projeto.
-        project.analysis_name = 'Chapa'
-        project.drawing = request.FILES['file']
-        project.user_observation = request.POST.get('prompt', '')
-        project.raw_material = materia_prima
-        project.machines = ', '.join(maquinas)
-        project.processes = processos
-        project.in_stock = em_estoque
-        project.recommended_stock_item = item_do_estoque if item_do_estoque else ''
-        project.ia_observation = aproveitamento
-
-        project.save()
-        _increment_company_analysis_usage(request.user.company)
-
-        # Adiciona as informações ao contexto
-        ctx['materia_prima'] = materia_prima
-        ctx['maquinas'] = maquinas
-        ctx['processos'] = processos
-        ctx['em_estoque'] = em_estoque
-        ctx['item_do_estoque'] = item_do_estoque
-        ctx['aproveitamento'] = aproveitamento
-        ctx['image_url'] = project.drawing.url
-
-        return render(request, 'analise_chapa.html', ctx)
-
-    return render(request, 'analise_chapa.html', ctx)
+    # Chapa dobrada e chapa comum compartilham o mesmo pipeline; só mudam os
+    # prompts/schemas. A variante vem do checkbox 'chapa-dobra' do formulário.
+    spec_key = 'chapa_dobra' if (request.method == 'POST' and 'chapa-dobra' in request.POST) else 'chapa_comum'
+    return _processar_analise_projeto(request, _PROJETO_SPECS[spec_key])
 
 @login_required(login_url='/login')
 def analise_tubo(request):
-    cli = openai.OpenAI(api_key=request.user.company.api_key)  # Inicia o cliente OpenAI com a chave da empresa.
-    ctx = {}
-
-    if request.method == 'POST':
-        # Verifica se a empresa pode fazer análises.
-        can_analyze, usage_record = _check_company_analysis_limit(request.user.company)
-
-        if not can_analyze:
-            messages.error(request, f'Limite de análises mensais atingido ({usage_record.analyses_used}/{request.user.company.monthly_analysis_limit}). Se deseja aumentar o limite, entre em contato com o suporte.')
-            return render(request, 'analise_tubo.html')
-
-        quantity_text = f' A quantidade de peças necessárias para este projeto é de {request.POST.get("quantidade", "1")}.'
-
-        # Adiciona a quantidade ao prompt do usuário.
-        user_prompt = 'Observações adicionais do usuário: ' + request.POST.get('prompt', '') + '\n' + quantity_text
-
-        # Monta o dicionário para a primeira chamada.
-        kwa = {}
-
-        kwa['model'] = 'gpt-5'
-        kwa['input'] = [{}, {}]
-
-        kwa['input'][0]['role'] = 'system'
-        kwa['input'][0]['content'] = [{}]
-        kwa['input'][0]['content'][0]['type'] = 'input_text'
-        kwa['input'][0]['content'][0]['text'] = m.SystemMessages.objects.get(name='system_tubo_analise').text
-
-        kwa['input'][1]['role'] = 'user'
-        kwa['input'][1]['content'] = [{}, {}]
-        kwa['input'][1]['content'][0]['type'] = 'input_text'
-        kwa['input'][1]['content'][0]['text'] = m.Prompt.objects.get(name='prompt_tubo_analise').text
-        kwa['input'][1]['content'][1] = build_content_item(cli, request.FILES['file'])
-
-        kwa['text_format'] = sc.TuboAnalysis
-
-        # Faz a requisição.
-        try:
-            response = cli.responses.parse(**kwa)
-            dic = response.output_parsed.dict()
-
-        except openai.OpenAIError as e:
-            logger.error(f'Error occurred: {str(e)}', exc_info=True)
-            messages.error(request, 'Não foi possível processar o desenho devido a um erro na API da OpenAI, tente novamente mais tarde.')
-
-            return render(request, 'analise_tubo.html')
-
-        except Exception as e:
-            logger.error(f'Error occurred: {str(e)}', exc_info=True)
-            messages.error(request, 'Ocorreu um erro inesperado. Por favor, entre em contato com o suporte.')
-
-            return render(request, 'analise_tubo.html')
-
-        # Monta o texto de contextualização do projeto.
-        info_project = 'Essas são todas as informações necessárias para a sua análise: \n'
-
-        info_project += f'Diâmetro maior: {dic.get("diametro_maior", "")}\n'
-        info_project += f'Diâmetros: {dic.get("diametros", "")}\n'
-        info_project += f'Comprimento: {dic.get("comprimento", "")}\n'
-        info_project += f'Roscas: {dic.get("roscas", "")}\n'
-        info_project += f'Furos: {dic.get("furos", "")}\n'
-        info_project += f'Rasgos de chaveta: {dic.get("rasgos_de_chaveta", "")}\n'
-        info_project += f'Matéria-prima: {dic.get("materia_prima", "")}\n'
-        info_project += f'Observações: {dic.get("observacoes", "")}\n'
-        info_project += '\n'
-
-        # Monta a lista de estoque de barras redondas disponíveis para análise da IA.
-        stock = m.Stock.objects.filter(company=request.user.company, status='Disponível', category='Tubo')
-        stock_list = []
-
-        for item in stock:
-            stock_list.append(f'Item: {item.name}, Código: {item.code}, Diâmetro: {item.diameter}", Comprimento: {item.length}, Material: {item.material}, Quantidade: {item.quantity}')
-
-        msg_stock = 'Estes são os itens disponíveis no estoque:\n' + '\n'.join(stock_list)
-
-        # Monta o texto de contextualização da Empresa para a análise.
-        company_info = _get_company_info(m.Company.objects.get(name=request.user.company.name))
-
-        # Agrupa todas as informações de contexto.
-        info_context = f'{company_info}\n{msg_stock}\n{info_project}'
-
-        # Monta a segunda chamada.
-        kwa = {}
-
-        kwa['model'] = 'gpt-4.1'
-        kwa['temperature'] = 0.1
-        kwa['input'] = [{}, {}]
-
-        kwa['input'][0]['role'] = 'system'
-        kwa['input'][0]['content'] = [{}]
-        kwa['input'][0]['content'][0]['type'] = 'input_text'
-        kwa['input'][0]['content'][0]['text'] = m.SystemMessages.objects.get(name='system_tubo_final').text
-
-        kwa['input'][1]['role'] = 'user'
-        kwa['input'][1]['content'] = [{}, {}, {}]
-        kwa['input'][1]['content'][0]['type'] = 'input_text'
-        kwa['input'][1]['content'][0]['text'] = m.Prompt.objects.get(name='prompt_tubo_final').text
-        kwa['input'][1]['content'][1]['type'] = 'input_text'
-        kwa['input'][1]['content'][1]['text'] = info_context
-        kwa['input'][1]['content'][2]['type'] = 'input_text'
-        kwa['input'][1]['content'][2]['text'] = user_prompt
-
-        kwa['text_format'] = sc.TuboFabricacao
-
-        # Faz a requisição.
-        try:
-            response = cli.responses.parse(**kwa)
-            dic = response.output_parsed.dict()
-
-        except openai.OpenAIError as e:
-            logger.error(f'Error occurred: {str(e)}', exc_info=True)
-            messages.error(request, 'Não foi possível processar o desenho devido a um erro na API da OpenAI, tente novamente mais tarde.')
-            return render(request, 'analise_tubo.html')
-
-        except Exception as e:
-            logger.error(f'Error occurred: {str(e)}', exc_info=True)
-            messages.error(request, 'Ocorreu um erro inesperado. Por favor, entre em contato com o suporte.')
-            return render(request, 'analise_tubo.html')
-
-        # Coleta as informações necessárias.
-        materia_prima = dic.get('materia_prima', '')
-        maquinas = dic.get('maquinas', [])
-        processos = dic.get('processos', '')
-        em_estoque = dic.get('em_estoque', False)
-        item_do_estoque = dic.get('item_do_estoque', '')
-        observacoes = dic.get('observacoes', '')
-
-        # Salva o Projeto.
-        project = m.Project()
-
-        # Informações do usuário.
-        project.user = request.user
-
-        if hasattr(request.user, 'company') and request.user.company:
-            project.company = request.user.company
-
-        # Informações do projeto.
-        project.analysis_name = 'Tubo'
-        project.drawing = request.FILES['file']
-        project.user_observation = request.POST.get('prompt', '')
-        project.raw_material = materia_prima
-        project.machines = ', '.join(maquinas)
-        project.processes = processos
-        project.in_stock = em_estoque
-        project.recommended_stock_item = item_do_estoque if item_do_estoque else ''
-        project.ia_observation = observacoes
-
-        project.save()
-        _increment_company_analysis_usage(request.user.company)
-
-        # Adiciona as informações ao contexto.
-        ctx['materia_prima'] = materia_prima
-        ctx['maquinas'] = maquinas
-        ctx['processos'] = processos
-        ctx['em_estoque'] = em_estoque
-        ctx['item_do_estoque'] = item_do_estoque
-        ctx['observacoes'] = observacoes
-        ctx['image_url'] = project.drawing.url
-
-        return render(request, 'analise_tubo.html', ctx)
-
-    return render(request, 'analise_tubo.html')
+    return _processar_analise_projeto(request, _PROJETO_SPECS['tubo'])
 
 @login_required(login_url='/login')
 def analise_tecnica(request):
@@ -827,7 +518,7 @@ def analise_tecnica(request):
 
         # Faz a requisição.
         try:
-            response = cli.responses.parse(**kwa)
+            response = ai.parse_with_retry(cli, **kwa)
             dic = response.output_parsed.dict()
 
         except openai.OpenAIError as e:
@@ -1424,3 +1115,247 @@ def detalhe_analise_tecnica(request, analise_id):
 
     else:
         return redirect('/acesso_negado')
+
+# =========================================================================
+# Chat de refino agêntico — interface conversacional sobre uma análise.
+# =========================================================================
+
+def _usuario_pode_ver_sessao(user, sessao):
+    '''Mesma regra de acesso das análises: dono ou gerente da mesma empresa.'''
+
+    if sessao.user_id == user.id:
+        return True
+
+    return user.groups.filter(name='Gerente').exists() and user.company_id == sessao.company_id
+
+@login_required(login_url='/login')
+def chat_refino(request, sessao_id):
+    '''Renderiza a interface de chat de uma sessão de refino.'''
+
+    sessao = get_object_or_404(m.ChatSession, pk=sessao_id)
+
+    if not _usuario_pode_ver_sessao(request.user, sessao):
+        return redirect('/acesso_negado')
+
+    ctx = {
+        'sessao': sessao,
+        'mensagens': sessao.messages.all(),
+        'analise': sessao.get_analysis(),
+    }
+
+    return render(request, 'chat_refino.html', ctx)
+
+@login_required(login_url='/login')
+def chat_iniciar(request, analysis_kind, analysis_id):
+    '''Cria (ou reaproveita) uma sessão de chat para refinar uma análise e
+    redireciona pra interface. analysis_kind: "projeto" ou "tecnica".'''
+
+    if analysis_kind not in ('projeto', 'tecnica'):
+        return redirect('/acesso_negado')
+
+    company = request.user.company
+
+    sessao = m.ChatSession.objects.filter(
+        company=company, user=request.user,
+        analysis_kind=analysis_kind, analysis_id=analysis_id,
+    ).first()
+
+    if not sessao:
+        sessao = m.ChatSession.objects.create(
+            company=company, user=request.user,
+            analysis_kind=analysis_kind, analysis_id=analysis_id,
+            title=f'Refino {analysis_kind} #{analysis_id}',
+        )
+
+    return redirect('chat_refino', sessao_id=sessao.id)
+
+@login_required(login_url='/login')
+def chat_enviar(request, sessao_id):
+    '''Recebe a mensagem do usuário (POST AJAX), roda o loop agêntico e
+    devolve a resposta em JSON. Persiste as duas mensagens.'''
+
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método não permitido'}, status=405)
+
+    sessao = get_object_or_404(m.ChatSession, pk=sessao_id)
+
+    if not _usuario_pode_ver_sessao(request.user, sessao):
+        return JsonResponse({'error': 'Acesso negado'}, status=403)
+
+    try:
+        payload = json.loads(request.body or '{}')
+    except json.JSONDecodeError:
+        payload = {}
+
+    mensagem = (payload.get('mensagem') or '').strip()
+
+    if not mensagem:
+        return JsonResponse({'error': 'Mensagem vazia'}, status=400)
+
+    # Histórico no formato esperado pelo loop.
+    historico = [{'role': msg.role, 'content': msg.content}
+                 for msg in sessao.messages.all()]
+
+    # Persiste a mensagem do usuário antes de chamar a IA.
+    m.ChatMessage.objects.create(session=sessao, role='user', content=mensagem)
+
+    cli = ai.get_client(request.user.company)
+
+    try:
+        resultado = chat_agent.run_refine_loop(
+            cli, mensagem,
+            company=request.user.company,
+            analysis=sessao.get_analysis(),
+            analysis_kind=sessao.analysis_kind or None,
+            chat_history=historico,
+        )
+    except Exception as e:
+        logger.error(f'Erro no loop de refino: {e}', exc_info=True)
+        return JsonResponse({'error': 'Erro ao processar a mensagem. Tente novamente.'}, status=500)
+
+    resposta = resultado.get('resposta', '')
+    tools_usadas = resultado.get('tools_usadas', [])
+
+    m.ChatMessage.objects.create(session=sessao, role='assistant',
+                                 content=resposta, tools_used=tools_usadas)
+
+    # Toca updated_date pra ordenação das sessões.
+    sessao.save(update_fields=['updated_date'])
+
+    return JsonResponse({'resposta': resposta, 'tools_usadas': tools_usadas})
+
+# =========================================================================
+# Documentos: Ordem de Compra (CSV) e Ordem de Serviço (PDF).
+# =========================================================================
+
+def _resolver_analise(user, analysis_kind, analysis_id):
+    '''Resolve a análise (Project/TechnicalAnalysis) aplicando a regra de acesso
+    (dono ou gerente da mesma empresa). Retorna a análise ou None.'''
+
+    if analysis_kind == 'projeto':
+        analysis = m.Project.objects.filter(pk=analysis_id).first()
+    elif analysis_kind == 'tecnica':
+        analysis = m.TechnicalAnalysis.objects.filter(pk=analysis_id).first()
+    else:
+        return None
+
+    if not analysis:
+        return None
+
+    pode = (user.groups.filter(name='Gerente').exists() and user.company_id == analysis.company_id) or analysis.user_id == user.id
+
+    return analysis if pode else None
+
+def _csv_response(conteudo, filename):
+    response = HttpResponse(conteudo, content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+def _pdf_response(conteudo, filename):
+    response = HttpResponse(conteudo, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+@login_required(login_url='/login')
+def ordem_compra_gerar(request, analysis_kind, analysis_id):
+    '''Cria a Ordem de Compra a partir da recomendação da IA e baixa o CSV.'''
+
+    analysis = _resolver_analise(request.user, analysis_kind, analysis_id)
+
+    if not analysis:
+        return redirect('/acesso_negado')
+
+    itens = documents.build_purchase_items_from_analysis(analysis, analysis_kind)
+
+    if not itens:
+        messages.error(request, 'Não há itens de compra a gerar para esta análise (nenhum material/sub-parte comercial).')
+        return redirect(request.META.get('HTTP_REFERER', '/'))
+
+    # Reaproveita o rascunho de OC desta análise (não duplica a cada clique) e
+    # atualiza os itens caso a análise tenha sido refinada. Se a OC já saiu do
+    # rascunho (foi finalizada), gera uma nova.
+    filtro = {'project': analysis} if analysis_kind == 'projeto' else {'technical_analysis': analysis}
+    pr = m.PurchaseRequest.objects.filter(company=request.user.company, status='Rascunho', **filtro).order_by('-id').first()
+
+    if pr:
+        pr.items = itens
+        pr.save(update_fields=['items'])
+    else:
+        pr = m.PurchaseRequest(company=request.user.company, created_by=request.user, items=itens, status='Rascunho', **filtro)
+        pr.save()
+
+    conteudo = documents.purchase_request_to_csv(pr)
+    return _csv_response(conteudo, f'{pr.numero}.csv')
+
+@login_required(login_url='/login')
+def ordem_compra_csv(request, pr_id):
+    '''Rebaixa o CSV de uma OC já existente.'''
+
+    pr = get_object_or_404(m.PurchaseRequest, pk=pr_id)
+
+    pode = (request.user.groups.filter(name='Gerente').exists() and request.user.company_id == pr.company_id) or (pr.created_by_id == request.user.id)
+
+    if not pode:
+        return redirect('/acesso_negado')
+
+    return _csv_response(documents.purchase_request_to_csv(pr), f'{pr.numero}.csv')
+
+@login_required(login_url='/login')
+def ordem_servico_gerar(request, analysis_kind, analysis_id):
+    '''Cria a Ordem de Serviço (snapshot do plano) e baixa o PDF.'''
+
+    analysis = _resolver_analise(request.user, analysis_kind, analysis_id)
+
+    if not analysis:
+        return redirect('/acesso_negado')
+
+    snapshot = documents.build_service_order_snapshot(analysis, analysis_kind)
+
+    # Reaproveita a OS aberta desta análise (não duplica a cada clique) e
+    # reatualiza o snapshot. Se já foi finalizada, gera uma nova.
+    filtro = {'project': analysis} if analysis_kind == 'projeto' else {'technical_analysis': analysis}
+    so = m.ServiceOrder.objects.filter(company=request.user.company, status='Aberta', **filtro).order_by('-id').first()
+
+    if so:
+        so.snapshot = snapshot
+        so.save(update_fields=['snapshot'])
+    else:
+        so = m.ServiceOrder(company=request.user.company, created_by=request.user, snapshot=snapshot, status='Aberta', **filtro)
+        so.save()
+
+    return _pdf_response(documents.render_service_order_pdf(so), f'{so.numero}.pdf')
+
+def _docs_scope(request, model):
+    '''Gerente vê os documentos da empresa; usuário comum vê os próprios.'''
+
+    if request.user.groups.filter(name='Gerente').exists():
+        return model.objects.filter(company=request.user.company)
+
+    return model.objects.filter(created_by=request.user)
+
+@login_required(login_url='/login')
+def ordens_compra(request):
+    query = _docs_scope(request, m.PurchaseRequest).order_by('-id')
+    paginator = Paginator(query, 15)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'ordens_compra.html', {'page_obj': page_obj})
+
+@login_required(login_url='/login')
+def ordens_servico(request):
+    query = _docs_scope(request, m.ServiceOrder).order_by('-id')
+    paginator = Paginator(query, 15)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'ordens_servico.html', {'page_obj': page_obj})
+
+@login_required(login_url='/login')
+def ordem_servico_pdf(request, so_id):
+    '''Rebaixa o PDF de uma OS já existente.'''
+
+    so = get_object_or_404(m.ServiceOrder, pk=so_id)
+
+    pode = (request.user.groups.filter(name='Gerente').exists() and request.user.company_id == so.company_id) or (so.created_by_id == request.user.id)
+
+    if not pode:
+        return redirect('/acesso_negado')
+
+    return _pdf_response(documents.render_service_order_pdf(so), f'{so.numero}.pdf')

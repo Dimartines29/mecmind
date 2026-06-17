@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}MecMind - Ordens de Serviço{% endblock %}
+
+{% block content %}
+    <div class="header-banner">
+        <div class="banner-content">
+            <h1>Ordens de Serviço</h1>
+        </div>
+    </div>
+
+    <div class="doc-tabs" style="max-width: 1000px; margin: 16px auto; display: flex; gap: 10px; justify-content: center;">
+        <a href="{% url 'ordens_compra' %}" style="padding: 8px 16px; border-radius: 8px; background: #eef1f6; color: #1f2a44; text-decoration: none; font-weight: 600;">
+            <i class="fas fa-file-csv"></i> Ordens de Compra
+        </a>
+        <a href="{% url 'ordens_servico' %}" style="padding: 8px 16px; border-radius: 8px; background: #dc3545; color: #fff; text-decoration: none; font-weight: 600;">
+            <i class="fas fa-file-pdf"></i> Ordens de Serviço
+        </a>
+    </div>
+
+    <table class="list">
+        <thead>
+            <tr>
+                <th>Número</th>
+                <th>Vínculo</th>
+                <th>Status</th>
+                <th>Criação</th>
+                <th>PDF</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for os in page_obj %}
+                <tr>
+                    <td>{{ os.numero }}</td>
+                    <td>
+                        {% if os.project %}
+                            <a class="list-link" href="{% url 'projeto' os.project.id %}">Projeto {{ os.project.analysis_name }}</a>
+                        {% elif os.technical_analysis %}
+                            <a class="list-link" href="{% url 'detalhe_analise_tecnica' os.technical_analysis.id %}">Análise {{ os.technical_analysis.analysis_name }}</a>
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                    <td>{{ os.status }}</td>
+                    <td>{{ os.created_date|date:"d/m/Y H:i" }}</td>
+                    <td><a class="list-link" href="{% url 'ordem_servico_pdf' os.id %}"><i class="fas fa-download"></i> Baixar</a></td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="5">Nenhuma ordem de serviço gerada ainda.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="paginator">
+        {% include 'paginator.html' %}
+    </div>
+{% endblock %}

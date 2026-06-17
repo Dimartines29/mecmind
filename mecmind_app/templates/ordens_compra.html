@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}MecMind - Ordens de Compra{% endblock %}
+
+{% block content %}
+    <div class="header-banner">
+        <div class="banner-content">
+            <h1>Ordens de Compra</h1>
+        </div>
+    </div>
+
+    <div class="doc-tabs" style="max-width: 1000px; margin: 16px auto; display: flex; gap: 10px; justify-content: center;">
+        <a href="{% url 'ordens_compra' %}" style="padding: 8px 16px; border-radius: 8px; background: #16a34a; color: #fff; text-decoration: none; font-weight: 600;">
+            <i class="fas fa-file-csv"></i> Ordens de Compra
+        </a>
+        <a href="{% url 'ordens_servico' %}" style="padding: 8px 16px; border-radius: 8px; background: #eef1f6; color: #1f2a44; text-decoration: none; font-weight: 600;">
+            <i class="fas fa-file-pdf"></i> Ordens de Serviço
+        </a>
+    </div>
+
+    <table class="list">
+        <thead>
+            <tr>
+                <th>Número</th>
+                <th>Vínculo</th>
+                <th>Itens</th>
+                <th>Status</th>
+                <th>Criação</th>
+                <th>CSV</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for oc in page_obj %}
+                <tr>
+                    <td>{{ oc.numero }}</td>
+                    <td>
+                        {% if oc.project %}
+                            <a class="list-link" href="{% url 'projeto' oc.project.id %}">Projeto {{ oc.project.analysis_name }}</a>
+                        {% elif oc.technical_analysis %}
+                            <a class="list-link" href="{% url 'detalhe_analise_tecnica' oc.technical_analysis.id %}">Análise {{ oc.technical_analysis.analysis_name }}</a>
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                    <td>{{ oc.items|length }}</td>
+                    <td>{{ oc.status }}</td>
+                    <td>{{ oc.created_date|date:"d/m/Y H:i" }}</td>
+                    <td><a class="list-link" href="{% url 'ordem_compra_csv' oc.id %}"><i class="fas fa-download"></i> Baixar</a></td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="6">Nenhuma ordem de compra gerada ainda.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="paginator">
+        {% include 'paginator.html' %}
+    </div>
+{% endblock %}

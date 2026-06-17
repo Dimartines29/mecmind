@@ -168,6 +168,33 @@ class SystemMessagesAdmin(admin.ModelAdmin):
     # Define onde fica o link da tabela.
     list_display_links = ('name',)
 
+@admin.register(m.PurchaseRequest)
+class PurchaseRequestAdmin(admin.ModelAdmin):
+    list_display = ('id', 'company', 'status', 'created_by', 'created_date')
+    ordering = ('-created_date',)
+    list_filter = ('status', 'company')
+    search_fields = ('id', 'company__name')
+    list_per_page = 30
+    list_display_links = ('id', 'company')
+
+@admin.register(m.ServiceOrder)
+class ServiceOrderAdmin(admin.ModelAdmin):
+    list_display = ('id', 'company', 'status', 'created_by', 'created_date')
+    ordering = ('-created_date',)
+    list_filter = ('status', 'company')
+    search_fields = ('id', 'company__name')
+    list_per_page = 30
+    list_display_links = ('id', 'company')
+
+@admin.register(m.ChatSession)
+class ChatSessionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'title', 'company', 'user', 'analysis_kind', 'analysis_id', 'updated_date')
+    ordering = ('-updated_date',)
+    list_filter = ('company', 'analysis_kind')
+    search_fields = ('id', 'title', 'company__name')
+    list_per_page = 30
+    list_display_links = ('id', 'title')
+
 @admin.register(m.CompanyUsage)
 class CompanyUsageAdmin(admin.ModelAdmin):
     # Define o que será exibido no painel admin da tabela Uso Mensal.

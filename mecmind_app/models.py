@@ -136,6 +136,108 @@ class SystemMessages(models.Model):
     def __str__(self):
         return self.name
 
+class ChatSession(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='chat_sessions')
+    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='chat_sessions')
+    title = models.CharField('Título', max_length=120, blank=True)
+
+    # Análise vinculada (refino). Genérico via tipo + id pra cobrir Project e
+    # TechnicalAnalysis sem ContentType. analysis_kind: 'projeto' | 'tecnica'.
+    analysis_kind = models.CharField('Tipo de Análise', max_length=20, blank=True)
+    analysis_id = models.PositiveIntegerField('ID da Análise', null=True, blank=True)
+
+    created_date = models.DateTimeField(default=timezone.now)
+    updated_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Sessão de Chat'
+        verbose_name_plural = 'Sessões de Chat'
+        ordering = ['-updated_date']
+
+    def __str__(self):
+        return self.title or f'Chat #{self.pk}'
+
+    def get_analysis(self):
+        '''Resolve a análise vinculada (Project ou TechnicalAnalysis) ou None.'''
+
+        if not self.analysis_id:
+            return None
+
+        if self.analysis_kind == 'projeto':
+            return Project.objects.filter(pk=self.analysis_id).first()
+
+        if self.analysis_kind == 'tecnica':
+            return TechnicalAnalysis.objects.filter(pk=self.analysis_id).first()
+
+        return None
+
+class ChatMessage(models.Model):
+    session = models.ForeignKey(ChatSession, on_delete=models.CASCADE, related_name='messages')
+    role = models.CharField('Papel', max_length=20)  # 'user' | 'assistant'
+    content = models.TextField('Conteúdo', blank=True)
+    tools_used = models.JSONField('Ferramentas Usadas', default=list, blank=True)
+    created_date = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        verbose_name = 'Mensagem de Chat'
+        verbose_name_plural = 'Mensagens de Chat'
+        ordering = ['created_date']
+
+    def __str__(self):
+        return f'{self.role}: {self.content[:40]}'
+
+class PurchaseRequest(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='purchase_requests')
+    created_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='purchase_requests')
+    project = models.ForeignKey(Project, on_delete=models.SET_NULL, null=True, blank=True, related_name='purchase_requests')
+    technical_analysis = models.ForeignKey(TechnicalAnalysis, on_delete=models.SET_NULL, null=True, blank=True, related_name='purchase_requests')
+
+    # itens: lista de {descricao, quantidade, material, ...}
+    items = models.JSONField('Itens', default=list, blank=True)
+    justification = models.TextField('Justificativa', blank=True)
+    status = models.CharField('Status', max_length=20, default='Rascunho')
+    created_date = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        verbose_name = 'Solicitação de Compra'
+        verbose_name_plural = 'Solicitações de Compra'
+        ordering = ['-created_date']
+
+    def __str__(self):
+        return f'{self.numero} - {self.company.name} ({self.status})'
+
+    @property
+    def numero(self):
+        '''Número legível e estável da OC (ano + id). Ex: OC-2026-00007.'''
+
+        return f'OC-{self.created_date.year}-{self.pk:05d}' if self.pk else 'OC-?'
+
+class ServiceOrder(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='service_orders')
+    created_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='service_orders')
+    project = models.ForeignKey(Project, on_delete=models.SET_NULL, null=True, blank=True, related_name='service_orders')
+    technical_analysis = models.ForeignKey(TechnicalAnalysis, on_delete=models.SET_NULL, null=True, blank=True, related_name='service_orders')
+
+    # Conteúdo congelado da OS no momento da geração (snapshot) — garante que
+    # uma OS emitida não muda se a análise for editada depois.
+    snapshot = models.JSONField('Conteúdo', default=dict, blank=True)
+    status = models.CharField('Status', max_length=20, default='Aberta')
+    created_date = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        verbose_name = 'Ordem de Serviço'
+        verbose_name_plural = 'Ordens de Serviço'
+        ordering = ['-created_date']
+
+    def __str__(self):
+        return f'{self.numero} - {self.company.name} ({self.status})'
+
+    @property
+    def numero(self):
+        '''Número legível e estável da OS (ano + id). Ex: OS-2026-00007.'''
+
+        return f'OS-{self.created_date.year}-{self.pk:05d}' if self.pk else 'OS-?'
+
 class CompanyUsage(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='usage_records')
     year = models.IntegerField('Ano')
